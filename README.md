@@ -46,3 +46,4 @@ Vite will then provide a local development server URL that you can paste into yo
 2. Branches naming: main, develop, feature/feature-name, bugfix/bug-name, release/release-version, hotfix/hotfix-name
 3. We will use Jira for tracking issues and user stories.
 4. Pull request: All changes to the main branch should be via pull requests
+5. NEVER edit the main branch directly. always branch off first, then have someone else review the PR before merging
