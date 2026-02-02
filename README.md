@@ -1,6 +1,6 @@
 # FinWise
 
-FinWise is an AI powered financial assistant that helps with decisions related to Mutual Funds and ETF (current scope). Users are entitled to build a portfolio that will help the AI provide precise and timely investment instructions (ex. Stock / funds to invest in)
+FinWise is an AI-powered financial assistant that helps with decisions related to Mutual Funds and ETF (current scope). Users are entitled to build a portfolio that will help the AI provide precise and timely investment instructions (ex. Stock / funds to invest in)
 
 ## Downloading
 
@@ -40,7 +40,7 @@ npm run dev
 
 Vite will then provide a local development server URL that you can paste into your browser
 
-## Contribution
+## Contribution Guidelines
 
 1. Git Flow: We will use git flow for managing branches and releases.
 2. Branches naming: main, develop, feature/feature-name, bugfix/bug-name, release/release-version, hotfix/hotfix-name
