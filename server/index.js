@@ -3,7 +3,7 @@ import cors from 'cors'
 import { config } from "dotenv"
 import { connectMongooseDB } from './lib/db.js'
 
-import userRoutes from './routes/account.js'
+import accountRouter from './routes/account.js'
 
 // Enable dotenv
 config()
@@ -33,7 +33,7 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK '})
 })
 
-app.use('/api/users', userRoutes)
+app.use('/api/users', accountRouter)
 
 app.listen(port, () => {
     console.log(`Server is listening on port:  ${port}`)

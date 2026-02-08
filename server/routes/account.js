@@ -1,8 +1,8 @@
 import express from 'express'
 import AccountController from '../controllers/account.js'
 
-const userRouter = express.Router()
+const accountRouter = express.Router()
 
-userRouter.post('/register', AccountController.register)
+accountRouter.post('/register', AccountController.register)
 
-export default userRouter
+export default accountRouter
