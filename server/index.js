@@ -1,7 +1,9 @@
 import express from 'express'
-import { config } from "dotenv"
-import { connectMongooseDB } from './lib/db.js';
 import cors from 'cors'
+import { config } from "dotenv"
+import { connectMongooseDB } from './lib/db.js'
+
+import userRoutes from './routes/account.js'
 
 // Enable dotenv
 config()
@@ -31,9 +33,11 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK '})
 })
 
+app.use('/api/users', userRoutes)
+
 app.listen(port, () => {
-    console.log(`Server is listening on port: ${port}`)
-    console.log(`process.env.NODE_ENV:        ${nodeEnv}`)
+    console.log(`Server is listening on port:  ${port}`)
+    console.log(`process.env.NODE_ENV:         ${nodeEnv}`)
 
     connectMongooseDB(MongoURI)
 })
