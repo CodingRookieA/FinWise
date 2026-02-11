@@ -8,8 +8,8 @@ export const Navbar = () => {
             <Container>
                 <div className={styles.navInner}>
                 <div className={styles.logo}>
-                    <Typography variant="h6" fontWeight={700} color="text.primary">
-                    FinWise
+                    <Typography variant="h4" fontWeight={700} color="text.primary">
+                        Fin<span style={{color: '#10B981'}}>Wise</span>
                     </Typography>
                 </div>
                 <div className={styles.navLinks}>
