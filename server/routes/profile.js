@@ -1,10 +1,10 @@
 import express from 'express'
-import { getProfile, patchProfile, getRandomUnanswered } from '../controllers/profile.js'
+import profileController  from '../controllers/profile.js'
 
-const profileRouter = express.Router()
+const profileRouter = express.Router();
 
-profileRouter.get('/profile', getProfile)
-profileRouter.patch('/profile', patchProfile)
-profileRouter.get('/questionnaire', getRandomUnanswered)
+profileRouter.get('/profile', profileController.getProfile)
+profileRouter.patch('/profile', profileController.patchProfile)
+profileRouter.get('/questionnaire', profileController.getRandomUnanswered)
 
 export default profileRouter
