@@ -4,6 +4,7 @@ import { config } from "dotenv"
 import { connectMongooseDB } from './lib/db.js'
 
 import accountRouter from './routes/account.js'
+import session from 'express-session'
 
 // Enable dotenv
 config()
@@ -17,6 +18,7 @@ const clientURL =
     ? process.env.CLIENT_URL
     : process.env.CLIENT_URL_DEVELOPMENT
 const MongoURI = process.env.MONGODB_URI
+const sessionSecretKey = process.env.SESSION_SECRET_KEY
 
 //Middleware
 const corsConfig = {
@@ -25,6 +27,14 @@ const corsConfig = {
     credentials: true
 }
 app.use(cors(corsConfig))
+
+app.use(
+    session({
+        secret: sessionSecretKey,
+        resave: false,
+        saveUninitialized: true,
+    })
+);
 
 app.use(express.json())
 
