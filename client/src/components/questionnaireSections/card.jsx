@@ -1,103 +1,198 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+import {
+  Box,
+  Card,
+  CardContent,
+  CardActions,
+  Typography,
+  Divider,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Chip,
+  Button,
+  CircularProgress,
+} from "@mui/material";
+
+import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
+import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 
 export default function QuestionnaireCard({
   title = "Question",
   prompt,
-  type,              // "mcq" | "text" | "number"
-  options = [],      // for mcq
-  onSubmit,          // function(answerStringOrNumber)
+  type, // "mcq" | "text" | "number"
+  options = [],
+  placeholder,
+  onSubmit,
   loading = false,
+
+  // optional extras (passed from QuestionnairePage)
+  currentIndex,
+  total,
+  onPrev,
 }) {
   const [value, setValue] = useState("");
 
-  function handleSubmit(e) {
+
+  const canSubmit = useMemo(() => {
+    if (type === "number") return value !== "" && !Number.isNaN(Number(value));
+    return Boolean(value);
+  }, [type, value]);
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!value) return;
-    onSubmit?.(value);
-    setValue("");
-  }
+    if (!canSubmit || loading) return;
+
+    const finalValue = type === "number" ? Number(value) : value;
+    onSubmit?.(finalValue);
+  };
 
   return (
-    <div style={{ maxWidth: 520, margin: "40px auto" }}>
-      <div
-        style={{
-          borderRadius: 16,
-          padding: 20,
-          background: "rgba(255,255,255,0.06)",
-          border: "1px solid rgba(255,255,255,0.12)",
-          color: "#e6eef8",
+    <Box sx={{ maxWidth: 760, mx: "auto" }}>
+      <Card
+        elevation={0}
+        sx={{
+          borderRadius: 4,
+          overflow: "hidden",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
         }}
       >
-        <h2 style={{ margin: 0, marginBottom: 8 }}>{title}</h2>
-        <p style={{ marginTop: 0, opacity: 0.9 }}>{prompt}</p>
-
-        <form onSubmit={handleSubmit}>
-          {/* Multiple choice */}
-          {type === "mcq" && (
-            <div style={{ display: "grid", gap: 10, marginTop: 12 }}>
-              {options.map((opt) => (
-                <label
-                  key={opt}
-                  style={{
-                    display: "flex",
-                    gap: 10,
-                    alignItems: "center",
-                    padding: 10,
-                    borderRadius: 12,
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    cursor: "pointer",
-                  }}
-                >
-                  <input
-                    type="radio"
-                    name="mcq"
-                    value={opt}
-                    checked={value === opt}
-                    onChange={(e) => setValue(e.target.value)}
-                  />
-                  <span>{opt}</span>
-                </label>
-              ))}
-            </div>
-          )}
-
-          {/* Text / number input */}
-          {(type === "text" || type === "number") && (
-            <input
-              style={{
-                width: "100%",
-                marginTop: 12,
-                padding: 12,
-                borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.12)",
-                background: "rgba(255,255,255,0.06)",
-                color: "#e6eef8",
-                outline: "none",
-              }}
-              placeholder={type === "number" ? "Enter a number…" : "Type your answer…"}
-              type={type === "number" ? "number" : "text"}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-            />
-          )}
-
-          <button
-            type="submit"
-            disabled={loading || !value}
-            style={{
-              marginTop: 16,
-              padding: "10px 14px",
-              borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: loading ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.14)",
-              color: "#e6eef8",
-              cursor: loading || !value ? "not-allowed" : "pointer",
+        <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+          {/* Top row: title + progress */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              mb: 1,
             }}
           >
-            {loading ? "Saving..." : "Submit"}
-          </button>
-        </form>
-      </div>
-    </div>
+            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              {title}
+            </Typography>
+
+            {typeof currentIndex === "number" && typeof total === "number" && (
+              <Chip
+                label={`${currentIndex + 1} / ${total}`}
+                variant="outlined"
+                sx={{
+                  borderColor: "divider",
+                  color: "text.secondary",
+                  bgcolor: "transparent",
+                }}
+              />
+            )}
+          </Box>
+
+          <Typography variant="body1" sx={{ color: "text.secondary", mb: 3 }}>
+            {prompt}
+          </Typography>
+
+          <Divider sx={{ mb: 3, borderColor: "divider" }} />
+
+          <Box component="form" onSubmit={handleSubmit}>
+            {/* MCQ */}
+            {type === "mcq" && (
+              <ToggleButtonGroup
+                exclusive
+                value={value}
+                onChange={(_, v) => {
+                  if (v !== null) setValue(v);
+                }}
+                orientation="vertical"
+                fullWidth
+                sx={{
+                  gap: 1.25,
+                  "& .MuiToggleButtonGroup-grouped": {
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    justifyContent: "center",
+                    py: 1.3,
+                    fontSize: "1rem",
+                    color: "text.primary",
+                    textTransform: "none",
+                    "&.Mui-selected": {
+                      borderColor: "primary.main",
+                      backgroundColor: "rgba(14,165,233,0.18)",
+                    },
+                  },
+                }}
+              >
+                {options.map((opt) => (
+                  <ToggleButton key={opt} value={opt}>
+                    {opt}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            )}
+
+            {/* Text / Number */}
+            {(type === "text" || type === "number") && (
+              <TextField
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder={
+                  placeholder || (type === "number" ? "e.g., 3000" : "Type your answer…")
+                }
+                type={type === "number" ? "number" : "text"}
+                fullWidth
+                autoFocus
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "rgba(255,255,255,0.03)",
+                    borderRadius: 2,
+                  },
+                  "& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button": {
+                    WebkitAppearance: "none",
+                    margin: 0,
+                  },
+                  "& input[type=number]": {
+                    MozAppearance: "textfield",
+                  },
+                }}
+              />
+            )}
+
+            <CardActions
+                sx={{
+                  px: 0,
+                  pt: 3,
+                  display: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Button
+                  type="button"
+                  variant="outlined"
+                  startIcon={<ArrowBackRoundedIcon />}
+                  onClick={onPrev || undefined}
+                  disabled={!onPrev || loading}
+                  sx={{ borderColor: "divider", color: "text.primary" }}
+                >
+                  Previous
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  disabled={!canSubmit || loading}
+                  endIcon={
+                    loading ? (
+                      <CircularProgress size={18} color="inherit" />
+                    ) : (
+                      <ArrowForwardRoundedIcon />
+                    )
+                  }
+                >
+                  {loading ? "Saving..." : "Submit"}
+                </Button>
+            </CardActions>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

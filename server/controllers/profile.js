@@ -1,3 +1,115 @@
+// import { Profile } from "../models/profile.js";
+
+// const ALL_FIELDS = [
+//   "income_stability",
+//   "employment_status",
+//   "risk_tolerance",
+//   "investment_experience",
+//   "financial_goal",
+//   "housing_status",
+//   "monthly_income",
+//   "savings_balance",
+//   "debt_amount",
+// ];
+
+// function getDemoUserId(req) {
+//   // Temporary until login exists:
+//   // Frontend sends headers: { "x-demo-user": "demo" }
+//   return req.header("x-demo-user") || "demo";
+// }
+
+// function pickRandom(items, k) {
+//   const arr = [...items];
+//   for (let i = arr.length - 1; i > 0; i--) {
+//     const j = Math.floor(Math.random() * (i + 1));
+//     [arr[i], arr[j]] = [arr[j], arr[i]];
+//   }
+//   return arr.slice(0, k);
+// }
+
+// export default {
+//   async getProfile(req, res) {
+//     try {
+//       const userId = getDemoUserId(req);
+
+//       let profile = await Profile.findOne({ userId });
+//       if (!profile) {
+//         profile = await Profile.create({ userId }); // defaults -> null
+//       }
+
+//       return res.status(200).json(profile);
+//     } catch (err) {
+//       console.error(err);
+//       return res.status(500).json({ error: "Failed to get profile." });
+//     }
+//   },
+
+//   async patchProfile(req, res) {
+//     try {
+//       const userId = getDemoUserId(req);
+
+//       // Only allow updates to known fields
+//       const updates = {};
+//       for (const key of ALL_FIELDS) {
+//         if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+//           updates[key] = req.body[key];
+//         }
+//       }
+
+//       if (Object.keys(updates).length === 0) {
+//         return res.status(400).json({ error: "No valid fields provided." });
+//       }
+
+//       const updated = await Profile.findOneAndUpdate(
+//         { userId },
+//         { $set: updates },
+//         { new: true, upsert: true, runValidators: true }
+//       );
+
+//       return res.status(200).json(updated);
+//     } catch (err) {
+//       console.error(err);
+//       return res.status(500).json({ error: "Failed to update profile." });
+//     }
+//   },
+
+
+//   // For demo purposes, just return 3 random fields without checking profile
+//   async getRandomUnanswered(req, res) {
+//     try {
+//       return res.status(200).json({
+//         questions: [
+//           {
+//             field: "risk_tolerance",
+//             type: "mcq",
+//             title: "Risk tolerance",
+//             prompt: "How much risk are you comfortable with?",
+//             options: ["low", "medium", "high"],
+//           },
+//           {
+//             field: "monthly_income",
+//             type: "fill",
+//             title: "Monthly income",
+//             prompt: "What is your approximate monthly income (CAD)?",
+//             placeholder: "e.g., 3000",
+//           },
+//           {
+//             field: "housing_status",
+//             type: "mcq",
+//             title: "Housing status",
+//             prompt: "What is your housing status?",
+//             options: ["rent", "own_with_mortgage", "own_no_mortgage", "live_with_family", "student_housing"],
+//           },
+//         ],
+//       });
+//     } catch (err) {
+//       console.error(err);
+//       return res.status(500).json({ error: "Failed to pick questions." });
+//     }
+//   },
+// };
+
+
 import { Profile } from "../models/profile.js";
 
 const ALL_FIELDS = [
@@ -27,6 +139,60 @@ function pickRandom(items, k) {
   return arr.slice(0, k);
 }
 
+function titleFromField(field) {
+  return field
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function defaultPrompt(title) {
+  return `Please answer: ${title}`;
+}
+
+// OPTIONAL: nicer text (you can delete this whole object if you want)
+const QUESTION_META = {
+  risk_tolerance: { prompt: "How much risk are you comfortable with?" },
+  monthly_income: {
+    prompt: "What is your approximate monthly income (CAD)?",
+    placeholder: "e.g., 3000",
+  },
+};
+
+function buildQuestionFromSchema(field) {
+  const path = Profile.schema.path(field);
+  if (!path) return null;
+
+  const title = QUESTION_META[field]?.title || titleFromField(field);
+  const prompt = QUESTION_META[field]?.prompt || defaultPrompt(title);
+
+  const enumValues = Array.isArray(path.enumValues) ? path.enumValues : [];
+  const isNumber = path.instance === "Number";
+
+  // If it has enum => MCQ
+  if (enumValues.length > 0) {
+    return {
+      field,
+      type: "mcq",
+      title,
+      prompt,
+      options: enumValues,
+    };
+  }
+
+  // Otherwise => fill input
+  return {
+    field,
+    type: "fill",
+    title,
+    prompt,
+    inputType: isNumber ? "number" : "text",
+    placeholder:
+      QUESTION_META[field]?.placeholder ||
+      (isNumber ? "e.g., 3000" : "Type your answer..."),
+  };
+}
+
 export default {
   async getProfile(req, res) {
     try {
@@ -48,7 +214,6 @@ export default {
     try {
       const userId = getDemoUserId(req);
 
-      // Only allow updates to known fields
       const updates = {};
       for (const key of ALL_FIELDS) {
         if (Object.prototype.hasOwnProperty.call(req.body, key)) {
@@ -73,63 +238,29 @@ export default {
     }
   },
 
-  // async getRandomUnanswered(req, res) {
+  async getRandomUnanswered(req, res) {
+    try {
+      const userId = getDemoUserId(req);
 
-  //   try {
-  //     const userId = getDemoUserId(req);
+      let profile = await Profile.findOne({ userId });
+      if (!profile) profile = await Profile.create({ userId });
 
-  //     let profile = await Profile.findOne({ userId });
-  //     if (!profile) profile = await Profile.create({ userId });
+      const unanswered = ALL_FIELDS.filter((f) => {
+        const v = profile[f];
+        return v == null || (typeof v === "string" && v.trim() === "");
+      });
 
-  //     const unanswered = ALL_FIELDS.filter((f) => {
-  //       const v = profile[f];
-  //       // null/undefined OR empty string
-  //       return v == null || (typeof v === "string" && v.trim() === "");
-  //     });
+      const pickedFields = pickRandom(unanswered, Math.min(3, unanswered.length));
+      const questions = pickedFields.map(buildQuestionFromSchema).filter(Boolean);
 
-  //     const pickedFields = pickRandom(unanswered, Math.min(3, unanswered.length));
-  //         console.log("userId:", userId);
-  //         console.log("unanswered:", unanswered);
-  //         console.log("pickedFields:", pickedFields);
-
-  //     return res.status(200).json({
-  //       pickedFields,
-  //       remainingUnansweredCount: unanswered.length,
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     return res.status(500).json({ error: "Failed to pick questions." });
-  //   }
-  // },
-
-
-  // For demo purposes, just return 3 random fields without checking profile
-async getRandomUnanswered(req, res) {
-  return res.json({
-    questions: [
-      {
-        field: "risk_tolerance",
-        type: "mcq",
-        title: "Risk tolerance",
-        prompt: "How much risk are you comfortable with?",
-        options: ["low", "medium", "high"],
-      },
-      {
-        field: "monthly_income",
-        type: "fill",
-        title: "Monthly income",
-        prompt: "What is your approximate monthly income (CAD)?",
-        placeholder: "e.g., 3000",
-      },
-      {
-        field: "housing_status",
-        type: "mcq",
-        title: "Housing status",
-        prompt: "What is your housing status?",
-        options: ["rent", "own_with_mortgage", "own_no_mortgage", "live_with_family", "student_housing"],
-      },
-    ],
-  });
-}
-
+      return res.status(200).json({
+        questions,
+        pickedFields,
+        remainingUnansweredCount: unanswered.length,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Failed to pick questions." });
+    }
+  },
 };
