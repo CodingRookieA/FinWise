@@ -2,7 +2,7 @@ import { Button, Container, Typography } from '@mui/material'
 
 import styles from './navbar.module.css'
 
-export const Navbar = () => {
+export const Navbar = ({ handleModalOpen, user, handleGoToChat, logout }) => {
     return(
         <nav className={styles.nav}>
             <Container>
@@ -18,8 +18,12 @@ export const Navbar = () => {
                     <a href="#about-us" className={styles.navLink}>About Us</a>
                 </div>
                 <div className={styles.navActions}>
-                    <Button variant="text" color="inherit" size="small">Log In</Button>
-                    <Button variant="contained" size="small" className={styles.heroBtn}>Chat as guest</Button>
+                    <Button variant="text" color="inherit" size="small" onClick={() => user.userId ? logout() : handleModalOpen()}>
+                        {user.userId ? 'Log out' : 'Log in'}
+                    </Button>
+                    <Button variant="contained" size="small" className={styles.heroBtn} onClick={handleGoToChat}>
+                        {user.userId ? 'Go to chat' : 'Chat as guest'}
+                    </Button>
                 </div>
                 </div>
             </Container>

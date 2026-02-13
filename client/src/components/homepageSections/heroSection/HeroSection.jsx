@@ -5,7 +5,7 @@ import PlaceIcon from '@mui/icons-material/Place';
 import styles from './heroSection.module.css'
 import heroBg from '../../../assets/hero-bg.jpg';
 
-export const HeroSection = () => {
+export const HeroSection = ({ handleModalOpen }) => {
     return(
         <section className={styles.hero}>
             <div className={styles.heroBg} style={{ backgroundImage: `url(${heroBg})` }} />
@@ -31,7 +31,7 @@ export const HeroSection = () => {
                 </Typography>
 
                 <div className={styles.heroButtons}>
-                    <Button variant="contained" size="large" className={styles.heroBtn} endIcon={<ArrowForwardIcon />}>
+                    <Button variant="contained" size="large" className={styles.heroBtn} endIcon={<ArrowForwardIcon />} onClick={handleModalOpen}>
                         Try FinWise
                     </Button>
                 </div>
