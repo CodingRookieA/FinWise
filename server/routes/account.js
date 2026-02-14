@@ -3,6 +3,8 @@ import AccountController from '../controllers/account.js'
 
 const accountRouter = express.Router()
 
-accountRouter.post('/register', AccountController.register)
+accountRouter.get('/checkUserAuth', AccountController.checkUserAuth)
+accountRouter.post('/googleLogin', AccountController.googleLogin)
+accountRouter.post('/logout', AccountController.logout)
 
 export default accountRouter
