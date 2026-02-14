@@ -4,6 +4,7 @@ import { config } from "dotenv"
 import { connectMongooseDB } from './lib/db.js'
 
 import accountRouter from './routes/account.js'
+import chatRouter from './routes/chat.js'
 
 // Enable dotenv
 config()
@@ -28,12 +29,14 @@ app.use(cors(corsConfig))
 
 app.use(express.json())
 
+
 //Routes
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK '})
 })
 
 app.use('/api/users', accountRouter)
+app.use('/api/chat', chatRouter)
 
 app.listen(port, () => {
     console.log(`Server is listening on port:  ${port}`)
