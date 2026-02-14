@@ -4,6 +4,7 @@ import { HomePage } from './pages/home/HomePage'
 import { GoogleRedirectPage } from './pages/googleRedirectPage/GoogleRedirectPage'
 import { useEffect } from 'react'
 import { useState } from 'react'
+import { NotFoundPage } from './pages/notFound/NotFoundPage'
 
 const mode = import.meta.env.MODE
 const serverURL = mode === 'production' 
@@ -16,24 +17,20 @@ function App() {
     const [user, setUser] = useState({})
 
     const logout = async () => {
-        try {
-            await fetch(
-                `${serverURL}/api/users/logout`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include'
-                }
-            )
+        await fetch(
+            `${serverURL}/api/users/logout`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            }
+        )
 
-            setLoggedIn(false)
-            setUser({})
-            window.location.href = '/'
-        } catch (error) {
-            
-        }
+        setLoggedIn(false)
+        setUser({})
+        window.location.href = '/'
     }
 
     const ProtectedRoutes = () => {
@@ -70,11 +67,15 @@ function App() {
             <Routes>
                 <Route path='/' element={<HomePage user={user} logout={logout} />}/>
                 <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/>
+                <Route path='/chat' element={<HomePage user={user} logout={logout} />}/>
                 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoutes/>}>
-                    <Route path='/test' element={<h1>ihi</h1>}/>
+                    
                 </Route>
+
+                {/* Catch-all route for 404 page*/}
+                <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </BrowserRouter>
     )

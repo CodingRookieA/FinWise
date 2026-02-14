@@ -37,7 +37,7 @@ export const GoogleRedirectPage = () => {
                     setLoginTitle('There was a problem signing you in with google')
                     setLoginMessage(result.error)
                 } else {
-                    window.location.href = '/'
+                    window.location.href = '/questionnaire'
                 }
             } catch (error) {
                 console.log(error)
