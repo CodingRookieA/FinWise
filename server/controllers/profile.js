@@ -263,4 +263,22 @@ export default {
       return res.status(500).json({ error: "Failed to pick questions." });
     }
   },
+
+
+  async getAllFields(req, res) {
+  try {
+    // keep ordering exactly as ALL_FIELDS
+    const questions = ALL_FIELDS.map(buildQuestionFromSchema).filter(Boolean);
+
+    return res.status(200).json({
+      questions,
+      total: questions.length,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to get questions." });
+  }
+},
+
+
 };

@@ -25,13 +25,13 @@ const ProfileSchema = new mongoose.Schema(
         },
         employment_status: {
             type: String,
-            enum: ["employed", "self_employed", "student", "unemployed", "retired", "prefer_not_say"],
+            enum: ["employed","unemployed", "student", "other"],
             default: null,
             trim: true,
         },
         risk_tolerance: {
             type: String,
-            enum: ["low", "medium", "high"],
+            enum: ["low", "medium", "high", "none"],
             default: null,
             trim: true,
         },
@@ -49,13 +49,10 @@ const ProfileSchema = new mongoose.Schema(
         financial_goal: {
             type: String,
             enum: [
-                "emergency_fund", 
-                "pay_off_debt", 
-                "home_down_payment", 
-                "big_purchase",
-                "grow_wealth", 
-                "retirement",
-                "education"
+                "house", 
+                "car", 
+                "grow wealth", 
+                "other"
             ],
             default: null,
             trim: true,
@@ -64,12 +61,9 @@ const ProfileSchema = new mongoose.Schema(
             type: String,
             enum: [
                 "rent",
-                "own_with_mortgage",
-                "own_no_mortgage",
-                "live_with_family",
-                "student_housing",
+                "own with mortgage",
+                "own no mortgage",
                 "other",
-                "prefer_not_say",
             ],
             default: null,
             trim: true,

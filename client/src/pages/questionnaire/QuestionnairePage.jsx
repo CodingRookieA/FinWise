@@ -125,8 +125,7 @@ export function QuestionnairePage() {
               sx={{ color: "text.secondary", mt: 1 }}
             >
               We collect some necessary information to enhance your experience
-              <br />
-              (We will not save this data unless you consent to it)
+
             </Typography>
           </Box>
 
