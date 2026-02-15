@@ -5,7 +5,8 @@ export default {
     async getAssets(req, res) {
         try {
             // TODO: req.user.session
-            const { user_id } = req.query; // Read userId from the URL query params
+            // const { user_id } = req.query; // Read userId from the URL query params
+            const user_id = req.session.userId
 
             if (!user_id) {
                 return res.status(400).json({ message: 'User ID is required' });
@@ -22,20 +23,21 @@ export default {
     // POST /api/assets
    async addAsset(req, res) {
         // 1. Basic Validation
-        if (!req.body.user_id || !req.body.symbol || !req.body.quantity) {
+        let { symbol, quantity } = req.body
+        const user_id = req.session.userId
+        if (!user_id || !symbol || !quantity) {
             return res.status(400).json({ message: 'Please include user_id, symbol, and quantity' })
         }
 
         try {
             // Force Uppercase so 'vfv' matches 'VFV'
-            const symbol = req.body.symbol.toUpperCase();
-            const quantity = Number(req.body.quantity);
-            const user_id = req.body.user_id;
+            symbol = symbol.toUpperCase();
+            quantity = Number(quantity);
 
             // Check if this asset already exists for this specific user
             const existingAsset = await Asset.findOne({ 
                 user_id: user_id, 
-                symbol: symbol 
+                symbol: symbol
             });
 
             if (existingAsset) {
@@ -63,6 +65,7 @@ export default {
 
     // PUT /api/assets/:id
     async updateAsset(req, res) {
+        console.log(req.body)
         try {
             const asset = await Asset.findById(req.params.id)
 

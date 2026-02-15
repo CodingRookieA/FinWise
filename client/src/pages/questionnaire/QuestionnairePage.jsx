@@ -27,11 +27,12 @@ export function QuestionnairePage() {
       try {
         setLoading(true);
         const response = await fetch(
-          "http://localhost:9000/api/profile/questionnaire",
-          {
-            method: "GET",
-            headers: { "x-demo-user": "demo" },
-          }
+            "http://localhost:9000/api/profile/questionnaire",
+            {
+                method: "GET",
+                headers: { "x-demo-user": "demo" },
+                credentials: 'include'
+            }
         );
 
         if (!response.ok) throw new Error("Failed to fetch questions");
@@ -75,6 +76,7 @@ export function QuestionnairePage() {
           "Content-Type": "application/json",
           "x-demo-user": "demo",
         },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 

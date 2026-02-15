@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// Hardcoded temporarrily 
-const USER_ID = '698e7c3dcb7bf0fa06d1c1f3'; // req.user.sessionID
-const API_URL = 'http://localhost:9000/api/assets';
+const API_URL = `${import.meta.env.VITE_SERVER_URL_DEVELOPMENT}/api/assets`;
 
 export const usePortfolio = () => {
     const [assets, setAssets] = useState([]);
@@ -13,7 +11,12 @@ export const usePortfolio = () => {
     const fetchAssets = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}?user_id=${USER_ID}`);
+            const response = await fetch(
+                `${API_URL}`,
+                {
+                    credentials: 'include'
+                }
+            );
             if (!response.ok) throw new Error('Failed to fetch assets');
             const data = await response.json();
             setAssets(data);
@@ -34,13 +37,18 @@ export const usePortfolio = () => {
     // 2. Add Asset
     const addAsset = async (assetData) => {
         try {
-            const payload = { ...assetData, user_id: USER_ID };
+            const payload = { ...assetData };
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(payload),
             });
-            if (!response.ok) throw new Error('Failed to add asset');
+            if (!response.ok){
+                const res = await response.json()
+                console.log(res)
+                throw new Error('Failed to add asset');
+            } 
             
             // Refresh list after success
             await fetchAssets();
@@ -57,6 +65,7 @@ export const usePortfolio = () => {
             const response = await fetch(`${API_URL}/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify(assetData),
             });
             if (!response.ok) throw new Error('Failed to update asset');
@@ -73,6 +82,7 @@ export const usePortfolio = () => {
     const deleteAsset = async (id) => {
         try {
             const response = await fetch(`${API_URL}/${id}`, {
+                credentials: 'include',
                 method: 'DELETE',
             });
             if (!response.ok) throw new Error('Failed to delete asset');

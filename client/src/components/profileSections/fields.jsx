@@ -32,9 +32,11 @@ export default function Fields() {
         const [metaRes, profileRes] = await Promise.all([
           fetch("http://localhost:9000/api/profile/meta", {
             headers: { "x-demo-user": "demo" },
+            credentials: 'include'
           }),
           fetch("http://localhost:9000/api/profile", {
             headers: { "x-demo-user": "demo" },
+            credentials: 'include'
           }),
         ]);
 
@@ -94,6 +96,7 @@ export default function Fields() {
           "Content-Type": "application/json",
           "x-demo-user": "demo",
         },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 

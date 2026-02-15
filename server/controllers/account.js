@@ -93,7 +93,6 @@ export default {
     },
     async checkUserAuth(req, res) {
         try {
-            console.log(req.session)
             if(!req.session.userId){
                 return res.status(401).json({
                     error: "User not authenticated"

@@ -71,7 +71,7 @@ function App() {
             <Routes>
                 <Route path='/' element={<HomePage user={user} logout={logout} />}/>
                 <Route path='/chat' element={<ChatPage user={user} logout={logout} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}/> 
-                <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/
+                <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/>
                 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoutes/>}>

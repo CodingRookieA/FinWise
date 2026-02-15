@@ -100,6 +100,7 @@ export default {
     try {
       //const userId = getDemoUserId(req);
       const userId = getUserId(req);
+      
       if (!userId) return res.status(401).json({ error: "Not logged in" });
       const profile = await findOrCreateProfile(userId);
 

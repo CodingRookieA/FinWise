@@ -41,8 +41,8 @@ app.use(cors(corsConfig))
 app.use(
     session({
         secret: sessionSecretKey,
+        saveUninitialized: false,
         resave: false,
-        saveUninitialized: true,
     })
 );
 
@@ -67,5 +67,3 @@ app.listen(port, () => {
 
     connectMongooseDB(MongoURI)
 })
-
-;
