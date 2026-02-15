@@ -1,9 +1,17 @@
+// Configure DNS before any imports that might need it
+// delete this when merge
+// import dns from 'dns'
+// dns.setServers(["1.1.1.1", "1.0.0.1"]);
+//
+
 import express from 'express'
 import cors from 'cors'
 import { config } from "dotenv"
 import { connectMongooseDB } from './lib/db.js'
 
 import accountRouter from './routes/account.js'
+import profileRouter from "./routes/profile.js";
+
 import session from 'express-session'
 import chatRouter from './routes/chat.js'
 
@@ -46,6 +54,8 @@ app.get('/api/health', (req, res) => {
 })
 
 app.use('/api/users', accountRouter)
+app.use("/api/profile", profileRouter);
+
 app.use('/api/chat', chatRouter)
 
 app.listen(port, () => {
@@ -54,3 +64,5 @@ app.listen(port, () => {
 
     connectMongooseDB(MongoURI)
 })
+
+;

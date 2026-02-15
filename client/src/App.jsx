@@ -1,6 +1,8 @@
 import './App.css'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/home/HomePage'
+import { QuestionnairePage } from './pages/questionnaire/QuestionnairePage'
+import ProfilePage from './pages/profile/ProfilePage'
 import { GoogleRedirectPage } from './pages/googleRedirectPage/GoogleRedirectPage'
 import { useEffect } from 'react'
 import { useState } from 'react'
@@ -66,12 +68,12 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path='/' element={<HomePage user={user} logout={logout} />}/>
-                <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/>
-                <Route path='/chat' element={<HomePage user={user} logout={logout} />}/>
+                <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/
                 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoutes/>}>
-                    
+                <Route path="/questionnaire" element={<QuestionnairePage/>} />
+                <Route path="/profile" element={<ProfilePage/>} />
                 </Route>
 
                 {/* Catch-all route for 404 page*/}
