@@ -1,0 +1,132 @@
+.section {
+    padding-bottom: 96px;
+}
+
+/* --- Card Styles --- */
+.dashboardCard {
+    border-radius: 24px;
+    background: linear-gradient(135deg, #1A2332, rgba(35, 60, 90, 0.3));
+    border: 1px solid #2A3A4E;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 40px;
+}
+
+.cardGlow1 {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 256px;
+    height: 256px;
+    background: rgba(14, 165, 233, 0.1);
+    border-radius: 50%;
+    filter: blur(60px);
+}
+
+.cardGlow2 {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 256px;
+    height: 256px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 50%;
+    filter: blur(60px);
+}
+
+.cardContent {
+    position: relative;
+    z-index: 10;
+}
+
+.headerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.iconBox {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(14, 165, 233, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Stats Grid --- */
+.statsGrid {
+    display: flex;
+    gap: 48px;
+}
+
+.statValue {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #0EA5E9, #10B981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+/* --- Table Styles --- */
+.tableContainer {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 1px solid #2A3A4E;
+    border-radius: 16px;
+}
+
+.tableHead {
+    background-color: rgba(26, 35, 50, 0.5);
+}
+
+.tableHeadCell {
+    color: #94a3b8 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    font-size: 0.75rem !important;
+    border-bottom: 1px solid #2A3A4E !important;
+}
+
+.tableRow {
+    background-color: #1A2332;
+    transition: background-color 0.2s;
+}
+
+.tableRow:hover {
+    background-color: #233044 !important;
+}
+
+.tableCell {
+    border-bottom: 1px solid #2A3A4E !important;
+    color: #F1F5F9 !important;
+    font-size: 1rem !important;
+}
+
+/* --- Buttons --- */
+.actionBtn {
+    background: linear-gradient(135deg, #0EA5E9, #10B981) !important;
+    color: #0B1120 !important;
+    box-shadow: 0 0 20px -5px rgba(14, 165, 233, 0.4) !important;
+}
+
+.actionBtn:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+@media (max-width: 600px) {
+    .headerRow {
+        flex-direction: column;
+        gap: 24px;
+        align-items: flex-start;
+    }
+    .statsGrid {
+        gap: 24px;
+    }
+}
