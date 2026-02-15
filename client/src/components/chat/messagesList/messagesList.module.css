@@ -1,0 +1,22 @@
+/* Custom scrollbar styling */
+.messagesContainer {
+    scroll-behavior: smooth;
+}
+
+.messagesContainer::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messagesContainer::-webkit-scrollbar-track {
+    background: #0b1120;
+    border-radius: 10px;
+}
+
+.messagesContainer::-webkit-scrollbar-thumb {
+    background: #2a3a4e;
+    border-radius: 10px;
+}
+
+.messagesContainer::-webkit-scrollbar-thumb:hover {
+    background: #3a4a5e;
+}

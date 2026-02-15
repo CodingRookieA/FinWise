@@ -94,9 +94,146 @@ export default {
         }
     },
     async getChatHistory(req, res) {
-        // Logic to retrieve chat history
+        try {
+            //Use the default placeholder userId for testing now
+            const userId = '000000000000000000000000'
+
+            // Validate userId as ObjectId
+            if (!mongoose.Types.ObjectId.isValid(userId)) {
+                return res.status(400).json({ error: 'Invalid user ID format' })
+            }
+
+            // Get all unique sessions for this user with their latest message
+            const sessions = await Message.aggregate([
+                {
+                    $match: { 
+                        sender: new mongoose.Types.ObjectId(userId),
+                        sessionId: { $exists: true, $ne: null }
+                    }
+                },
+                {
+                    $sort: { createdAt: -1 }
+                },
+                {
+                    $group: {
+                        _id: '$sessionId',
+                        latestMessage: { $first: '$$ROOT' },
+                        messageCount: { $sum: 1 },
+                        lastUpdated: { $first: '$createdAt' }
+                    }
+                },
+                {
+                    $sort: { lastUpdated: -1 }
+                },
+                {
+                    $limit: 50
+                }
+            ])
+
+            const formattedSessions = sessions.map(session => ({
+                sessionId: session._id,
+                title: session.latestMessage.content.substring(0, 50) + (session.latestMessage.content.length > 50 ? '...' : ''),
+                date: session.lastUpdated.toLocaleDateString(),
+                messageCount: session.messageCount
+            }))
+
+            res.status(200).json({
+                success: true,
+                sessions: formattedSessions
+            })
+
+        } catch (error) {
+            console.error('Error fetching chat history:', error)
+            res.status(500).json({
+                error: 'Failed to fetch chat history',
+                details: error.message
+            })
+        }
     },
     async getUserChatHistory(req, res) {
-        // Logic to retrieve chat history for a specific user
+        try {
+            const { userId } = req.params
+
+            // Validate userId as ObjectId
+            if (!mongoose.Types.ObjectId.isValid(userId)) {
+                return res.status(400).json({ error: 'Invalid user ID format' })
+            }
+
+            // Get all unique sessions for this user with their latest message
+            const sessions = await Message.aggregate([
+                {
+                    $match: { 
+                        sender: new mongoose.Types.ObjectId(userId),
+                        sessionId: { $exists: true, $ne: null }
+                    }
+                },
+                {
+                    $sort: { createdAt: -1 }
+                },
+                {
+                    $group: {
+                        _id: '$sessionId',
+                        latestMessage: { $first: '$$ROOT' },
+                        messageCount: { $sum: 1 },
+                        lastUpdated: { $first: '$createdAt' }
+                    }
+                },
+                {
+                    $sort: { lastUpdated: -1 }
+                },
+                {
+                    $limit: 50
+                }
+            ])
+
+            const formattedSessions = sessions.map(session => ({
+                sessionId: session._id,
+                title: session.latestMessage.content.substring(0, 50) + (session.latestMessage.content.length > 50 ? '...' : ''),
+                date: session.lastUpdated.toLocaleDateString(),
+                messageCount: session.messageCount
+            }))
+
+            res.status(200).json({
+                success: true,
+                sessions: formattedSessions
+            })
+
+        } catch (error) {
+            console.error('Error fetching user chat history:', error)
+            res.status(500).json({
+                error: 'Failed to fetch user chat history',
+                details: error.message
+            })
+        }
+    },
+    async getSessionMessages(req, res) {
+        try {
+            const { sessionId } = req.params
+
+            if (!sessionId) {
+                return res.status(400).json({ error: 'Session ID is required' })
+            }
+
+            // Get all messages for this session
+            const messages = await Message.find({ sessionId })
+                .sort({ createdAt: 1 })
+                .select('role content createdAt')
+
+            res.status(200).json({
+                success: true,
+                messages: messages.map(msg => ({
+                    role: msg.role,
+                    content: msg.content,
+                    timestamp: msg.createdAt
+                }))
+            })
+
+        } catch (error) {
+            console.error('Error fetching session messages:', error)
+            res.status(500).json({
+                error: 'Failed to fetch session messages',
+                details: error.message
+            })
+        }
     }
 }

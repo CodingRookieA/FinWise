@@ -1,0 +1,28 @@
+.messagesContainer {
+    scroll-behavior: smooth;
+}
+
+.messagesContainer::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messagesContainer::-webkit-scrollbar-track {
+    background: #1A2332;
+    border-radius: 10px;
+}
+
+.messagesContainer::-webkit-scrollbar-thumb {
+    background: #2A3A4E;
+    border-radius: 10px;
+}
+
+.messagesContainer::-webkit-scrollbar-thumb:hover {
+    background: #3A4A5E;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none !important;
+    }
+}

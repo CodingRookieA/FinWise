@@ -2,6 +2,7 @@ import './App.css'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/home/HomePage'
 import { GoogleRedirectPage } from './pages/googleRedirectPage/GoogleRedirectPage'
+import { ChatPage } from './pages/chat/ChatPage'
 import { useEffect } from 'react'
 import { useState } from 'react'
 import { NotFoundPage } from './pages/notFound/NotFoundPage'
@@ -67,8 +68,10 @@ function App() {
             <Routes>
                 <Route path='/' element={<HomePage user={user} logout={logout} />}/>
                 <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/>
-                <Route path='/chat' element={<HomePage user={user} logout={logout} />}/>
-                
+
+                {/* //Move to protected routes when merging */}
+
+                <Route path='/chat' element={<ChatPage user={user} logout={logout} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}/> 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoutes/>}>
                     
