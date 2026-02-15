@@ -20,7 +20,11 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     // Fetch chat history when user is logged in
     useEffect(() => {
         const fetchChatHistory = async () => {
-            if (!loggedIn) return
+            if (!loggedIn) {
+                // Clear history when user logs out
+                setChatHistory([])
+                return
+            }
 
             setLoadingHistory(true)
             try {
@@ -41,7 +45,13 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         }
 
         fetchChatHistory()
-    }, [loggedIn], )
+    }, [loggedIn, user?.userId])
+
+    // Clear messages when user changes or logs out
+    useEffect(() => {
+        setMessages([])
+        setSessionId(crypto.randomUUID())
+    }, [user?.userId, loggedIn])
 
     // Function to refresh chat history
     const refreshChatHistory = async () => {
