@@ -1,36 +1,8 @@
 // Configure DNS before any imports that might need it
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // delete this when merge
-import dns from 'dns'
-dns.setServers(["1.1.1.1", "1.0.0.1"]);
+// import dns from 'dns'
+// dns.setServers(["1.1.1.1", "1.0.0.1"]);
 //
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 import express from 'express'
 import cors from 'cors'

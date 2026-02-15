@@ -12,11 +12,11 @@ const ALL_FIELDS = [
   "debt_amount",
 ];
 
-function getDemoUserId(req) {
+// function getDemoUserId(req) {
   // Temporary until login exists:
   // Frontend sends headers: { "x-demo-user": "demo" }
-  return "698f832ec32381ba1242cfb6";
-}
+  // return "698f832ec32381ba1242cfb6";
+// }
 
 
 function getUserId(req){
@@ -98,9 +98,9 @@ function buildQuestionFromSchema(field) {
 export default {
   async getProfile(req, res) {
     try {
-      const userId = getDemoUserId(req);
-      // const userId = getUserId(req);
-      // if (!userId) return res.status(401).json({ error: "Not logged in" });
+      //const userId = getDemoUserId(req);
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: "Not logged in" });
       const profile = await findOrCreateProfile(userId);
 
       return res.status(200).json(profile);
@@ -112,9 +112,9 @@ export default {
 
   async patchProfile(req, res) {
     try {
-      const userId = getDemoUserId(req);
-      // const userId = getUserId(req);
-      // if (!userId) return res.status(401).json({ error: "Not logged in" });
+      //const userId = getDemoUserId(req);
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: "Not logged in" });
 
       const updates = {};
       for (const key of ALL_FIELDS) {
@@ -142,9 +142,9 @@ export default {
 
   async getRandomUnanswered(req, res) {
     try {
-      const userId = getDemoUserId(req);
-      // const userId = getUserId(req);
-      // if (!userId) return res.status(401).json({ error: "Not logged in" });
+      //const userId = getDemoUserId(req);
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ error: "Not logged in" });
 
       const profile = await findOrCreateProfile(userId);
 
