@@ -4,7 +4,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, B
 export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
     // 1. Logic: Form State
     const [formData, setFormData] = useState({ symbol: '', quantity: '' });
-    const theme = useTheme(); // Access the theme variables programmatically
+    const theme = useTheme();
 
     useEffect(() => {
         if (initialData) {
@@ -24,24 +24,22 @@ export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
         }
     };
 
-    // 2. Styles: Organized using Theme Variables
-    // Instead of hardcoded colors, we map directly to your Theme.js definitions
     const inputSx = {
         '& .MuiOutlinedInput-root': {
-            color: 'text.primary',              // Matches theme.text.primary
-            backgroundColor: 'background.default', // Matches theme.background.default (#0B1120)
+            color: 'text.primary',
+            backgroundColor: 'background.default', 
             '& fieldset': { 
-                borderColor: 'divider'          // Matches theme.divider (#2A3A4E)
+                borderColor: 'divider'
             },
             '&:hover fieldset': { 
-                borderColor: 'primary.main'     // Matches theme.primary.main
+                borderColor: 'primary.main'
             },
             '&.Mui-focused fieldset': { 
                 borderColor: 'primary.main' 
             },
         },
         '& .MuiInputLabel-root': { 
-            color: 'text.secondary'             // Matches theme.text.secondary
+            color: 'text.secondary'
         },
         '& .MuiInputLabel-root.Mui-focused': { 
             color: 'primary.main' 
@@ -55,12 +53,12 @@ export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
             PaperProps={{
                 sx: { 
                     borderRadius: 3, 
-                    bgcolor: 'background.paper', // <--- Uses your specific Paper color (#1A2332)
+                    bgcolor: 'background.paper',
                     border: 1,
                     borderColor: 'divider',
                     color: 'text.primary',
                     minWidth: { xs: '90%', sm: 400 },
-                    backgroundImage: 'none'      // Disables default MUI lightness overlay
+                    backgroundImage: 'none'
                 }
             }}
         >
