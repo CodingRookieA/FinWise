@@ -5,7 +5,7 @@ import theme from "../../theme";
 import ProfileContent from "../../components/profileSections/placeholder_content";
 import Sidebar from "../../components/profileSections/sidebar";
 
-export default function ProfilePage() {
+export default function ProfilePage({ user }) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -28,8 +28,8 @@ export default function ProfilePage() {
             mx: 0,
           }}
         >
-          <Sidebar />
-          <ProfileContent />
+          <Sidebar user={user} />
+          <ProfileContent user={user} />
         </Box>
       </Box>
     </ThemeProvider>

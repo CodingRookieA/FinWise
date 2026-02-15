@@ -22,7 +22,7 @@ const NAV = [
   { label: "Chat", path: "/chat", icon: <ChatRoundedIcon /> },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ user }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -95,7 +95,7 @@ export default function Sidebar() {
 
       <Box sx={{ p: 2 }}>
         <Typography variant="caption" color="text.secondary">
-          Demo user: <b>demo</b>
+          {user.email}: <b>{user.name}</b>
         </Typography>
       </Box>
     </Paper>

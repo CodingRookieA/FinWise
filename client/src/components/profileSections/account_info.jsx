@@ -10,10 +10,10 @@ function initialsFromName(name = "") {
 }
 
 export default function AccountInfo({
-  username = "demo",
-  email = "demo@finwise.local",
+  name,
+  email,
 }) {
-  const initials = initialsFromName(username);
+  const initials = initialsFromName(name);
 
   return (
     <Paper
@@ -43,7 +43,7 @@ export default function AccountInfo({
 
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 900, lineHeight: 1.2 }}>
-            {username}
+            {name}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-word" }}>
             {email}

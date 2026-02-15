@@ -75,9 +75,9 @@ function App() {
                 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoutes/>}>
-                  <Route path='/portfolio' element={<PortfolioPage/>}/>
-                  <Route path="/questionnaire" element={<QuestionnairePage/>} />
-                  <Route path="/profile" element={<ProfilePage/>} />
+                    <Route path='/portfolio' element={<PortfolioPage/>}/>
+                    <Route path="/questionnaire" element={<QuestionnairePage/>} />
+                    <Route path="/profile" element={<ProfilePage user={user} />} />
                 </Route>
 
                 {/* Catch-all route for 404 page*/}
