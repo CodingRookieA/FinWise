@@ -40,7 +40,7 @@ export default {
 
             // Store messages if user has a session (for testing, default to storing)
             // Guest users: no sessionId or userId means don't store
-            const shouldStore = userId || sessionId // Default to storing for testing
+            const shouldStore = req.session.userId ? true : false
             let savedUserMessage = null
             let savedAIMessage = null
 
@@ -51,7 +51,7 @@ export default {
                 const currentSessionId = sessionId || randomUUID()
                 
                 //Replace with userId stored in session when merging
-                let effectiveUserId = '000000000000000000000000' // Default placeholder ObjectId
+                let effectiveUserId = req.session.userId
                 
                 // Save user message
                 savedUserMessage = await Message.create({
@@ -66,7 +66,7 @@ export default {
                     sender: effectiveUserId,
                     content: aiResponse,
                     sessionId: currentSessionId,
-                    role: 'assistant',
+                    role: 'AI',
                     reference: savedUserMessage._id.toString()
                 })
             }
@@ -93,66 +93,16 @@ export default {
             })
         }
     },
-    async getChatHistory(req, res) {
-        try {
-            //Use the default placeholder userId for testing now
-            const userId = '000000000000000000000000'
 
-            // Validate userId as ObjectId
-            if (!mongoose.Types.ObjectId.isValid(userId)) {
-                return res.status(400).json({ error: 'Invalid user ID format' })
-            }
-
-            // Get all unique sessions for this user with their latest message
-            const sessions = await Message.aggregate([
-                {
-                    $match: { 
-                        sender: new mongoose.Types.ObjectId(userId),
-                        sessionId: { $exists: true, $ne: null }
-                    }
-                },
-                {
-                    $sort: { createdAt: -1 }
-                },
-                {
-                    $group: {
-                        _id: '$sessionId',
-                        latestMessage: { $first: '$$ROOT' },
-                        messageCount: { $sum: 1 },
-                        lastUpdated: { $first: '$createdAt' }
-                    }
-                },
-                {
-                    $sort: { lastUpdated: -1 }
-                },
-                {
-                    $limit: 50
-                }
-            ])
-
-            const formattedSessions = sessions.map(session => ({
-                sessionId: session._id,
-                title: session.latestMessage.content.substring(0, 50) + (session.latestMessage.content.length > 50 ? '...' : ''),
-                date: session.lastUpdated.toLocaleDateString(),
-                messageCount: session.messageCount
-            }))
-
-            res.status(200).json({
-                success: true,
-                sessions: formattedSessions
-            })
-
-        } catch (error) {
-            console.error('Error fetching chat history:', error)
-            res.status(500).json({
-                error: 'Failed to fetch chat history',
-                details: error.message
-            })
-        }
-    },
+    //Return all sessions for a user
     async getUserChatHistory(req, res) {
         try {
-            const { userId } = req.params
+            const userId = req.session.userId
+
+            if(!userId){
+                //Guest user, don't return any history but also don't error out - just return empty list
+                return res.status(200).json({ })
+            }
 
             // Validate userId as ObjectId
             if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -206,12 +156,28 @@ export default {
             })
         }
     },
+
+    //Get all messages for a specific session
     async getSessionMessages(req, res) {
         try {
             const { sessionId } = req.params
 
             if (!sessionId) {
                 return res.status(400).json({ error: 'Session ID is required' })
+            }
+
+            //Verify is the user owns this session - only if user is logged in
+            if (req.session.userId) {
+                const userId = req.session.userId
+
+                // Validate userId as ObjectId
+                if (!mongoose.Types.ObjectId.isValid(userId)) {
+                    return res.status(400).json({ error: 'Invalid user ID format' })
+                }
+                const sessionExists = await Message.exists({ sessionId, sender: new mongoose.Types.ObjectId(userId) })
+                if (!sessionExists) {
+                    return res.status(403).json({ error: 'You do not have access to this session' })
+                }
             }
 
             // Get all messages for this session

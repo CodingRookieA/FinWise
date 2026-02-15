@@ -64,7 +64,8 @@ export const MessagesList = ({ messages, loading, user }) => {
                             sx={{ 
                                 whiteSpace: 'pre-wrap',
                                 wordBreak: 'break-word',
-                                overflowWrap: 'break-word'
+                                overflowWrap: 'break-word',
+                                alignContent: 'center'
                             }}
                         >
                             {msg.content}

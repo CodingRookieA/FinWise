@@ -14,11 +14,8 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [sessionId, setSessionId] = useState(() => crypto.randomUUID())
     const [chatHistory, setChatHistory] = useState([])
     const [loadingHistory, setLoadingHistory] = useState(false)
+    const [loadingSession, setLoadingSession] = useState(false)
 
-    // Temporary for testing, remove when merging with auth system
-    useEffect(() => {
-        setLoggedIn(true)
-    }, [])
 
     // Fetch chat history when user is logged in
     useEffect(() => {
@@ -44,7 +41,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         }
 
         fetchChatHistory()
-    }, [loggedIn])
+    }, [loggedIn], )
 
     // Function to refresh chat history
     const refreshChatHistory = async () => {
@@ -66,6 +63,9 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
 
     const handleSendMessage = async () => {
         if (!message.trim()) return
+
+        // Check if this is the first message in a new chat
+        const isFirstMessage = messages.length === 0
 
         // Add user message to chat
         const userMessage = { role: 'user', content: message }
@@ -99,9 +99,9 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
             setMessages(prev => [...prev, aiMessage])
             
             // Refresh chat history to show new/updated session
-            if (messages.length === 0) {
-                // Only refresh on first message to avoid too many refreshes
-                refreshChatHistory()
+            if (isFirstMessage) {
+                // Refresh on first message to show the new chat in history
+                await refreshChatHistory()
             }
         } catch (error) {
             console.error('Error sending message:', error)
@@ -134,6 +134,9 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     }
 
     const handleLoadSession = async (selectedSessionId) => {
+        // Clear messages immediately to avoid showing old session data
+        setMessages([])
+        setLoadingSession(true)
         setLoading(true)
         try {
             console.log('Loading session:', selectedSessionId)
@@ -154,6 +157,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
             console.error('Error loading session:', error)
         } finally {
             setLoading(false)
+            setLoadingSession(false)
         }
     }
 
@@ -210,7 +214,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                 )}
 
                 {/* Content Area - Empty State or Messages */}
-                {messages.length === 0 ? (
+                {messages.length === 0 && !loadingSession ? (
                     <EmptyState onSampleQuestion={handleSampleQuestion} />
                 ) : (
                     <MessagesList messages={messages} loading={loading} user={user} />
