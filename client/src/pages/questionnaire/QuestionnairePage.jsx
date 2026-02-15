@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import QuestionnaireCard from "../../components/questionnaireSections/card";
 
 import { ThemeProvider } from "@mui/material/styles";
@@ -13,6 +14,8 @@ import {
 } from "@mui/material";
 
 export function QuestionnairePage() {
+  const navigate = useNavigate();
+
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -34,7 +37,15 @@ export function QuestionnairePage() {
         if (!response.ok) throw new Error("Failed to fetch questions");
 
         const data = await response.json();
-        setQuestions(data.questions || []);
+        const qs = data.questions || [];
+
+        // ✅ if no questions, go to chat
+        if (qs.length === 0) {
+          navigate("/chat", { replace: true });
+          return;
+        }
+
+        setQuestions(qs);
         setCurrentIndex(0);
         setError(null);
       } catch (err) {
@@ -47,7 +58,7 @@ export function QuestionnairePage() {
     };
 
     fetchQuestions();
-  }, []);
+  }, [navigate]);
 
   const handleSubmit = async (answer) => {
     if (currentIndex >= questions.length) return;
@@ -69,12 +80,11 @@ export function QuestionnairePage() {
 
       if (!response.ok) throw new Error("Failed to save answer");
 
+      // ✅ last question => go to chat
       if (currentIndex < questions.length - 1) {
         setCurrentIndex((i) => i + 1);
       } else {
-        // You can later redirect here if you want:
-        // navigate("/chat", { replace: true });
-        setError("All questions completed!");
+        navigate("/chat", { replace: true });
       }
     } catch (err) {
       console.error(err);
@@ -111,21 +121,14 @@ export function QuestionnairePage() {
         <Container maxWidth="md" sx={{ position: "relative" }}>
           {/* Header */}
           <Box sx={{ textAlign: "center", mb: 4 }}>
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: 800, letterSpacing: -0.5 }}
-            >
+            <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: -0.5 }}>
               Tell us about{" "}
               <Box component="span" sx={{ color: "secondary.main" }}>
                 yourself
               </Box>
             </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: "text.secondary", mt: 1 }}
-            >
+            <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
               We collect some necessary information to enhance your experience
-
             </Typography>
           </Box>
 
@@ -147,14 +150,6 @@ export function QuestionnairePage() {
             </Box>
           )}
 
-          {!loading && !error && questions.length === 0 && (
-            <Box sx={{ maxWidth: 720, mx: "auto" }}>
-              <Alert severity="info" variant="outlined">
-                No questions available
-              </Alert>
-            </Box>
-          )}
-
           {!loading && !error && questions.length > 0 && (
             <QuestionnaireCard
               key={currentQuestion.field}
@@ -167,9 +162,7 @@ export function QuestionnairePage() {
               onSubmit={handleSubmit}
               currentIndex={currentIndex}
               total={questions.length}
-              onPrev={
-                currentIndex > 0 ? () => setCurrentIndex((i) => i - 1) : null
-              }
+              onPrev={currentIndex > 0 ? () => setCurrentIndex((i) => i - 1) : null}
             />
           )}
         </Container>
