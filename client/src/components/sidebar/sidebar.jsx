@@ -10,6 +10,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Button,
 } from "@mui/material";
 
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
@@ -22,7 +23,7 @@ const NAV = [
   { label: "Chat", path: "/chat", icon: <ChatRoundedIcon /> },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ user, logout }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,8 +35,9 @@ export default function Sidebar() {
         overflow: "hidden",
         position: { md: "sticky" },
         top: { md: 24 },
-        
+
         minHeight: { md: "calc(100vh - 48px)" },
+        maxHeight: { md: "calc(100vh - 48px)" },
         display: "flex",
         flexDirection: "column",
       }}
@@ -93,9 +95,12 @@ export default function Sidebar() {
 
       <Divider />
 
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column' }}>
+        <Button variant="outlined" color="error" sx={{marginBottom: '0.5rem'}} onClick={logout}>
+          Logout
+        </Button>
         <Typography variant="caption" color="text.secondary">
-          Demo user: <b>demo</b>
+          <b>{user.name}</b>: {user.email}
         </Typography>
       </Box>
     </Paper>

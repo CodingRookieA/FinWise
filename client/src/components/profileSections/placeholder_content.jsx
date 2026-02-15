@@ -4,11 +4,7 @@ import AccountInfo from "./account_info";
 import Fields from "./fields";
 
 
-export default function ProfileContent() {
-  // TODO: replace these with real user data when you have auth/user endpoint
-  const username = "demo";
-  const email = "demo@finwise.local";
-
+export default function ProfileContent({ user }) {
   return (
     <Paper
       elevation={0}
@@ -28,7 +24,7 @@ export default function ProfileContent() {
         </Stack>
 
         {/* NEW: account info panel */}
-        <AccountInfo username={username} email={email} />
+        <AccountInfo username={user.name} email={user.email} />
       </Stack>
 
       <Divider sx={{ my: 2.5 }} />
