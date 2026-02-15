@@ -18,7 +18,7 @@ import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
 
 const NAV = [
   { label: "Profile", path: "/profile", icon: <PersonRoundedIcon /> },
-  { label: "Profolio", path: "/profolio", icon: <FolderRoundedIcon /> }, // keeping your spelling
+  { label: "Porfolio", path: "/profolio", icon: <FolderRoundedIcon /> }, // keeping your spelling
   { label: "Chat", path: "/chat", icon: <ChatRoundedIcon /> },
 ];
 

@@ -15,7 +15,7 @@ const ALL_FIELDS = [
 function getDemoUserId(req) {
   // Temporary until login exists:
   // Frontend sends headers: { "x-demo-user": "demo" }
-  return req.header("x-demo-user") || "demo";
+  return "698f832ec32381ba1242cfb6";
 }
 
 

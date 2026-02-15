@@ -9,10 +9,11 @@ const ProfileSchema = new mongoose.Schema(
         // }
 
         userId:{
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
             required: true,
             unique: true,
             index: true,
+            ref: 'Account',
         },
 
 
