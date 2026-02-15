@@ -1,6 +1,7 @@
 import { Box, Typography, IconButton, Button, List, ListItem, ListItemText, Avatar, Drawer } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import AddIcon from '@mui/icons-material/Add'
+import { useNavigate } from 'react-router-dom'
 
 const SIDEBAR_WIDTH = 280
 
@@ -13,6 +14,8 @@ export const Sidebar = ({
     onLoadSession,
     loggedIn 
 }) => {
+    const navigate = useNavigate()
+
     const SidebarContent = () => (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Logo and Close Button */}
@@ -100,7 +103,24 @@ export const Sidebar = ({
             </Button>
 
             {/* User Profile */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+            <Box 
+                onClick={() => navigate('/profile')}
+                sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5, 
+                    pt: 2, 
+                    borderTop: 1, 
+                    borderColor: 'divider',
+                    cursor: 'pointer',
+                    borderRadius: 1,
+                    p: 1,
+                    mt: -1,
+                    '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.05)'
+                    }
+                }}
+            >
                 <Avatar src={user?.picture} sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
                     {user?.name?.charAt(0) || 'U'}
                 </Avatar>
