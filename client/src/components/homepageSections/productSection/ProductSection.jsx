@@ -44,11 +44,11 @@ export const ProductSection = () => {
 
                 <div className={styles.productGrid}>
                     {features.map((feature, i) => (
-                    <div key={i} className={styles.productCard}>
-                        <div className={styles.productIconWrap}>{feature.icon}</div>
-                        <Typography variant="h6" color="text.primary" gutterBottom>{feature.title}</Typography>
-                        <Typography variant="body2" color="text.secondary">{feature.description}</Typography>
-                    </div>
+                        <div key={i} className={styles.productCard}>
+                            <div className={styles.productIconWrap}>{feature.icon}</div>
+                            <Typography variant="h6" color="text.primary" gutterBottom>{feature.title}</Typography>
+                            <Typography variant="body2" color="text.secondary">{feature.description}</Typography>
+                        </div>
                     ))}
                 </div>
             </Container>

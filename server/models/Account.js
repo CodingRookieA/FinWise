@@ -4,13 +4,14 @@ const AccountSchema = new mongoose.Schema(
     {
         email: {
             type: String,
-            required: true
+            unique: true,
+            required: true,
         },
-        password: {
+        name: {
             type: String,
             required: true
         },
-        profilePic: {
+        picture: {
             type: String,
             default: null,
         }

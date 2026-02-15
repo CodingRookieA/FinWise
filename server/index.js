@@ -12,6 +12,8 @@ import { connectMongooseDB } from './lib/db.js'
 import accountRouter from './routes/account.js'
 import profileRouter from "./routes/profile.js";
 
+import session from 'express-session'
+import chatRouter from './routes/chat.js'
 
 // Enable dotenv
 config()
@@ -25,6 +27,7 @@ const clientURL =
     ? process.env.CLIENT_URL
     : process.env.CLIENT_URL_DEVELOPMENT
 const MongoURI = process.env.MONGODB_URI
+const sessionSecretKey = process.env.SESSION_SECRET_KEY
 
 //Middleware
 const corsConfig = {
@@ -34,7 +37,16 @@ const corsConfig = {
 }
 app.use(cors(corsConfig))
 
+app.use(
+    session({
+        secret: sessionSecretKey,
+        resave: false,
+        saveUninitialized: true,
+    })
+);
+
 app.use(express.json())
+
 
 //Routes
 app.get('/api/health', (req, res) => {
@@ -44,6 +56,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/users', accountRouter)
 app.use("/api/profile", profileRouter);
 
+app.use('/api/chat', chatRouter)
 
 app.listen(port, () => {
     console.log(`Server is listening on port:  ${port}`)
