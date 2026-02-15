@@ -9,4 +9,8 @@ chatRouter.get('/history', ChatController.getChatHistory)
 
 //Get chat history for a specific user
 chatRouter.get('/history/:userId', ChatController.getUserChatHistory)
+
+//Get messages for a specific session
+chatRouter.get('/session/:sessionId', ChatController.getSessionMessages)
+
 export default chatRouter

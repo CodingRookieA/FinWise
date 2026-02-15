@@ -5,6 +5,7 @@ import { PortfolioPage } from './pages/portfolio/PortfolioPage'
 import { QuestionnairePage } from './pages/questionnaire/QuestionnairePage'
 import ProfilePage from './pages/profile/ProfilePage'
 import { GoogleRedirectPage } from './pages/googleRedirectPage/GoogleRedirectPage'
+import { ChatPage } from './pages/chat/ChatPage'
 import { useEffect } from 'react'
 import { useState } from 'react'
 import { NotFoundPage } from './pages/notFound/NotFoundPage'
@@ -69,6 +70,7 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route path='/' element={<HomePage user={user} logout={logout} />}/>
+                <Route path='/chat' element={<ChatPage user={user} logout={logout} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}/> 
                 <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/
                 
                 {/* Protected routes */}
