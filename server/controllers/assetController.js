@@ -4,6 +4,7 @@ export default {
     // GET /api/assets
     async getAssets(req, res) {
         try {
+            // TODO: req.user.session
             const { user_id } = req.query; // Read userId from the URL query params
 
             if (!user_id) {

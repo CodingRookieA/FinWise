@@ -7,6 +7,7 @@ import { AddAssetModal } from './AddAssetModal';
 import { PortfolioOverview } from './PortfolioOverview';
 import { PortfolioTable } from './PortfolioTable';
 import styles from './portfolioDashboard.module.css';
+import { DeleteAssetModal } from './DeleteAssetModal';
 
 export const PortfolioDashboard = () => {
     // 1. Hooks
@@ -15,6 +16,9 @@ export const PortfolioDashboard = () => {
     // 2. UI State
     const [isModalOpen, setModalOpen] = useState(false);
     const [currentAsset, setCurrentAsset] = useState(null);
+
+    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false); 
+    const [assetToDelete, setAssetToDelete] = useState(null);
 
     // 3. Handlers
     const handleOpenAdd = () => {
@@ -27,9 +31,18 @@ export const PortfolioDashboard = () => {
         setModalOpen(true);
     };
 
-    const handleDeleteClick = async (id) => {
-        if (window.confirm('Delete this asset?')) {
-            await deleteAsset(id);
+    // User clicks trash icon -> Open Modal
+    const handleDeleteClick = (id) => {
+        setAssetToDelete(id);
+        setDeleteModalOpen(true);
+    };
+
+    // User clicks "Delete" in Modal -> Call API
+    const handleConfirmDelete = async () => {
+        if (assetToDelete) {
+            await deleteAsset(assetToDelete);
+            setDeleteModalOpen(false);
+            setAssetToDelete(null);
         }
     };
 
@@ -74,6 +87,13 @@ export const PortfolioDashboard = () => {
                 onClose={() => setModalOpen(false)} 
                 onSave={handleSave} 
                 initialData={currentAsset}
+            />
+
+            {/* Modal 2: Delete Confirmation */}
+            <DeleteAssetModal 
+                open={isDeleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
             />
         </section>
     );

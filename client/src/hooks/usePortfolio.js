@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 // Hardcoded temporarrily 
-const USER_ID = '698e7c3dcb7bf0fa06d1c1f3'; 
+const USER_ID = '698e7c3dcb7bf0fa06d1c1f3'; // req.user.sessionID
 const API_URL = 'http://localhost:9000/api/assets';
 
 export const usePortfolio = () => {
