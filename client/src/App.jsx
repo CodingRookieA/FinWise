@@ -1,6 +1,7 @@
 import './App.css'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/home/HomePage'
+import { PortfolioPage } from './pages/portfolio/PortfolioPage'
 import { QuestionnairePage } from './pages/questionnaire/QuestionnairePage'
 import ProfilePage from './pages/profile/ProfilePage'
 import { GoogleRedirectPage } from './pages/googleRedirectPage/GoogleRedirectPage'
@@ -72,8 +73,9 @@ function App() {
                 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoutes/>}>
-                <Route path="/questionnaire" element={<QuestionnairePage/>} />
-                <Route path="/profile" element={<ProfilePage/>} />
+                  <Route path='/portfolio' element={<PortfolioPage/>}/>
+                  <Route path="/questionnaire" element={<QuestionnairePage/>} />
+                  <Route path="/profile" element={<ProfilePage/>} />
                 </Route>
 
                 {/* Catch-all route for 404 page*/}
