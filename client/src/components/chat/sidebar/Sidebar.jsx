@@ -101,7 +101,7 @@ export const Sidebar = ({
 
             {/* User Profile */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-                <Avatar sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
+                <Avatar src={user?.picture} sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
                     {user?.name?.charAt(0) || 'U'}
                 </Avatar>
                 <Box sx={{ flex: 1, overflow: 'hidden' }}>
@@ -109,7 +109,7 @@ export const Sidebar = ({
                         {user?.email || 'email@email.com'}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" noWrap>
-                        {user?.username || 'username'}
+                        {user?.name || 'username'}
                     </Typography>
                 </Box>
             </Box>
