@@ -24,7 +24,7 @@ export default function ProfileContent({ user }) {
         </Stack>
 
         {/* NEW: account info panel */}
-        <AccountInfo username={user.name} email={user.email} />
+        <AccountInfo username={user.name} email={user.email} picture={user.picture} />
       </Stack>
 
       <Divider sx={{ my: 2.5 }} />

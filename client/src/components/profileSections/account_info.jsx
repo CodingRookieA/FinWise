@@ -12,6 +12,7 @@ function initialsFromName(name = "") {
 export default function AccountInfo({
   name,
   email,
+  picture
 }) {
   const initials = initialsFromName(name);
 
@@ -37,6 +38,7 @@ export default function AccountInfo({
             fontWeight: 900,
             border: "1px solid rgba(14,165,233,0.35)",
           }}
+          src={picture}
         >
           {initials}
         </Avatar>
