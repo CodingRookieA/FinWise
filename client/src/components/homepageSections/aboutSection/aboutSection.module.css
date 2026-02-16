@@ -1,0 +1,69 @@
+.aboutCard {
+  border-radius: 24px;
+  background: linear-gradient(135deg, #1A2332, rgba(35, 60, 90, 0.3));
+  border: 1px solid #2A3A4E;
+  padding: 64px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.aboutGlow1 {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 256px;
+  height: 256px;
+  background: rgba(14, 165, 233, 0.1);
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.aboutGlow2 {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 256px;
+  height: 256px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 50%;
+  filter: blur(60px);
+  animation: pulseGlow 3s ease-in-out infinite 1.5s;
+}
+
+.aboutContent {
+  position: relative;
+  z-index: 10;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.statValue {
+  font-size: 1.875rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0EA5E9, #10B981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Sections */
+.section {
+  padding: 96px 0;
+}
+
+/* Animations */
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}

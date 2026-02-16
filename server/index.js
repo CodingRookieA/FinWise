@@ -1,9 +1,20 @@
+// Configure DNS before any imports that might need it
+// delete this when merge
+// import dns from 'dns'
+// dns.setServers(["1.1.1.1", "1.0.0.1"]);
+//
+
 import express from 'express'
 import cors from 'cors'
 import { config } from "dotenv"
 import { connectMongooseDB } from './lib/db.js'
 
 import accountRouter from './routes/account.js'
+import assetRouter from './routes/assetRoutes.js'
+import profileRouter from "./routes/profile.js";
+
+import session from 'express-session'
+import chatRouter from './routes/chat.js'
 
 // Enable dotenv
 config()
@@ -17,6 +28,7 @@ const clientURL =
     ? process.env.CLIENT_URL
     : process.env.CLIENT_URL_DEVELOPMENT
 const MongoURI = process.env.MONGODB_URI
+const sessionSecretKey = process.env.SESSION_SECRET_KEY
 
 //Middleware
 const corsConfig = {
@@ -26,7 +38,16 @@ const corsConfig = {
 }
 app.use(cors(corsConfig))
 
+app.use(
+    session({
+        secret: sessionSecretKey,
+        saveUninitialized: false,
+        resave: false,
+    })
+);
+
 app.use(express.json())
+
 
 //Routes
 app.get('/api/health', (req, res) => {
@@ -34,6 +55,11 @@ app.get('/api/health', (req, res) => {
 })
 
 app.use('/api/users', accountRouter)
+app.use("/api/profile", profileRouter);
+
+app.use('/api/chat', chatRouter)
+
+app.use('/api/assets', assetRouter)
 
 app.listen(port, () => {
     console.log(`Server is listening on port:  ${port}`)

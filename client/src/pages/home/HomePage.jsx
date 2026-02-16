@@ -1,0 +1,43 @@
+import { Box, Modal } from '@mui/material';
+import { Navbar } from '../../components/navbar/Navbar';
+import { HeroSection } from '../../components/homepageSections/heroSection/HeroSection';
+import { ProductSection } from '../../components/homepageSections/productSection/ProductSection';
+import { GoalSection } from '../../components/homepageSections/goalSection/GoalSection';
+import { AboutSection } from '../../components/homepageSections/aboutSection/AboutSection';
+
+import { BottomSection } from '../../components/homepageSections/bottomSection/BottomSection';
+import { LoginModal } from '../../components/loginModal/loginModal';
+import { useState } from 'react';
+
+export const HomePage = ({ user, logout }) => {
+    const [loginModalOpen, setLoginModalOpen] = useState(false)
+
+    const handleGoToChat = () => {
+        window.location.href = '/chat'
+    }
+
+    const handleModalOpen = () => {
+        setLoginModalOpen(true)
+    }
+
+    const handleModalClose = () => setLoginModalOpen(false)
+
+    return (
+        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+            
+            <Navbar handleModalOpen={handleModalOpen} user={user} handleGoToChat={handleGoToChat} logout={logout} />
+            <HeroSection handleModalOpen={handleModalOpen} />
+            <ProductSection />
+            <GoalSection />
+            <AboutSection />
+            <BottomSection handleModalOpen={handleModalOpen} />
+            <Modal
+                open={loginModalOpen}
+                onClose={handleModalClose}
+                sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+            >
+                <LoginModal handleModalClose={handleModalClose} />
+            </Modal>
+        </Box>
+    );
+};

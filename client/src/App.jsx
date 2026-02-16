@@ -1,35 +1,90 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { HomePage } from './pages/home/HomePage'
+import { PortfolioPage } from './pages/portfolio/PortfolioPage'
+import { QuestionnairePage } from './pages/questionnaire/QuestionnairePage'
+import ProfilePage from './pages/profile/ProfilePage'
+import { GoogleRedirectPage } from './pages/googleRedirectPage/GoogleRedirectPage'
+import { ChatPage } from './pages/chat/ChatPage'
+import { useEffect } from 'react'
+import { useState } from 'react'
+import { NotFoundPage } from './pages/notFound/NotFoundPage'
+
+const mode = import.meta.env.MODE
+const serverURL = mode === 'production' 
+    ? import.meta.env.VITE_SERVER_URL 
+    : import.meta.env.VITE_SERVER_URL_DEVELOPMENT
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [loading, setLoading] = useState(true)
+    const [loggedIn, setLoggedIn] = useState(false)
+    const [user, setUser] = useState({})
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    const logout = async () => {
+        await fetch(
+            `${serverURL}/api/users/logout`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            }
+        )
+
+        setLoggedIn(false)
+        setUser({})
+        window.location.href = '/'
+    }
+
+    const ProtectedRoutes = () => {
+        if(!loggedIn) return <Navigate to='/' />
+
+        return (<Outlet />)
+    }
+
+    useEffect(() => {
+        const checkAuth = async () => {
+            const response = await fetch(`${serverURL}/api/users/checkUserAuth`,{
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                setLoggedIn(true)
+                setUser(result)
+            } else {
+                setLoggedIn(false)
+                setUser({})
+            }
+            setLoading(false)
+        }
+
+        checkAuth()
+    }, [])
+
+    if(loading) return <h1>Loading...</h1>
+
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path='/' element={<HomePage user={user} logout={logout} />}/>
+                <Route path='/chat' element={<ChatPage user={user} logout={logout} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}/> 
+                <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/>
+                
+                {/* Protected routes */}
+                <Route element={<ProtectedRoutes/>}>
+                    <Route path='/portfolio' element={<PortfolioPage user={user} logout={logout} />}/>
+                    <Route path="/questionnaire" element={<QuestionnairePage/>} />
+                    <Route path="/profile" element={<ProfilePage user={user} logout={logout} />} />
+                </Route>
+
+                {/* Catch-all route for 404 page*/}
+                <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+        </BrowserRouter>
+    )
 }
 
 export default App
