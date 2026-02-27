@@ -11,10 +11,27 @@ const AccountSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        password: {
+            type: String,
+            required: function () {
+                return this.authType === 'local'
+            }
+        },
         picture: {
             type: String,
             default: null,
-        }
+        },
+        authType: {
+            type: String,
+            enum: ['local', 'google'],
+            default: 'local',
+            required: true
+        },
+        isVerified: {
+            type: Boolean,
+            default: false,
+            required: true
+        },
     },
     { timestamps: true }
 )

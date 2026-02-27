@@ -48,7 +48,6 @@ app.use(
 
 app.use(express.json())
 
-
 //Routes
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK '})
