@@ -12,11 +12,7 @@ import { NotFoundPage } from './pages/notFound/NotFoundPage'
 import { EmailVerificationPage } from './pages/emailVerification/EmailVerificationPage'
 import { VerifyingEmailPage } from './pages/emailVerification/VerifyingEmailPage'
 import { Toaster } from 'react-hot-toast';
-
-const mode = import.meta.env.MODE
-const serverURL = mode === 'production' 
-    ? import.meta.env.VITE_SERVER_URL 
-    : import.meta.env.VITE_SERVER_URL_DEVELOPMENT
+import { serverURL } from './utils/constants'
 
 function App() {
     const [loading, setLoading] = useState(true)

@@ -6,12 +6,11 @@ import { ThemeProvider } from '@emotion/react'
 import theme from './theme.js'
 import { CssBaseline } from '@mui/material'
 import { GoogleOAuthProvider } from '@react-oauth/google'
-
-const oauthClientID = import.meta.env.VITE_OAUTH_CLIENT_ID
+import { ENVIRONMENT } from './utils/constants.js'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId={oauthClientID}>
+    <GoogleOAuthProvider clientId={ENVIRONMENT.oauthClientId}>
       <ThemeProvider theme={theme}>
           <CssBaseline />
           <App />

@@ -1,10 +1,6 @@
 import { useState } from "react"
 import { useEffect } from "react"
-
-const mode = import.meta.env.MODE
-const serverURL = mode === 'production' 
-    ? import.meta.env.VITE_SERVER_URL 
-    : import.meta.env.VITE_SERVER_URL_DEVELOPMENT
+import { serverURL } from "../../utils/constants"
 
 export const VerifyingEmailPage = () => {
     const urlParams = new URLSearchParams(window.location.search)

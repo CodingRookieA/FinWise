@@ -11,14 +11,9 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import googleLogo from '../../assets/google_logo.png'
 import toast from 'react-hot-toast';
+import { ENVIRONMENT, serverURL } from '../../utils/constants';
 
 import styles from './loginModal.module.css'
-
-const oauthClientID = import.meta.env.VITE_OAUTH_CLIENT_ID
-const mode = import.meta.env.MODE
-const serverURL = mode === 'production' 
-    ? import.meta.env.VITE_SERVER_URL 
-    : import.meta.env.VITE_SERVER_URL_DEVELOPMENT
 
 export const LoginModal = ({ handleModalClose }) => {
     const [tab, setTab] = useState(0);
@@ -95,7 +90,7 @@ export const LoginModal = ({ handleModalClose }) => {
 
     const handleGoogleLogin = () => {
         const client = window.google.accounts.oauth2.initCodeClient({
-            client_id: oauthClientID,
+            client_id: ENVIRONMENT.oauthClientId,
             redirect_uri: `${window.location.origin}/google-redirect`,
             scope: 'email profile',
             state: 'login',

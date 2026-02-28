@@ -2,12 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { Typography, Button } from '@mui/material';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import styles from './emailVerificationPage.module.css';
+import { serverURL } from '../../utils/constants';
 
 const COOLDOWN_SECONDS = 15;
-const mode = import.meta.env.MODE
-const serverURL = mode === 'production' 
-    ? import.meta.env.VITE_SERVER_URL 
-    : import.meta.env.VITE_SERVER_URL_DEVELOPMENT
 
 export const EmailVerificationPage = () => {
     const [cooldown, setCooldown] = useState(0);
