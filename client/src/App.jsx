@@ -9,6 +9,9 @@ import { ChatPage } from './pages/chat/ChatPage'
 import { useEffect } from 'react'
 import { useState } from 'react'
 import { NotFoundPage } from './pages/notFound/NotFoundPage'
+import { EmailVerificationPage } from './pages/emailVerification/EmailVerificationPage'
+import { VerifyingEmailPage } from './pages/emailVerification/VerifyingEmailPage'
+import { Toaster } from 'react-hot-toast';
 
 const mode = import.meta.env.MODE
 const serverURL = mode === 'production' 
@@ -38,7 +41,16 @@ function App() {
     }
 
     const ProtectedRoutes = () => {
+        console.log(user)
         if(!loggedIn) return <Navigate to='/' />
+        if(!user.isVerified) return <Navigate to='/email-verification'/>
+
+        return (<Outlet />)
+    }
+
+    const EmailVerificationRoutes = () => {
+        if(!loggedIn) return <Navigate to='/' />
+        if(user.isVerified) return <Navigate to='/questionnaire'/>
 
         return (<Outlet />)
     }
@@ -68,10 +80,16 @@ function App() {
 
     return (
         <BrowserRouter>
+            <Toaster />
             <Routes>
                 <Route path='/' element={<HomePage user={user} logout={logout} />}/>
                 <Route path='/chat' element={<ChatPage user={user} logout={logout} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}/> 
                 <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/>
+
+                <Route element={<EmailVerificationRoutes/>}>
+                    <Route path='/email-verification' element={<EmailVerificationPage/>} />
+                    <Route path='/verifying-email' element={<VerifyingEmailPage/> } />
+                </Route>
                 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoutes/>}>

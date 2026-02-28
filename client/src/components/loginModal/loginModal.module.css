@@ -3,9 +3,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 4rem;
+    padding: 3rem;
     border-radius: 1rem;
-    top: 25%;
+    top: 10%;
     margin: 1rem;
 }
 
@@ -14,3 +14,103 @@
     margin-right: 10px;
 }
 
+.header {
+  padding: 32px 32px 0;
+  text-align: center;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.tabs {
+  margin-top: 8px;
+}
+
+.tab {
+  flex: 1;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  color: #8B9DC3 !important;
+}
+
+.tabSelected {
+  color: #0EA5E9 !important;
+}
+
+.body {
+  width: 100%;
+  padding: 24px 18px 18px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.textField label {
+  color: #8B9DC3;
+}
+
+.textField input {
+  color: #F1F5F9;
+}
+
+.textField fieldset {
+  border-color: #2A3A4E !important;
+  border-radius: 10px;
+}
+
+.textField:hover fieldset {
+  border-color: #0EA5E9 !important;
+}
+
+.textField .Mui-focused fieldset {
+  border-color: #0EA5E9 !important;
+}
+
+.submitBtn {
+  background: linear-gradient(135deg, #0EA5E9, #10B981) !important;
+  color: #0B1120 !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  padding: 12px !important;
+  border-radius: 10px !important;
+  font-size: 1rem !important;
+  margin-top: 4px !important;
+}
+
+.submitBtn:hover {
+  opacity: 0.9;
+}
+
+.divider {
+  color: #8B9DC3 !important;
+  font-size: 0.85rem !important;
+}
+
+.divider::before,
+.divider::after {
+  border-color: #2A3A4E !important;
+}
+
+.switchText {
+  text-align: center;
+  margin-top: 8px !important;
+}
+
+.switchLink {
+  color: #0EA5E9;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.switchLink:hover {
+  text-decoration: underline;
+}

@@ -16,11 +16,12 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [loadingHistory, setLoadingHistory] = useState(false)
     const [loadingSession, setLoadingSession] = useState(false)
 
+    const guestChat = !loggedIn || !user.isVerified
 
     // Fetch chat history when user is logged in
     useEffect(() => {
         const fetchChatHistory = async () => {
-            if (!loggedIn) {
+            if (guestChat) {
                 // Clear history when user logs out
                 setChatHistory([])
                 return
@@ -45,17 +46,17 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         }
 
         fetchChatHistory()
-    }, [loggedIn, user?.userId])
+    }, [guestChat, user?.userId])
 
     // Clear messages when user changes or logs out
     useEffect(() => {
         setMessages([])
         setSessionId(crypto.randomUUID())
-    }, [user?.userId, loggedIn])
+    }, [user?.userId, guestChat])
 
     // Function to refresh chat history
     const refreshChatHistory = async () => {
-        if (!loggedIn) return
+        if (!guestChat) return
 
         try {
             const response = await fetch('http://localhost:9000/api/chat/history', {
@@ -185,7 +186,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                 onToggleSidebar={toggleSidebar}
                 onNewChat={handleNewChat}
                 onLoadSession={handleLoadSession}
-                loggedIn={loggedIn}
+                loggedIn={!guestChat}
             />
 
             {/* Main Chat Area */}
@@ -195,13 +196,13 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                     flexGrow: 1,
                     display: 'flex',
                     flexDirection: 'column',
-                    ml: { xs: 0, md: loggedIn ? 0 : 0 },
+                    ml: { xs: 0, md: !guestChat ? 0 : 0 },
                     height: '100vh',
                     overflow: 'hidden'
                 }}
             >
                 {/* Menu Button - Show when logged in and sidebar can be toggled */}
-                {loggedIn && (
+                {!guestChat && (
                     <Box 
                         sx={{ 
                             p: 2,
