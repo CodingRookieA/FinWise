@@ -81,10 +81,10 @@ function App() {
                 <Route path='/' element={<HomePage user={user} logout={logout} />}/>
                 <Route path='/chat' element={<ChatPage user={user} logout={logout} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}/> 
                 <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/>
-
+                <Route path='/verifying-email' element={<VerifyingEmailPage/> } />
+                
                 <Route element={<EmailVerificationRoutes/>}>
                     <Route path='/email-verification' element={<EmailVerificationPage/>} />
-                    <Route path='/verifying-email' element={<VerifyingEmailPage/> } />
                 </Route>
                 
                 {/* Protected routes */}
