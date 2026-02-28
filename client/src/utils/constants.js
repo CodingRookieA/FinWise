@@ -5,7 +5,6 @@ export const ENVIRONMENT = {
     serverURLProduction: import.meta.env.VITE_SERVER_URL,
 }
 
-export const mode = ENVIRONMENT.mode
-export const serverURL = mode === 'production' 
+export const SERVERURL = ENVIRONMENT.mode === 'production' 
     ? ENVIRONMENT.serverURLProduction
     : ENVIRONMENT.serverURLDevelopment

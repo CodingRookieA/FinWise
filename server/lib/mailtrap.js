@@ -1,12 +1,8 @@
 import { MailtrapClient } from "mailtrap";
-
-const TOKEN = process.env.MAILTRAP_API_TOKEN;
-const clientURL = process.env.NODE_ENV === 'production' ? 
-    process.env.CLIENT_URL :
-    process.env.CLIENT_URL_DEVELOPMENT
+import { CLIENTURL, ENVIRONMENT } from "../utils/constants.js";
 
 const client = new MailtrapClient({
-    token: TOKEN,
+    token: ENVIRONMENT.mailtrapToken,
     testInboxId: 4416679,
     sandbox: true,
 });
@@ -18,7 +14,7 @@ const sender = {
 
 export const sendVerificationEmail = (email, token) => {
     const recipients = [{ email }]
-    const verificationLink = `${clientURL}/verifying-email?token=${token}`
+    const verificationLink = `${CLIENTURL}/verifying-email?token=${token}`
 
     client.send({
         from: sender,

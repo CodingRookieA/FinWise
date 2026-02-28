@@ -15,24 +15,17 @@ import assetRouter from './routes/assetRoutes.js'
 import profileRouter from "./routes/profile.js";
 import chatRouter from './routes/chat.js'
 import emailRouter from './routes/email.js'
+import { CLIENTURL, ENVIRONMENT, PORT } from './utils/constants.js'
 
 // Enable dotenv
 config()
 
 // Variables
 const app = express()
-const port = process.env.PORT || 9000
-const nodeEnv = process.env.NODE_ENV
-const clientURL = 
-    nodeEnv === 'production'
-    ? process.env.CLIENT_URL
-    : process.env.CLIENT_URL_DEVELOPMENT
-const MongoURI = process.env.MONGODB_URI
-const sessionSecretKey = process.env.SESSION_SECRET_KEY
 
 //Middleware
 const corsConfig = {
-    origin: clientURL,
+    origin: CLIENTURL,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
     credentials: true
 }
@@ -40,7 +33,7 @@ app.use(cors(corsConfig))
 
 app.use(
     session({
-        secret: sessionSecretKey,
+        secret: ENVIRONMENT.sessionSecretKey,
         saveUninitialized: false,
         resave: false,
     })
@@ -59,9 +52,9 @@ app.use('/api/chat', chatRouter)
 app.use('/api/assets', assetRouter)
 app.use('/api/email', emailRouter)
 
-app.listen(port, () => {
-    console.log(`Server is listening on port:  ${port}`)
-    console.log(`process.env.NODE_ENV:         ${nodeEnv}`)
+app.listen(PORT, () => {
+    console.log(`Server is listening on port:  ${PORT}`)
+    console.log(`process.env.NODE_ENV:         ${ENVIRONMENT.nodeEnv}`)
 
-    connectMongooseDB(MongoURI)
+    connectMongooseDB(ENVIRONMENT.mongoURI)
 })

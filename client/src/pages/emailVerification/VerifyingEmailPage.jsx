@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useEffect } from "react"
-import { serverURL } from "../../utils/constants"
+import { SERVERURL } from "../../utils/constants"
 
 export const VerifyingEmailPage = () => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -12,7 +12,7 @@ export const VerifyingEmailPage = () => {
         const verifyEmail = async () => {
             try {
                 const res = await fetch(
-                    `${serverURL}/api/email/verifyEmail/${token}`,
+                    `${SERVERURL}/api/email/verifyEmail/${token}`,
                     {
                         method: 'POST',
                         headers: {

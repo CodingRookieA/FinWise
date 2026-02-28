@@ -12,7 +12,7 @@ import { NotFoundPage } from './pages/notFound/NotFoundPage'
 import { EmailVerificationPage } from './pages/emailVerification/EmailVerificationPage'
 import { VerifyingEmailPage } from './pages/emailVerification/VerifyingEmailPage'
 import { Toaster } from 'react-hot-toast';
-import { serverURL } from './utils/constants'
+import { SERVERURL } from './utils/constants'
 
 function App() {
     const [loading, setLoading] = useState(true)
@@ -21,7 +21,7 @@ function App() {
 
     const logout = async () => {
         await fetch(
-            `${serverURL}/api/users/logout`,
+            `${SERVERURL}/api/users/logout`,
             {
                 method: 'POST',
                 headers: {
@@ -53,7 +53,7 @@ function App() {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const response = await fetch(`${serverURL}/api/users/checkUserAuth`,{
+            const response = await fetch(`${SERVERURL}/api/users/checkUserAuth`,{
                 method: 'GET',
                 credentials: 'include',
             });

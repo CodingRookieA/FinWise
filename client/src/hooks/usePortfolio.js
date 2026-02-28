@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { serverURL } from '../utils/constants';
+import { SERVERURL } from '../utils/constants';
 
-const API_URL = `${serverURL}/api/assets`;
+const API_URL = `${SERVERURL}/api/assets`;
 
 export const usePortfolio = () => {
     const [assets, setAssets] = useState([]);

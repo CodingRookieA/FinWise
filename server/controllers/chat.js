@@ -4,6 +4,8 @@ import Message from '../models/Message.js'
 import { randomUUID } from 'crypto'
 import mongoose from 'mongoose'
 
+const perplexityAPIKey = null // change when we find new API
+
 export default {
     async sendMessage(req, res) {
         try {
@@ -29,7 +31,7 @@ export default {
                 },
                 {
                     headers: {
-                        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+                        'Authorization': `Bearer ${perplexityAPIKey}`,
                         'Content-Type': 'application/json'
                     }
                 }

@@ -11,7 +11,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import googleLogo from '../../assets/google_logo.png'
 import toast from 'react-hot-toast';
-import { ENVIRONMENT, serverURL } from '../../utils/constants';
+import { ENVIRONMENT, SERVERURL } from '../../utils/constants';
 
 import styles from './loginModal.module.css'
 
@@ -31,7 +31,7 @@ export const LoginModal = ({ handleModalClose }) => {
         const login = async () => {
             try {
                 const res = await fetch(
-                    `${serverURL}/api/users/localLogin`,
+                    `${SERVERURL}/api/users/localLogin`,
                     {
                         method: 'POST',
                         headers: {
@@ -57,7 +57,7 @@ export const LoginModal = ({ handleModalClose }) => {
         const signup = async () => {
             try {
                 const res = await fetch(
-                    `${serverURL}/api/users/localSignup`,
+                    `${SERVERURL}/api/users/localSignup`,
                     {
                         method: 'POST',
                         headers: {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Typography, Button } from '@mui/material';
 import MarkEmailReadIcon from '@mui/icons-material/MarkEmailRead';
 import styles from './emailVerificationPage.module.css';
-import { serverURL } from '../../utils/constants';
+import { SERVERURL } from '../../utils/constants';
 
 const COOLDOWN_SECONDS = 15;
 
@@ -21,7 +21,7 @@ export const EmailVerificationPage = () => {
         const sendVerificationEmail = async () => {
             try {
                 await fetch(
-                    `${serverURL}/api/email/sendVerificationEmail`,
+                    `${SERVERURL}/api/email/sendVerificationEmail`,
                     {
                         method: 'POST',
                         headers: {

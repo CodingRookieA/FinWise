@@ -1,19 +1,8 @@
-import { config } from 'dotenv'
 import { Account } from '../models/Account.js'
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { sendVerificationEmail } from '../lib/mailtrap.js';
-
-config()
-
-const clientId = process.env.OAUTH_CLIENT_ID
-const clientSecret = process.env.OAUTH_SECRET_KEY
-const nodeEnv = process.env.NODE_ENV
-const clientURL = 
-    nodeEnv === 'production'
-    ? process.env.CLIENT_URL
-    : process.env.CLIENT_URL_DEVELOPMENT
-const jwtSecret = process.env.JWT_SECRET
+import { CLIENTURL, ENVIRONMENT } from '../utils/constants.js';
 
 const saveUserToSession = (session, user) => {
     session.userId = user._id
@@ -34,9 +23,9 @@ export default {
                 },
                 body: new URLSearchParams({
                     code,
-                    client_id: clientId,
-                    client_secret: clientSecret,
-                    redirect_uri: `${clientURL}/google-redirect`,
+                    client_id: ENVIRONMENT.oauthClientId,
+                    client_secret: ENVIRONMENT.oauthClientSecret,
+                    redirect_uri: `${CLIENTURL}/google-redirect`,
                     grant_type: 'authorization_code'
                 })
             })
@@ -121,7 +110,7 @@ export default {
             // Create token
             const token = jwt.sign({
                 email
-            }, jwtSecret, { expiresIn: '1h' })
+            }, ENVIRONMENT.jwtSecret, { expiresIn: '1h' })
 
             sendVerificationEmail(email, token)
 

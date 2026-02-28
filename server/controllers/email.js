@@ -1,11 +1,7 @@
-import { config } from 'dotenv'
 import { Account } from '../models/Account.js'
 import jwt from 'jsonwebtoken';
 import { sendVerificationEmail } from '../lib/mailtrap.js';
-
-config()
-
-const jwtSecret = process.env.JWT_SECRET
+import { ENVIRONMENT } from '../utils/constants.js';
 
 export default {
     async verifyEmail(req, res) {
@@ -24,7 +20,7 @@ export default {
                 error: "This email is already verified"
             })
 
-            const decoded = jwt.verify(token, jwtSecret)
+            const decoded = jwt.verify(token, ENVIRONMENT.jwtSecret)
 
             if(!decoded) return res.status(401).json({
                 error: "Invalid or expired link"
@@ -69,7 +65,7 @@ export default {
             // Create token
             const token = jwt.sign({
                 email: user.email
-            }, jwtSecret, { expiresIn: '1h' })
+            }, ENVIRONMENT.jwtSecret, { expiresIn: '1h' })
 
             sendVerificationEmail(user.email, token)
 
