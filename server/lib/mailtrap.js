@@ -18,7 +18,7 @@ const sender = {
 
 export const sendVerificationEmail = (email, token) => {
     const recipients = [{ email }]
-    const verificationLink = `${clientURL}/verifyEmail?token=${token}`
+    const verificationLink = `${clientURL}/verifying-email?token=${token}`
 
     client.send({
         from: sender,
