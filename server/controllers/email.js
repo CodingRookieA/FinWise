@@ -9,35 +9,34 @@ export default {
         const { token } = req.params
 
         try {
-            const decoded = jwt.verify(token, ENVIRONMENT.jwtSecret, (error) => {
+            jwt.verify(token, ENVIRONMENT.jwtSecret, async (error, decoded) => {
                 if (error){
-                    res.status(400).json({ error: `Error: ${error.message}` })
+                    return res.status(400).json({ error: `Error: ${error.message}` })
                 }
-            })
-            
-            if(!decoded) return res.status(401).json({
-                error: "Invalid or expired link"
-            })
+                if(!decoded) return res.status(401).json({
+                    error: "Invalid or expired link"
+                })
+    
+                const user = await Account.findOne({ email: decoded.email })
+                if(!user) return res.status(404).json({
+                    error: "User does not exist"
+                })
+                
+                if(user.isVerified) return res.status(400).json({
+                    error: "This email is already verified"
+                })
+    
+                // TODO: Find way to expire the jwt after user verifies email ???
+    
+                // Mark account as verified and log them in
+                user.isVerified = true
+                user.save()
+    
+                saveUserToSession(req.session, user)
 
-            const user = await Account.findOne({ email: decoded.email })
-            if(!user) return res.status(404).json({
-                error: "User does not exist"
-            })
-            
-            if(user.isVerified) return res.status(400).json({
-                error: "This email is already verified"
-            })
-
-            // TODO: Find way to expire the jwt after user verifies email ???
-
-            // Mark account as verified and log them in
-            user.isVerified = true
-            user.save()
-
-            saveUserToSession(req.session, user)
-
-            res.status(200).json({
-                message: "Successfully verified email"
+                res.status(200).json({
+                    message: "Successfully verified email"
+                })
             })
         }
         catch (error) {
