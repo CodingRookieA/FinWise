@@ -3,14 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { sendVerificationEmail } from '../lib/mailtrap.js';
 import { CLIENTURL, ENVIRONMENT } from '../utils/constants.js';
-
-const saveUserToSession = (session, user) => {
-    session.userId = user._id
-    session.email = user.email
-    session.name = user.name
-    session.picture = user.picture
-    session.isVerified = user.isVerified
-}
+import { saveUserToSession } from '../helpers/saveUserToSession.js';
 
 export default {
     async googleLogin(req, res) {

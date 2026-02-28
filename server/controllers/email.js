@@ -2,40 +2,39 @@ import { Account } from '../models/Account.js'
 import jwt from 'jsonwebtoken';
 import { sendVerificationEmail } from '../lib/mailtrap.js';
 import { ENVIRONMENT } from '../utils/constants.js';
+import { saveUserToSession } from '../helpers/saveUserToSession.js';
 
 export default {
     async verifyEmail(req, res) {
-        const { userId } = req.session
         const { token } = req.params
 
         try {
-            if(!userId) return res.status(401).json({ error: "Not logged in" })
+            const decoded = jwt.verify(token, ENVIRONMENT.jwtSecret, (error) => {
+                if (error){
+                    res.status(400).json({ error: `Error: ${error.message}` })
+                }
+            })
+            
+            if(!decoded) return res.status(401).json({
+                error: "Invalid or expired link"
+            })
 
-            const user = await Account.findById(userId)
+            const user = await Account.findOne({ email: decoded.email })
             if(!user) return res.status(404).json({
-                error: "User not found"
+                error: "User does not exist"
             })
             
             if(user.isVerified) return res.status(400).json({
                 error: "This email is already verified"
             })
 
-            const decoded = jwt.verify(token, ENVIRONMENT.jwtSecret)
+            // TODO: Find way to expire the jwt after user verifies email ???
 
-            if(!decoded) return res.status(401).json({
-                error: "Invalid or expired link"
-            })
-
-            if(decoded.email !== user.email) return res.status(400).json({
-                error: "Email mismatch. Please make sure you log in with the email that the verification link was sent to"
-            })
-
-            // TODO: Find way to expire the jwt after user verifies email???
-
+            // Mark account as verified and log them in
             user.isVerified = true
             user.save()
 
-            req.session.isVerified = user.isVerified
+            saveUserToSession(req.session, user)
 
             res.status(200).json({
                 message: "Successfully verified email"
