@@ -81,6 +81,14 @@ export const LoginModal = ({ handleModalClose }) => {
         }
 
         e.preventDefault();
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if(!emailRegex.test(email)){
+            toast.dismiss();
+            toast.error('Invalid email')
+            return
+        }
+
         if(tab === 0){
             login()
         } else {
