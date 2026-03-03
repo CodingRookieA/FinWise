@@ -40,8 +40,6 @@ export default {
             const aiResponse = response.data.choices[0].message.content
             const citations = response.data.citations || []
 
-            // Store messages if user has a session (for testing, default to storing)
-            // Guest users: no sessionId or userId means don't store
             const shouldStore = req.session.userId ? true : false
             let savedUserMessage = null
             let savedAIMessage = null
@@ -88,7 +86,7 @@ export default {
             })
 
         } catch (error) {
-            console.error('Error calling Perplexity API:', error.response?.data || error.message)
+            console.error('Error calling AI API:', error.response?.data || error.message)
             return res.status(500).json({
                 error: 'Failed to process message',
                 details: error.response?.data?.error || error.message

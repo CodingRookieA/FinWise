@@ -52,6 +52,7 @@ app.use('/api/chat', chatRouter)
 app.use('/api/assets', assetRouter)
 app.use('/api/email', emailRouter)
 
+
 app.listen(PORT, () => {
     console.log(`Server is listening on port:  ${PORT}`)
     console.log(`process.env.NODE_ENV:         ${ENVIRONMENT.nodeEnv}`)

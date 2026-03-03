@@ -12,6 +12,7 @@ export const ENVIRONMENT = {
     jwtSecret: process.env.JWT_SECRET,
     oauthClientId: process.env.OAUTH_CLIENT_ID,
     oauthClientSecret: process.env.OAUTH_SECRET_KEY,
+    geminiApiKey: process.env.GEMINI
 }
 
 export const PORT = ENVIRONMENT.port || 9000
