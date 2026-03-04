@@ -5,9 +5,7 @@
  */
 
 
-import { ENVIRONMENT } from "../../utils/constants"
-
-const EMBEDDING_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent`
+import { ENVIRONMENT } from "../../utils/constants.js"
 
 /**
  * Generates an embedding vector for the given text.
@@ -19,7 +17,7 @@ const EMBEDDING_URL = `https://generativelanguage.googleapis.com/v1beta/models/g
  */
 export async function embedText(text) {
   const response = await fetch(
-    `${EMBEDDING_URL}?key=${ENVIRONMENT.geminiApiKey}`,
+    `${ENVIRONMENT.aiEmbeddingUrl}?key=${ENVIRONMENT.aiEmbeddingApiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

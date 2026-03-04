@@ -16,8 +16,14 @@ export default {
                 return res.status(400).json({ error: 'Message is required' })
             }
 
+            //Call the classifier to determine if we need to fetch articles or funds data before responding
+            //This will help the AI model provide more accurate and relevant responses to user queries
+            const classification = await classifyQuery(message)
+            console.log('Classification result:', classification)
+
+
             //Build the prompts
-            const messages = promptengineering.generatePrompt(message, userId)
+            const messages = promptengineering.generatePrompt(message, userId, classification)
 
             // Call Perplexity API
             const response = await axios.post(

@@ -7,7 +7,7 @@
  * Target: ~400 tokens (~300 words) per chunk — leaves comfortable headroom.
  */
 
-const MAX_TOKENS = 1000   // target max tokens per chunk
+const MAX_TOKENS = 400   // target max tokens per chunk
 const CHARS_PER_TOKEN = 4 // rough estimate: 1 token ≈ 4 characters
 
 function estimateTokens(text) {
@@ -56,3 +56,4 @@ export function chunkArticle(text) {
 
     return chunks
 }
+

@@ -9,8 +9,8 @@
 import { cleanArticle } from './cleaningService.js'
 import { chunkArticle } from './chunkingService.js'
 import { embedText } from './embeddingService.js'
-import { Chunk } from '../models/Chunks.js'
-import { Source } from '../models/Source.js'
+import { Chunk } from '../../models/Chunks.js'
+import { Source } from '../../models/Source.js'
 
 
 /**
@@ -26,7 +26,7 @@ import { Source } from '../models/Source.js'
  * @param {string} content - raw article text fetched from that URL
  * @returns {object[]} saved Chunk documents
  */
-export async function indexSource( url, category="fundamentals", content) {
+export async function indexSource( {url, category="fundamentals"}, content) {
     console.log(`\n📄 Indexing: "${url}"`)
 
     // Step 0 — reject if this URL has already been indexed
@@ -38,7 +38,7 @@ export async function indexSource( url, category="fundamentals", content) {
     const source = await Source.create({ url, category })
     console.log(`   ✅ Source created (id: ${source._id})`)
 
-    return _runIndexPipeline(source, content)
+    return runIndexPipeline(source, content)
 }
 
 
@@ -50,7 +50,7 @@ export async function indexSource( url, category="fundamentals", content) {
  * @param {string} content  - raw article text
  * @returns {object[]} saved Chunk documents
  */
-async function _runIndexPipeline(source, content) {
+async function runIndexPipeline(source, content) {
     // Step 1 — clean
     const cleanedText = cleanArticle(content)
     console.log(`   ✅ Cleaned — ${cleanedText.length} chars`)
@@ -113,5 +113,5 @@ export async function reIndexSource(sourceId, content) {
     const source = await Source.findById(sourceId)
     if (!source) throw new Error(`Source not found: ${sourceId}`)
     console.log(`\n🔄 Re-indexing: "${source.url}"`)
-    return _runIndexPipeline(source, content)
+    return runIndexPipeline(source, content)
 }
