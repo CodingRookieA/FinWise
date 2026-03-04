@@ -2,14 +2,16 @@
  * testClassifier.js
  * Quick test script for the query classifier
  * 
- * Usage: node testClassifier.js
+ * Usage: 
+ *   node testClassifier.js    # Runs default tests, then enters interactive mode
  */
 
 import mongoose from 'mongoose'
+import * as readline from 'readline'
 import { ENVIRONMENT } from './utils/constants.js'
 import { classifyQuery } from './helpers/classifier.js'
 
-const testQueries = [
+const defaultTestQueries = [
     "What is a mutual fund?",
     "Show me the top performing Canadian equity funds",
     "How do RRSP contribution limits work?",
@@ -20,11 +22,23 @@ const testQueries = [
     "What is the MER for fund XYZ789?"
 ]
 
+// Create readline interface for interactive mode
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+})
+
+function question(query) {
+    return new Promise(resolve => rl.question(query, resolve))
+}
+
 async function testClassifier() {
     console.log('\n🧪 Testing Query Classifier\n')
+    console.log('📌 Running default test queries...')
     console.log('='.repeat(60))
 
-    for (const query of testQueries) {
+    // Run default test queries
+    for (const query of defaultTestQueries) {
         console.log(`\n📝 Query: "${query}"`)
         
         try {
@@ -40,12 +54,41 @@ async function testClassifier() {
     }
 
     console.log('\n' + '='.repeat(60))
-    console.log('✅ Testing complete\n')
+    console.log('✅ Default tests complete\n')
+    
+    // Enter interactive mode
+    console.log('💬 Entering interactive mode...')
+    console.log('   Type your query to test the classifier')
+    console.log('   Type "exit" or "quit" to stop\n')
+    
+    while (true) {
+        const userQuery = await question('🔍 Enter query: ')
+        
+        if (!userQuery.trim()) {
+            continue
+        }
+        
+        if (userQuery.toLowerCase() === 'exit' || userQuery.toLowerCase() === 'quit') {
+            console.log('\n👋 Exiting interactive mode...\n')
+            break
+        }
+        
+        try {
+            const result = await classifyQuery(userQuery)
+            console.log(`   Articles needed: ${result.needs_articles ? '✅' : '❌'}`)
+            console.log(`   Funds needed:    ${result.needs_funds ? '✅' : '❌'}\n`)
+        } catch (error) {
+            console.error(`   ❌ Error: ${error.message}\n`)
+        }
+    }
+    
+    rl.close()
 }
 
 testClassifier()
     .then(() => process.exit(0))
     .catch(error => {
         console.error('Test failed:', error)
+        rl.close()
         process.exit(1)
     })
