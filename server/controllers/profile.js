@@ -10,7 +10,59 @@ const ALL_FIELDS = [
   "monthly_income",
   "savings_balance",
   "debt_amount",
+
+  "has_mutual_funds",
+  "has_ETFs",
+  "where_mutual_funds",
+  "where_ETFs",
+  "type_mutual_funds",
+  "type_ETFs",
+  "fee_level_mutual_funds",
+  "mutual_funds_amount",
+  "ETFs_amount",
+  "frequency_ETFs",
+
 ];
+
+const DEPENDENCIES = {
+  // Mutual funds details only make sense if user has mutual funds
+  where_mutual_funds: ["has_mutual_funds"],
+  type_mutual_funds: ["has_mutual_funds"],
+  fee_level_mutual_funds: ["has_mutual_funds"],
+  mutual_funds_amount: ["has_mutual_funds"],
+
+  // ETFs details only make sense if user has ETFs
+  where_ETFs: ["has_ETFs"],
+  type_ETFs: ["has_ETFs"],
+  ETFs_amount: ["has_ETFs"],
+  frequency_ETFs: ["has_ETFs"],
+  // (If you later add fee_level_ETFs, add it here too)
+};
+
+
+function isTruthyYes(value) {
+  // adapt to your enum values
+  // If your schema stores "yes"/"no"/"not sure", this works.
+  if (typeof value !== "string") return false;
+  return value.toLowerCase() === "yes";
+}
+
+function prereqsSatisfied(profile, field) {
+  const prereqs = DEPENDENCIES[field];
+  if (!prereqs) return true;
+
+  // All prereqs must be "yes"
+  return prereqs.every((p) => isTruthyYes(profile[p]));
+}
+
+function isUnanswered(profile, field) {
+  const v = profile[field];
+  return v == null || (typeof v === "string" && v.trim() === "");
+}
+
+
+
+
 
 // function getDemoUserId(req) {
   // Temporary until login exists:
@@ -149,18 +201,24 @@ export default {
 
       const profile = await findOrCreateProfile(userId);
 
-      const unanswered = ALL_FIELDS.filter((f) => {
-        const v = profile[f];
-        return v == null || (typeof v === "string" && v.trim() === "");
-      });
+      // const unanswered = ALL_FIELDS.filter((f) => {
+      //   const v = profile[f];
+      //   return v == null || (typeof v === "string" && v.trim() === "");
+      // });
 
-      const pickedFields = pickRandom(unanswered, Math.min(3, unanswered.length));
+      const unanswered = ALL_FIELDS.filter((f) => isUnanswered(profile, f));
+
+      // only pick from unanswered fields that are currently eligible
+      const eligibleUnanswered = unanswered.filter((f) => prereqsSatisfied(profile, f));
+
+      const pickedFields = pickRandom(eligibleUnanswered, Math.min(3, unanswered.length));
       const questions = pickedFields.map(buildQuestionFromSchema).filter(Boolean);
 
       return res.status(200).json({
         questions,
         pickedFields,
         remainingUnansweredCount: unanswered.length,
+        eligibleUnansweredCount: eligibleUnanswered.length,
       });
     } catch (err) {
       console.error(err);

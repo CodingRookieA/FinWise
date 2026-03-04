@@ -21,6 +21,38 @@ export default function Fields() {
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(null);
 
+const isYes = (v) => typeof v === "string" && v.trim().toLowerCase() === "yes";
+const clearFields = (keys) => {
+  setValues((prev) => {
+    const next = { ...prev };
+    for (const k of keys) next[k] = null;
+    return next;
+  });
+};
+
+const DEPENDENCIES = {
+  // mutual fund detail fields depend on has_mutual_funds
+  where_mutual_funds: ["has_mutual_funds"],
+  type_mutual_funds: ["has_mutual_funds"],
+  fee_level_mutual_funds: ["has_mutual_funds"],
+  mutual_funds_amount: ["has_mutual_funds"],
+
+  // ETF detail fields depend on has_ETFs
+  where_ETFs: ["has_ETFs"],
+  type_ETFs: ["has_ETFs"],
+  ETFs_amount: ["has_ETFs"],
+  frequency_ETFs: ["has_ETFs"],
+};
+
+const shouldShowField = (field, currentValues) => {
+  const prereqs = DEPENDENCIES[field];
+  if (!prereqs) return true; // not a dependent field
+
+  // show only if all prereqs are answered "yes"
+  return prereqs.every((p) => isYes(currentValues[p]));
+};
+
+
   // load profile values + meta definitions
   React.useEffect(() => {
     const run = async () => {
@@ -59,10 +91,28 @@ export default function Fields() {
     run();
   }, []);
 
+  // const handleChange = (field, rawValue) => {
+  //   // keep as string in state, convert number only on save (or you can do it here)
+  //   setValues((prev) => ({ ...prev, [field]: rawValue }));
+  // };
+
   const handleChange = (field, rawValue) => {
-    // keep as string in state, convert number only on save (or you can do it here)
-    setValues((prev) => ({ ...prev, [field]: rawValue }));
-  };
+  setValues((prev) => ({ ...prev, [field]: rawValue }));
+
+  if (field === "has_ETFs" && !isYes(rawValue)) {
+    clearFields(["where_ETFs", "type_ETFs", "ETFs_amount", "frequency_ETFs"]);
+  }
+
+  if (field === "has_mutual_funds" && !isYes(rawValue)) {
+    clearFields([
+      "where_mutual_funds",
+      "type_mutual_funds",
+      "fee_level_mutual_funds",
+      "mutual_funds_amount",
+    ]);
+  }
+};
+
 
   const handleSave = async () => {
     try {
@@ -110,6 +160,12 @@ export default function Fields() {
       setSaving(false);
     }
   };
+
+
+  const visibleMeta = React.useMemo(() => {
+    return meta.filter((q) => shouldShowField(q.field, values));
+  }, [meta, values]);
+
 
   return (
     <Paper
@@ -159,7 +215,7 @@ export default function Fields() {
               alignItems: "start",
             }}
           >
-            {meta.map((q) => (
+            {visibleMeta.map((q) => (
               <Field
                 key={q.field}
                 meta={q}
@@ -186,7 +242,7 @@ export default function Fields() {
         </>
       )}
 
-      {!loading && !error && meta.length === 0 && (
+      {!loading && !error && visibleMeta.length === 0 && (
         <Alert severity="info" variant="outlined">
           No fields available.
         </Alert>
