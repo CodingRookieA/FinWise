@@ -20,6 +20,15 @@ export const ENVIRONMENT = {
     aiGeneralApiKey: process.env.AI_GENERAL_API_KEY
 }
 
+// Allowed article categories (must match Source model enum)
+export const ALLOWED_CATEGORIES = [
+    'fundamentals',       // What is a mutual fund, NAV, units etc.
+    'canadian_accounts',  // RRSP, TFSA, FHSA, RESP, RRIF
+    'strategy',           // Asset allocation, diversification, rebalancing
+    'fees',               // MER, TER, DSC, fund series
+    'tax',                // Distribution types, ACB, capital gains
+]
+
 export const PORT = ENVIRONMENT.port || 9000
 export const CLIENTURL = 
     ENVIRONMENT.nodeEnv === 'production'

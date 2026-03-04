@@ -10,6 +10,7 @@
     "start": "node --env-file=.env index.js",
     "dev": "nodemon --env-file=.env index.js",
     "ar": "node addArticle.js",
+    "watch": "node watchArticle.js",
     "test-classifier": "node testClassifier.js",
     "list-models": "node listModels.js"
   },

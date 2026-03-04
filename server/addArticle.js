@@ -8,17 +8,10 @@
 import mongoose from 'mongoose'
 import * as readline from 'readline'
 import { readFile } from 'fs/promises'
-import { ENVIRONMENT } from './utils/constants.js'
+import { ENVIRONMENT, ALLOWED_CATEGORIES } from './utils/constants.js'
 import { indexSource } from './services/article/indexService.js'
-
-// Allowed categories (must match Source model enum)
-const ALLOWED_CATEGORIES = [
-    'fundamentals',       // What is a mutual fund, NAV, units etc.
-    'canadian_accounts',  // RRSP, TFSA, FHSA, RESP, RRIF
-    'strategy',           // Asset allocation, diversification, rebalancing
-    'fees',               // MER, TER, DSC, fund series
-    'tax',                // Distribution types, ACB, capital gains
-]
+import { cleanArticle } from './services/article/cleaningService.js'
+import { chunkArticle } from './services/article/chunkingService.js'
 
 // Create readline interface for user input
 const rl = readline.createInterface({
@@ -128,6 +121,23 @@ async function main() {
         console.log(`  URL: ${url}`)
         console.log(`  Category: ${category}`)
         console.log(`  Content length: ${content.length} characters`)
+        console.log('━'.repeat(50))
+
+        // Preview chunking results
+        console.log('\n📊 Analyzing content and generating chunks...\n')
+        const cleanedText = cleanArticle(content)
+        const previewChunks = chunkArticle(cleanedText)
+        
+        console.log(`✅ Generated ${previewChunks.length} chunks\n`)
+        
+        // Show preview of each chunk
+        previewChunks.forEach((chunk, index) => {
+            const tokenEstimate = Math.ceil(chunk.length / 4)
+            console.log(`📦 Chunk ${index + 1}/${previewChunks.length} (≈${tokenEstimate} tokens, ${chunk.length} chars)`)
+            console.log(chunk)
+            console.log('\n' + '='.repeat(80))
+        })
+
         console.log('━'.repeat(50))
 
         const confirm = await question('\n⚠️  Proceed with indexing? (yes/no): ')
