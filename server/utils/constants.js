@@ -17,7 +17,10 @@ export const ENVIRONMENT = {
     aiEmbeddingUrl: process.env.AI_EMBEDDING_URL,
     aiEmbeddingApiKey: process.env.AI_EMBEDDING_API_KEY,
     aiGeneralUrl: process.env.AI_GENERAL_URL,
-    aiGeneralApiKey: process.env.AI_GENERAL_API_KEY
+    aiGeneralApiKey: process.env.AI_GENERAL_API_KEY,
+    similarityThreshold: parseFloat(process.env.SIMILARITY_THRESHOLD) || 0.8,
+    aiMaxTokens: parseInt(process.env.AI_MAX_TOKENS) || 1000,
+    aiTemperature: parseFloat(process.env.AI_TEMPERATURE) || 0.7
 }
 
 // Allowed article categories (must match Source model enum)

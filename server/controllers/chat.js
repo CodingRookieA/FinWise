@@ -1,10 +1,10 @@
 import promptengineering from '../helpers/promptengineering.js'
+import { classifyQuery } from '../helpers/classifier.js'
 import axios from 'axios'
 import Message from '../models/Message.js'
 import { randomUUID } from 'crypto'
 import mongoose from 'mongoose'
-
-const perplexityAPIKey = null // change when we find new API
+import { ENVIRONMENT } from '../utils/constants.js'
 
 export default {
     async sendMessage(req, res) {
@@ -23,28 +23,37 @@ export default {
 
 
             //Build the prompts
-            const messages = promptengineering.generatePrompt(message, userId, classification)
+            const messages = await promptengineering.generatePrompt(message, userId, classification)
 
-            // Call Perplexity API
-            const response = await axios.post(
-                'https://api.perplexity.ai/chat/completions',
+            // Call Gemma 3 27B via Google AI API
+            const response = await fetch(
+                `${ENVIRONMENT.aiGeneralUrl}?key=${ENVIRONMENT.aiGeneralApiKey}`,
                 {
-                    model: 'sonar',
-                    messages: messages,
-                    max_tokens: 500,
-                    temperature: 0.7,
-                    return_citations: true
-                },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${perplexityAPIKey}`,
-                        'Content-Type': 'application/json'
-                    }
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        system_instruction: {
+                            parts: [{ text: messages[0].content }]
+                        },
+                        contents: [{
+                            role: 'user',
+                            parts: [{ text: messages[1].content }]
+                        }],
+                        generationConfig: {
+                            maxOutputTokens: ENVIRONMENT.aiMaxTokens,
+                            temperature: ENVIRONMENT.aiTemperature
+                        }
+                    })
                 }
             )
 
-            const aiResponse = response.data.choices[0].message.content
-            const citations = response.data.citations || []
+            if (!response.ok) {
+                const error = await response.json()
+                throw new Error(`AI API error: ${JSON.stringify(error)}`)
+            }
+
+            const data = await response.json()
+            const aiResponse = data.candidates[0].content.parts[0].text
 
             const shouldStore = req.session.userId ? true : false
             let savedUserMessage = null
@@ -81,8 +90,6 @@ export default {
             return res.status(200).json({
                 success: true,
                 response: aiResponse,
-                citations: citations,
-                usage: response.data.usage,
                 stored: shouldStore,
                 sessionId: savedUserMessage?.sessionId,
                 messageIds: shouldStore ? {

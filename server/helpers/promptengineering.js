@@ -1,4 +1,6 @@
-import { get } from "mongoose";
+import { embedText } from '../services/article/embeddingService.js'
+import { Chunk } from '../models/Chunks.js'
+import { ENVIRONMENT } from '../utils/constants.js'
 
 const SYSTEM_PROMPT = 
 `You are a financial guidance assistant specialized in mutual fund investing.
@@ -21,13 +23,11 @@ At the end of your response, include:
 
 export default {
     //Function for generating prompts based on user input and context
-    generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false }) {
+    async generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false }) {
         let contextSections = []
 
         if(classification.needs_articles) {
-            // If the query needs articles, we can add a prompt to fetch relevant article chunks from the database
-            // and include them in the system prompt to provide context for the AI model.
-            const articles = promptengineering.getInvestmentDocs()
+            const articles = await this.getInvestmentDocs(userInput)
             if (articles) {
                 contextSections.push('\n--- ARTICLE CONTEXT (Source of Truth) ---\n' + articles)
             }
@@ -37,7 +37,7 @@ export default {
         // If the query needs fund data, we can add a prompt to fetch relevant fund information from the database
         if(classification.needs_funds) {
             // Include fund data context in system prompt
-            const funds = promptengineering.getStockInfo()
+            const funds = this.getStockInfo()
             if (funds) {
                 contextSections.push('\n--- FUND DATA (Source of Truth) ---\n' + funds)
             }
@@ -61,8 +61,49 @@ export default {
         return ``
     },
 
-    //Function for fetching investment documentation (placeholder)
-    getInvestmentDocs() {
-        return ``
+    //Function for fetching investment documentation via vector search
+    async getInvestmentDocs(userInput) {
+        try {
+            // Generate embedding for the user query
+            const queryEmbedding = await embedText(userInput)
+            const threshold = ENVIRONMENT.similarityThreshold
+
+            // Perform vector search - retrieve top 5 chunks
+            const results = await Chunk.aggregate([
+                {
+                    $vectorSearch: {
+                        index: "chunk_embedding_index",
+                        path: "embedding",
+                        queryVector: queryEmbedding,
+                        numCandidates: 100,
+                        limit: 5
+                    }
+                },
+                {
+                    $project: {
+                        content: 1,
+                        source_url: 1,
+                        source_category: 1,
+                        chunk_index: 1,
+                        score: { $meta: "vectorSearchScore" }
+                    }
+                }
+            ])
+
+            // Filter by similarity threshold
+            const relevant = results.filter(r => r.score >= threshold)
+
+            if (relevant.length === 0) {
+                return ''
+            }
+
+            // Format chunks into context string
+            return relevant.map((chunk, i) => 
+                `[Source ${i + 1}: ${chunk.source_url} | Category: ${chunk.source_category} | Score: ${chunk.score.toFixed(4)}]\n${chunk.content}`
+            ).join('\n\n')
+        } catch (error) {
+            console.error('Error fetching article context:', error.message)
+            return ''
+        }
     }
 }
