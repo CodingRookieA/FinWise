@@ -1,0 +1,2533 @@
+{
+  "RBF565": {
+    "fund_code": "RBF565",
+    "name": "RBC Global Dividend Growth Fund",
+    "nav": 23.0583,
+    "mer": 2.09,
+    "1yr": 11.729028,
+    "3yr": 14.422288,
+    "5yr": 9.386989,
+    "distribution": {
+      "2016": {
+        "foreignTax": -0.002778,
+        "total": 0.12000000000000001,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.000294,
+        "capitalGains": 0.1,
+        "foreignDividends": 0.022484
+      },
+      "2017": {
+        "foreignTax": -0.0016994999999999998,
+        "total": 0.1,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.0008669999999999999,
+        "capitalGains": 0.085,
+        "foreignDividends": 0.0158325
+      },
+      "2018": {
+        "foreignTax": null,
+        "total": 0.387,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.387,
+        "foreignDividends": null
+      },
+      "2019": {
+        "foreignTax": null,
+        "total": null,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2020": {
+        "foreignTax": null,
+        "total": null,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2021": {
+        "foreignTax": null,
+        "total": 0.162,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.162,
+        "foreignDividends": null
+      },
+      "2022": {
+        "foreignTax": null,
+        "total": 1.285,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.285,
+        "foreignDividends": null
+      },
+      "2023": {
+        "foreignTax": -0.0046521,
+        "total": 1.002,
+        "interest": 0.00025919999999999996,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.975,
+        "foreignDividends": 0.0313929
+      },
+      "2024": {
+        "foreignTax": null,
+        "total": 3.46,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 3.46,
+        "foreignDividends": null
+      },
+      "2025": {
+        "foreignTax": null,
+        "total": 2.605,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 2.605,
+        "foreignDividends": null
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2011": {
+        "foreignTax": -0.009997,
+        "total": 0.065,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.074997
+      },
+      "2012": {
+        "foreignTax": -0.009969299999999999,
+        "total": 0.05299999999999999,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.06296929999999999
+      },
+      "2013": {
+        "foreignTax": -0.0057269999999999995,
+        "total": 0.03,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.035727
+      },
+      "2014": {
+        "foreignTax": null,
+        "total": 1.2756999999999998,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.15,
+        "foreignDividends": 0.12569999999999992
+      },
+      "2015": {
+        "foreignTax": -0.003404000000000003,
+        "total": 1.3,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.28,
+        "foreignDividends": 0.02340400000000002
+      }
+    },
+    "risk": "medium",
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "RBF414": {
+    "fund_code": "RBF414",
+    "name": "RBC Global Dividend Growth Fund (US$)",
+    "nav": 16.8684,
+    "mer": 2.09,
+    "1yr": 18.503321,
+    "3yr": 14.434928,
+    "5yr": 7.879171,
+    "distribution": {
+      "2016": {
+        "foreignTax": -0.00206961,
+        "total": 0.0895,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.00021903,
+        "capitalGains": 0.0746,
+        "foreignDividends": 0.01675058
+      },
+      "2017": {
+        "foreignTax": -0.00132561,
+        "total": 0.0779,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.00067626,
+        "capitalGains": 0.0662,
+        "foreignDividends": 0.012349350000000002
+      },
+      "2018": {
+        "foreignTax": null,
+        "total": 0.2868,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.2868,
+        "foreignDividends": null
+      },
+      "2019": {
+        "foreignTax": null,
+        "total": null,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2020": {
+        "foreignTax": null,
+        "total": null,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2021": {
+        "foreignTax": null,
+        "total": 0.1254,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.1254,
+        "foreignDividends": null
+      },
+      "2022": {
+        "foreignTax": null,
+        "total": 0.9446,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.9446,
+        "foreignDividends": null
+      },
+      "2023": {
+        "foreignTax": -0.00348046,
+        "total": 0.7494999999999999,
+        "interest": 0.00019392,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.7293,
+        "foreignDividends": 0.02348654
+      },
+      "2024": {
+        "foreignTax": null,
+        "total": 2.404,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 2.404,
+        "foreignDividends": null
+      },
+      "2025": {
+        "foreignTax": null,
+        "total": 1.8877,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.8877,
+        "foreignDividends": null
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2015": {
+        "foreignTax": -0.0024338599999999965,
+        "total": 0.9324,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.9181,
+        "foreignDividends": 0.016733859999999975
+      }
+    },
+    "risk": "medium",
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "RBF540": {
+    "fund_code": "RBF540",
+    "name": "RBC Global Dividend Growth Fund",
+    "nav": 16.2682,
+    "mer": 2.1,
+    "1yr": 11.717905,
+    "3yr": 14.413186999999999,
+    "5yr": 9.379303,
+    "distribution": {
+      "2016": {
+        "foreignTax": -0.0054384,
+        "total": 0.6179999999999999,
+        "interest": null,
+        "returnCapital": 0.5018159999999999,
+        "dividends": 0.0005562,
+        "capitalGains": 0.0771264,
+        "foreignDividends": 0.043939799999999994
+      },
+      "2017": {
+        "foreignTax": -0.004687199999999999,
+        "total": 0.558,
+        "interest": null,
+        "returnCapital": 0.453654,
+        "dividends": 0.0023994,
+        "capitalGains": 0.0629424,
+        "foreignDividends": 0.04369139999999999
+      },
+      "2018": {
+        "foreignTax": -0.000693,
+        "total": 0.63,
+        "interest": null,
+        "returnCapital": 0.28551600000000005,
+        "dividends": null,
+        "capitalGains": 0.33944399999999997,
+        "foreignDividends": 0.005733
+      },
+      "2019": {
+        "foreignTax": -0.0026999999999999997,
+        "total": 0.6,
+        "interest": null,
+        "returnCapital": 0.57912,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.02358
+      },
+      "2020": {
+        "foreignTax": null,
+        "total": 0.726,
+        "interest": null,
+        "returnCapital": 0.726,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2021": {
+        "foreignTax": null,
+        "total": 0.81,
+        "interest": null,
+        "returnCapital": 0.6971670000000001,
+        "dividends": null,
+        "capitalGains": 0.11283300000000002,
+        "foreignDividends": null
+      },
+      "2022": {
+        "foreignTax": null,
+        "total": 0.9599999999999999,
+        "interest": null,
+        "returnCapital": 0.11798399999999998,
+        "dividends": null,
+        "capitalGains": 0.8420159999999999,
+        "foreignDividends": null
+      },
+      "2023": {
+        "foreignTax": -0.0027,
+        "total": 0.75,
+        "interest": null,
+        "returnCapital": 0.08865,
+        "dividends": null,
+        "capitalGains": 0.64305,
+        "foreignDividends": 0.021
+      },
+      "2024": {
+        "foreignTax": null,
+        "total": 2.299,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 2.299,
+        "foreignDividends": null
+      },
+      "2025": {
+        "foreignTax": null,
+        "total": 2.1719999999999997,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 2.1719999999999997,
+        "foreignDividends": null
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0685,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2012": {
+        "foreignTax": -0.0016590000000000003,
+        "total": 0.10500000000000001,
+        "interest": null,
+        "returnCapital": 0.09619050000000001,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.0104685
+      },
+      "2013": {
+        "foreignTax": -0.004905599999999999,
+        "total": 0.4379999999999999,
+        "interest": null,
+        "returnCapital": 0.4121141999999999,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.030791399999999993
+      },
+      "2014": {
+        "foreignTax": null,
+        "total": 1.42,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.3315359999999998,
+        "foreignDividends": 0.088464
+      },
+      "2015": {
+        "foreignTax": -0.005870999999999999,
+        "total": 1.38,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.3456289999999997,
+        "foreignDividends": 0.040241999999999986
+      }
+    },
+    "risk": "medium",
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "RBF600": {
+    "fund_code": "RBF600",
+    "name": "RBC Global Dividend Growth Fund",
+    "nav": 10.1386,
+    "mer": 2.06,
+    "1yr": 11.759241,
+    "3yr": 14.461863999999998,
+    "5yr": 9.422,
+    "distribution": {
+      "2016": {
+        "foreignTax": -0.0043434,
+        "total": 0.7619999999999999,
+        "interest": null,
+        "returnCapital": 0.6703313999999999,
+        "dividends": 0.00045719999999999995,
+        "capitalGains": 0.06027420000000001,
+        "foreignDividends": 0.0352806
+      },
+      "2017": {
+        "foreignTax": -0.0037962000000000004,
+        "total": 0.666,
+        "interest": null,
+        "returnCapital": 0.5816844,
+        "dividends": 0.0019314,
+        "capitalGains": 0.0506826,
+        "foreignDividends": 0.0354978
+      },
+      "2018": {
+        "foreignTax": -0.0010247999999999998,
+        "total": 0.7319999999999998,
+        "interest": null,
+        "returnCapital": 0.46533239999999987,
+        "dividends": null,
+        "capitalGains": 0.25861559999999995,
+        "foreignDividends": 0.009076799999999996
+      },
+      "2019": {
+        "foreignTax": -0.0025086,
+        "total": 0.678,
+        "interest": null,
+        "returnCapital": 0.6587448,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.0217638
+      },
+      "2020": {
+        "foreignTax": null,
+        "total": 0.798,
+        "interest": null,
+        "returnCapital": 0.798,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2021": {
+        "foreignTax": null,
+        "total": 0.8639999999999998,
+        "interest": null,
+        "returnCapital": 0.7879679999999998,
+        "dividends": null,
+        "capitalGains": 0.07603199999999997,
+        "foreignDividends": null
+      },
+      "2022": {
+        "foreignTax": null,
+        "total": 0.9959999999999998,
+        "interest": null,
+        "returnCapital": 0.4967051999999999,
+        "dividends": null,
+        "capitalGains": 0.4992947999999999,
+        "foreignDividends": null
+      },
+      "2023": {
+        "foreignTax": -0.0023808000000000006,
+        "total": 0.7440000000000002,
+        "interest": null,
+        "returnCapital": 0.3955104000000001,
+        "dividends": null,
+        "capitalGains": 0.3325680000000001,
+        "foreignDividends": 0.018302400000000007
+      },
+      "2024": {
+        "foreignTax": null,
+        "total": 1.4140000000000001,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.4140000000000001,
+        "foreignDividends": null
+      },
+      "2025": {
+        "foreignTax": null,
+        "total": 0.8660000000000003,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.8660000000000003,
+        "foreignDividends": null
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0685,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2010": {
+        "foreignTax": null,
+        "total": 0.66,
+        "interest": null,
+        "returnCapital": 0.66,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2011": {
+        "foreignTax": -0.0081576,
+        "total": 0.618,
+        "interest": null,
+        "returnCapital": 0.564852,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.061305599999999995
+      },
+      "2012": {
+        "foreignTax": -0.007937999999999999,
+        "total": 0.5399999999999999,
+        "interest": null,
+        "returnCapital": 0.49782599999999994,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.05011199999999999
+      },
+      "2013": {
+        "foreignTax": -0.004463999999999999,
+        "total": 0.5579999999999999,
+        "interest": null,
+        "returnCapital": 0.5346197999999999,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.027844199999999996
+      },
+      "2014": {
+        "foreignTax": null,
+        "total": 1.0079999999999998,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.9447047999999998,
+        "foreignDividends": 0.06329519999999997
+      },
+      "2015": {
+        "foreignTax": -0.003927,
+        "total": 1.164,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.1410092,
+        "foreignDividends": 0.0269178
+      }
+    },
+    "risk": "medium",
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "RBF1035": {
+    "fund_code": "RBF1035",
+    "name": "RBC Global Dividend Growth Fund",
+    "nav": 23.8858,
+    "mer": 1.25,
+    "1yr": 12.656766999999999,
+    "3yr": 15.377659,
+    "5yr": 10.297347,
+    "distribution": {
+      "2016": {
+        "foreignTax": -0.019446,
+        "total": 0.24000000000000005,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.002058,
+        "capitalGains": 0.1,
+        "foreignDividends": 0.15738800000000003
+      },
+      "2017": {
+        "foreignTax": -0.0175615,
+        "total": 0.242,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.008959,
+        "capitalGains": 0.087,
+        "foreignDividends": 0.1636025
+      },
+      "2018": {
+        "foreignTax": -0.019872,
+        "total": 0.533,
+        "interest": 0.0018495000000000002,
+        "returnCapital": null,
+        "dividends": 0.0021465000000000004,
+        "capitalGains": 0.398,
+        "foreignDividends": 0.150876
+      },
+      "2019": {
+        "foreignTax": -0.021829499999999998,
+        "total": 0.14699999999999996,
+        "interest": 0.0001617,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.16866779999999998
+      },
+      "2020": {
+        "foreignTax": -0.016422,
+        "total": 0.10499999999999998,
+        "interest": 0.0010815,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.12034049999999999
+      },
+      "2021": {
+        "foreignTax": -0.0045425000000000005,
+        "total": 0.187,
+        "interest": 0.00019,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.162,
+        "foreignDividends": 0.0293525
+      },
+      "2022": {
+        "foreignTax": -0.030537499999999995,
+        "total": 1.5050000000000001,
+        "interest": 0.0009099999999999999,
+        "returnCapital": null,
+        "dividends": 0.0015049999999999998,
+        "capitalGains": 1.33,
+        "foreignDividends": 0.2031225
+      },
+      "2023": {
+        "foreignTax": -0.037906,
+        "total": 1.23,
+        "interest": 0.0021119999999999997,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.01,
+        "foreignDividends": 0.255794
+      },
+      "2024": {
+        "foreignTax": -0.015781499999999997,
+        "total": 3.689,
+        "interest": 0.0011864999999999998,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 3.584,
+        "foreignDividends": 0.11959499999999999
+      },
+      "2025": {
+        "foreignTax": -0.015341,
+        "total": 2.855,
+        "interest": 0.0020009999999999997,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 2.71,
+        "foreignDividends": 0.15834
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2010": {
+        "foreignTax": -0.01896,
+        "total": 0.08,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.09896
+      },
+      "2011": {
+        "foreignTax": -0.021532000000000003,
+        "total": 0.14,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.161532
+      },
+      "2012": {
+        "foreignTax": -0.0235125,
+        "total": 0.125,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.1485125
+      },
+      "2013": {
+        "foreignTax": -0.0181355,
+        "total": 0.095,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.11313550000000001
+      },
+      "2014": {
+        "foreignTax": null,
+        "total": 1.373,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.165,
+        "foreignDividends": 0.20799999999999996
+      },
+      "2015": {
+        "foreignTax": -0.028933999999999988,
+        "total": 1.48,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.31,
+        "foreignDividends": 0.1989339999999999
+      }
+    },
+    "risk": "medium",
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "RBF627": {
+    "fund_code": "RBF627",
+    "name": "RBC Global Dividend Growth Fund",
+    "nav": 25.4554,
+    "mer": 0.98,
+    "1yr": 12.954056999999999,
+    "3yr": 15.683062,
+    "5yr": 10.596681,
+    "distribution": {
+      "2016": {
+        "foreignTax": -0.025279799999999998,
+        "total": 0.29200000000000004,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.0026753999999999997,
+        "capitalGains": 0.11,
+        "foreignDividends": 0.20460440000000002
+      },
+      "2017": {
+        "foreignTax": -0.0243595,
+        "total": 0.307,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.012426999999999999,
+        "capitalGains": 0.092,
+        "foreignDividends": 0.2269325
+      },
+      "2018": {
+        "foreignTax": -0.024288,
+        "total": 0.595,
+        "interest": 0.0022605000000000004,
+        "returnCapital": null,
+        "dividends": 0.0026235000000000004,
+        "capitalGains": 0.43,
+        "foreignDividends": 0.18440399999999998
+      },
+      "2019": {
+        "foreignTax": -0.031481999999999996,
+        "total": 0.21199999999999997,
+        "interest": 0.0002332,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.2432488
+      },
+      "2020": {
+        "foreignTax": -0.02737,
+        "total": 0.175,
+        "interest": 0.0018024999999999998,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.20056749999999998
+      },
+      "2021": {
+        "foreignTax": -0.0176249,
+        "total": 0.267,
+        "interest": 0.0007372,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.17,
+        "foreignDividends": 0.1138877
+      },
+      "2022": {
+        "foreignTax": -0.04537,
+        "total": 1.685,
+        "interest": 0.001352,
+        "returnCapital": null,
+        "dividends": 0.002236,
+        "capitalGains": 1.425,
+        "foreignDividends": 0.30178200000000005
+      },
+      "2023": {
+        "foreignTax": -0.0525515,
+        "total": 1.3850000000000002,
+        "interest": 0.0029279999999999996,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.08,
+        "foreignDividends": 0.35462350000000004
+      },
+      "2024": {
+        "foreignTax": -0.029308499999999998,
+        "total": 4.025,
+        "interest": 0.0022034999999999997,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 3.83,
+        "foreignDividends": 0.222105
+      },
+      "2025": {
+        "foreignTax": -0.024334,
+        "total": 3.125,
+        "interest": 0.003174,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 2.895,
+        "foreignDividends": 0.25116000000000005
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2010": {
+        "foreignTax": -0.028439999999999997,
+        "total": 0.12,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.14844000000000002
+      },
+      "2011": {
+        "foreignTax": -0.028453,
+        "total": 0.185,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.21345299999999998
+      },
+      "2012": {
+        "foreignTax": -0.031036499999999998,
+        "total": 0.165,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.1960365
+      },
+      "2013": {
+        "foreignTax": -0.0257715,
+        "total": 0.135,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.1607715
+      },
+      "2014": {
+        "foreignTax": null,
+        "total": 1.485,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.255,
+        "foreignDividends": 0.2300000000000002
+      },
+      "2015": {
+        "foreignTax": -0.03744399999999999,
+        "total": 1.6199999999999999,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.4,
+        "foreignDividends": 0.25744399999999995
+      }
+    },
+    "risk": "medium",
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "RBF534": {
+    "fund_code": "RBF534",
+    "name": "RBC Global Dividend Growth Fund",
+    "nav": 21.3937,
+    "mer": 0.97,
+    "1yr": 12.967596,
+    "3yr": 15.696739,
+    "5yr": 10.614718,
+    "distribution": {
+      "2016": {
+        "foreignTax": -0.023023000000000002,
+        "total": 0.6325000000000001,
+        "interest": null,
+        "returnCapital": 0.22011000000000003,
+        "dividends": 0.00246675,
+        "capitalGains": 0.2465485,
+        "foreignDividends": 0.18639775000000003
+      },
+      "2017": {
+        "foreignTax": -0.0225774,
+        "total": 0.6660000000000001,
+        "interest": null,
+        "returnCapital": 0.2870460000000001,
+        "dividends": 0.0115218,
+        "capitalGains": 0.1796868,
+        "foreignDividends": 0.21032280000000003
+      },
+      "2018": {
+        "foreignTax": -0.0233172,
+        "total": 0.762,
+        "interest": null,
+        "returnCapital": 0.12946379999999996,
+        "dividends": null,
+        "capitalGains": 0.4529328,
+        "foreignDividends": 0.20292059999999998
+      },
+      "2019": {
+        "foreignTax": -0.02730359999999999,
+        "total": 0.7319999999999997,
+        "interest": 0.00014639999999999995,
+        "returnCapital": 0.5211839999999998,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.2379731999999999
+      },
+      "2020": {
+        "foreignTax": -0.023849999999999993,
+        "total": 0.8999999999999999,
+        "interest": null,
+        "returnCapital": 0.7253999999999999,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.19844999999999996
+      },
+      "2021": {
+        "foreignTax": -0.016217999999999996,
+        "total": 1.0199999999999998,
+        "interest": null,
+        "returnCapital": 0.7046159999999998,
+        "dividends": null,
+        "capitalGains": 0.21022199999999996,
+        "foreignDividends": 0.12137999999999997
+      },
+      "2022": {
+        "foreignTax": -0.0313026,
+        "total": 1.2179999999999997,
+        "interest": null,
+        "returnCapital": 0.0768558,
+        "dividends": 0.001827,
+        "capitalGains": 0.9311609999999999,
+        "foreignDividends": 0.2394588
+      },
+      "2023": {
+        "foreignTax": -0.03599999999999999,
+        "total": 1.0399999999999998,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.7970239999999998,
+        "foreignDividends": 0.278976
+      },
+      "2024": {
+        "foreignTax": -0.022708799999999998,
+        "total": 3.3509999999999995,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 3.1790903999999998,
+        "foreignDividends": 0.19461839999999997
+      },
+      "2025": {
+        "foreignTax": -0.019655999999999996,
+        "total": 2.622,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 2.4191064,
+        "foreignDividends": 0.2225496
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0895,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      }
+    },
+    "risk": "medium",
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "RBF186": {
+    "fund_code": "RBF186",
+    "name": "RBC Global Dividend Growth Fund",
+    "nav": 23.6719,
+    "mer": 0.02,
+    "1yr": 14.035449999999999,
+    "3yr": 16.793686,
+    "5yr": 11.661986,
+    "distribution": {
+      "2016": {
+        "foreignTax": -0.0420867,
+        "total": 0.405,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.0044541,
+        "capitalGains": 0.102,
+        "foreignDividends": 0.3406326
+      },
+      "2017": {
+        "foreignTax": -0.039201799999999995,
+        "total": 0.43699999999999994,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": 0.019998799999999997,
+        "capitalGains": 0.091,
+        "foreignDividends": 0.365203
+      },
+      "2018": {
+        "foreignTax": -0.04784,
+        "total": 0.73,
+        "interest": 0.0044525,
+        "returnCapital": null,
+        "dividends": 0.0051675,
+        "capitalGains": 0.405,
+        "foreignDividends": 0.36322
+      },
+      "2019": {
+        "foreignTax": -0.05643,
+        "total": 0.38,
+        "interest": 0.000418,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.436012
+      },
+      "2020": {
+        "foreignTax": -0.0575552,
+        "total": 0.368,
+        "interest": 0.0037904,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.42176479999999994
+      },
+      "2021": {
+        "foreignTax": -0.06086950000000001,
+        "total": 0.497,
+        "interest": 0.002546,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.162,
+        "foreignDividends": 0.3933235
+      },
+      "2022": {
+        "foreignTax": -0.08114249999999999,
+        "total": 1.8,
+        "interest": 0.002418,
+        "returnCapital": null,
+        "dividends": 0.003999,
+        "capitalGains": 1.335,
+        "foreignDividends": 0.5397255000000001
+      },
+      "2023": {
+        "foreignTax": -0.0871838,
+        "total": 1.521,
+        "interest": 0.004857599999999999,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.015,
+        "foreignDividends": 0.5883262
+      },
+      "2024": {
+        "foreignTax": -0.067635,
+        "total": 4.047,
+        "interest": 0.005085,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 3.597,
+        "foreignDividends": 0.5125500000000001
+      },
+      "2025": {
+        "foreignTax": -0.049726,
+        "total": 3.185,
+        "interest": 0.006486,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 2.715,
+        "foreignDividends": 0.51324
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2010": {
+        "foreignTax": -0.047874,
+        "total": 0.20200000000000004,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.24987400000000004
+      },
+      "2011": {
+        "foreignTax": -0.0427564,
+        "total": 0.278,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.3207564
+      },
+      "2012": {
+        "foreignTax": -0.046084499999999994,
+        "total": 0.24499999999999997,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.29108449999999997
+      },
+      "2013": {
+        "foreignTax": -0.0521157,
+        "total": 0.273,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.32511570000000006
+      },
+      "2014": {
+        "foreignTax": null,
+        "total": 1.7269999999999999,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.17,
+        "foreignDividends": 0.5569999999999999
+      },
+      "2015": {
+        "foreignTax": -0.060420999999999996,
+        "total": 1.68,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.325,
+        "foreignDividends": 0.41542099999999993
+      }
+    },
+    "risk": "medium",
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": "As determined by RBC GAM"
+  },
+  "RBF433": {
+    "fund_code": "RBF433",
+    "name": "RBC Global Dividend Growth Currency Neutral Fund",
+    "nav": 21.8671,
+    "mer": 2.1,
+    "1yr": 13.426282,
+    "3yr": 12.544122,
+    "5yr": 7.688043,
+    "distribution": {
+      "2016": {
+        "foreignTax": null,
+        "total": 0.025,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.025,
+        "foreignDividends": null
+      },
+      "2017": {
+        "foreignTax": null,
+        "total": 0.106,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.106,
+        "foreignDividends": null
+      },
+      "2018": {
+        "foreignTax": -0.0159036,
+        "total": 0.263,
+        "interest": 9.28e-05,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.205,
+        "foreignDividends": 0.0738108
+      },
+      "2019": {
+        "foreignTax": -0.0015207999999999999,
+        "total": 0.008,
+        "interest": 7.52e-05,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.0094456
+      },
+      "2020": {
+        "foreignTax": null,
+        "total": null,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2021": {
+        "foreignTax": null,
+        "total": 0.3,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 0.3,
+        "foreignDividends": null
+      },
+      "2022": {
+        "foreignTax": null,
+        "total": null,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2023": {
+        "foreignTax": -0.010323500000000001,
+        "total": 0.05499999999999999,
+        "interest": 0.0006215,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": 0.064702
+      },
+      "2024": {
+        "foreignTax": null,
+        "total": 1.293,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.293,
+        "foreignDividends": null
+      },
+      "2025": {
+        "foreignTax": null,
+        "total": 1.07,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": 1.07,
+        "foreignDividends": null
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      }
+    },
+    "risk": "medium",
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "RBF1679": {
+    "fund_code": "RBF1679",
+    "name": "RBC Vision Fossil Fuel Free Short-Term Bond Fund",
+    "nav": 9.6853,
+    "mer": 0.51,
+    "1yr": 3.2996730000000003,
+    "3yr": 4.618965,
+    "5yr": 1.959556,
+    "distribution": {
+      "2021": {
+        "foreignTax": null,
+        "total": 0.13980000000000004,
+        "interest": 0.13980000000000004,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2022": {
+        "foreignTax": null,
+        "total": 0.1778,
+        "interest": 0.1778,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2023": {
+        "foreignTax": null,
+        "total": 0.24810000000000001,
+        "interest": 0.24810000000000001,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2024": {
+        "foreignTax": null,
+        "total": 0.2687,
+        "interest": 0.2687,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2025": {
+        "foreignTax": null,
+        "total": 0.2673,
+        "interest": 0.2673,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      },
+      "2026": {
+        "foreignTax": null,
+        "total": 0.0,
+        "interest": null,
+        "returnCapital": null,
+        "dividends": null,
+        "capitalGains": null,
+        "foreignDividends": null
+      }
+    },
+    "risk": "low",
+    "fund_type": "Fixed Income",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "BMO14491": {
+    "fund_code": "BMO14491",
+    "name": "BMO Balanced ETF Portfolio Class",
+    "nav": 10.95,
+    "mer": 0.61,
+    "1yr": 6.42,
+    "3yr": 3.53,
+    "5yr": 4.5,
+    "distribution": {
+      "2016": {
+        "total": 0.0,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": null,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2017": {
+        "total": 0.324845,
+        "eligible_dividend": 0.063144,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.095031,
+        "return_of_capital": 0.16667,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2018": {
+        "total": 0.274482,
+        "eligible_dividend": 0.015379,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.052895,
+        "return_of_capital": 0.206208,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2019": {
+        "total": 0.298826,
+        "eligible_dividend": 0.035547,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.066623,
+        "return_of_capital": 0.196656,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2020": {
+        "total": 0.266052,
+        "eligible_dividend": 0.046896,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.219156,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2021": {
+        "total": 0.36076,
+        "eligible_dividend": 0.061727,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.066557,
+        "return_of_capital": 0.232476,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2022": {
+        "total": 0.434821,
+        "eligible_dividend": 0.056015,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.13259,
+        "return_of_capital": 0.246216,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2023": {
+        "total": 0.190743,
+        "eligible_dividend": 0.067067,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.123676,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      }
+    },
+    "risk": "Low to medium",
+    "fund_type": "Global Neutral Balanced",
+    "account_eligibility": null,
+    "minimum_investment": "500"
+  },
+  "BMO14700": {
+    "fund_code": "BMO14700",
+    "name": "BMO Fixed Income ETF Portfolio",
+    "nav": 9.1408,
+    "mer": 0.45,
+    "1yr": 3.93,
+    "3yr": 4.98,
+    "5yr": 0.65,
+    "distribution": {
+      "2018": {
+        "total": 0.149735,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": 0.122937,
+        "capital_gains": null,
+        "return_of_capital": 0.005616,
+        "foreign_non_business_income": 0.021182,
+        "foreign_tax": null
+      },
+      "2019": {
+        "total": 0.288433,
+        "eligible_dividend": 0.005364,
+        "non_eligible_dividend": null,
+        "other_income": 0.203019,
+        "capital_gains": null,
+        "return_of_capital": 0.050022,
+        "foreign_non_business_income": 0.030028,
+        "foreign_tax": -0.000701
+      },
+      "2020": {
+        "total": 0.237742,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": 0.099786,
+        "capital_gains": null,
+        "return_of_capital": 0.051103,
+        "foreign_non_business_income": 0.086853,
+        "foreign_tax": -0.000317
+      },
+      "2021": {
+        "total": 0.313842,
+        "eligible_dividend": 0.000349,
+        "non_eligible_dividend": null,
+        "other_income": 0.124957,
+        "capital_gains": null,
+        "return_of_capital": 0.021103,
+        "foreign_non_business_income": 0.167433,
+        "foreign_tax": -0.000833
+      },
+      "2022": {
+        "total": 0.313549,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": 0.070077,
+        "capital_gains": null,
+        "return_of_capital": 0.03433,
+        "foreign_non_business_income": 0.209142,
+        "foreign_tax": -0.000778
+      },
+      "2023": {
+        "total": 0.202027,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": 0.063672,
+        "capital_gains": null,
+        "return_of_capital": 0.019008,
+        "foreign_non_business_income": 0.119347,
+        "foreign_tax": null
+      },
+      "2024": {
+        "total": 0.284565,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": 0.08844,
+        "capital_gains": null,
+        "return_of_capital": 0.002932,
+        "foreign_non_business_income": 0.193193,
+        "foreign_tax": null
+      }
+    },
+    "risk": "Low",
+    "fund_type": "Global Fixed Income",
+    "account_eligibility": "Non-registered only",
+    "minimum_investment": "500"
+  },
+  "BMO14703": {
+    "fund_code": "BMO14703",
+    "name": "BMO Balanced ETF Portfolio",
+    "nav": 15.1942,
+    "mer": 0.61,
+    "1yr": 14.57,
+    "3yr": 13.48,
+    "5yr": 7.95,
+    "distribution": {
+      "2016": {
+        "total": 0.0,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": null,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2017": {
+        "total": 0.196738,
+        "eligible_dividend": 0.049059,
+        "non_eligible_dividend": null,
+        "other_income": 0.029061,
+        "capital_gains": null,
+        "return_of_capital": null,
+        "foreign_non_business_income": 0.118618,
+        "foreign_tax": -0.009113
+      },
+      "2018": {
+        "total": 0.301067,
+        "eligible_dividend": 0.058615,
+        "non_eligible_dividend": null,
+        "other_income": 0.026134,
+        "capital_gains": 0.058275,
+        "return_of_capital": null,
+        "foreign_non_business_income": 0.158043,
+        "foreign_tax": -0.013412
+      },
+      "2019": {
+        "total": 0.281252,
+        "eligible_dividend": 0.052772,
+        "non_eligible_dividend": null,
+        "other_income": 0.044576,
+        "capital_gains": null,
+        "return_of_capital": 0.027337,
+        "foreign_non_business_income": 0.156567,
+        "foreign_tax": -0.01314
+      },
+      "2020": {
+        "total": 0.229299,
+        "eligible_dividend": 0.047825,
+        "non_eligible_dividend": null,
+        "other_income": 0.030258,
+        "capital_gains": null,
+        "return_of_capital": 0.029961,
+        "foreign_non_business_income": 0.121255,
+        "foreign_tax": -0.011588
+      },
+      "2021": {
+        "total": 0.255419,
+        "eligible_dividend": 0.061376,
+        "non_eligible_dividend": null,
+        "other_income": 0.020587,
+        "capital_gains": null,
+        "return_of_capital": 0.012779,
+        "foreign_non_business_income": 0.160677,
+        "foreign_tax": -0.014058
+      },
+      "2022": {
+        "total": 0.253541,
+        "eligible_dividend": 0.066375,
+        "non_eligible_dividend": null,
+        "other_income": 0.021984,
+        "capital_gains": null,
+        "return_of_capital": 0.016822,
+        "foreign_non_business_income": 0.14836,
+        "foreign_tax": -0.012991
+      },
+      "2023": {
+        "total": 0.291758,
+        "eligible_dividend": 0.060712,
+        "non_eligible_dividend": null,
+        "other_income": 0.039235,
+        "capital_gains": null,
+        "return_of_capital": 0.016385,
+        "foreign_non_business_income": 0.175426,
+        "foreign_tax": -0.013877
+      },
+      "2024": {
+        "total": 0.279795,
+        "eligible_dividend": 0.064043,
+        "non_eligible_dividend": null,
+        "other_income": 0.037303,
+        "capital_gains": null,
+        "return_of_capital": 0.001235,
+        "foreign_non_business_income": 0.177214,
+        "foreign_tax": -0.014423
+      }
+    },
+    "risk": "Low to medium",
+    "fund_type": "Global Neutral Balanced",
+    "account_eligibility": "Non-registered only",
+    "minimum_investment": "500"
+  },
+  "BMO14704": {
+    "fund_code": "BMO14704",
+    "name": "BMO Growth ETF Portfolio",
+    "nav": 16.6269,
+    "mer": 0.62,
+    "1yr": 17.64,
+    "3yr": 16.1,
+    "5yr": 10.41,
+    "distribution": {
+      "2018": {
+        "total": 0.243893,
+        "eligible_dividend": 0.051904,
+        "non_eligible_dividend": null,
+        "other_income": 0.009748,
+        "capital_gains": 0.054765,
+        "return_of_capital": 0.004964,
+        "foreign_non_business_income": 0.122512,
+        "foreign_tax": -0.010325
+      },
+      "2019": {
+        "total": 0.256424,
+        "eligible_dividend": 0.070665,
+        "non_eligible_dividend": null,
+        "other_income": 0.008939,
+        "capital_gains": null,
+        "return_of_capital": 0.013794,
+        "foreign_non_business_income": 0.163026,
+        "foreign_tax": -0.016979
+      },
+      "2020": {
+        "total": 0.216168,
+        "eligible_dividend": 0.063468,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.042072,
+        "foreign_non_business_income": 0.110628,
+        "foreign_tax": -0.01476
+      },
+      "2021": {
+        "total": 0.23028,
+        "eligible_dividend": 0.084082,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.010503,
+        "foreign_non_business_income": 0.135695,
+        "foreign_tax": -0.018854
+      },
+      "2022": {
+        "total": 0.256764,
+        "eligible_dividend": 0.090433,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.015159,
+        "foreign_non_business_income": 0.151172,
+        "foreign_tax": -0.017378
+      },
+      "2023": {
+        "total": 0.260949,
+        "eligible_dividend": 0.079719,
+        "non_eligible_dividend": null,
+        "other_income": 0.00235,
+        "capital_gains": null,
+        "return_of_capital": 0.009542,
+        "foreign_non_business_income": 0.169338,
+        "foreign_tax": -0.018336
+      },
+      "2024": {
+        "total": 0.248724,
+        "eligible_dividend": 0.07758,
+        "non_eligible_dividend": null,
+        "other_income": 0.018744,
+        "capital_gains": null,
+        "return_of_capital": 0.001092,
+        "foreign_non_business_income": 0.151308,
+        "foreign_tax": -0.018
+      }
+    },
+    "risk": "Low to medium",
+    "fund_type": "Global Equity Balanced",
+    "account_eligibility": "Non-registered only",
+    "minimum_investment": "500"
+  },
+  "BMO14705": {
+    "fund_code": "BMO14705",
+    "name": "BMO Equity Growth ETF Portfolio",
+    "nav": 14.4216,
+    "mer": 0.65,
+    "1yr": 17.9,
+    "3yr": 7.69,
+    "5yr": 9.93,
+    "distribution": {
+      "2018": {
+        "total": 0.258525,
+        "eligible_dividend": 0.061401,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.097174,
+        "return_of_capital": 0.004173,
+        "foreign_non_business_income": 0.095777,
+        "foreign_tax": -0.013413
+      },
+      "2019": {
+        "total": 0.228954,
+        "eligible_dividend": 0.090064,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.007461,
+        "foreign_non_business_income": 0.131429,
+        "foreign_tax": -0.01972
+      },
+      "2020": {
+        "total": 0.22486,
+        "eligible_dividend": 0.057539,
+        "non_eligible_dividend": null,
+        "other_income": 0.059531,
+        "capital_gains": null,
+        "return_of_capital": 0.019142,
+        "foreign_non_business_income": 0.088648,
+        "foreign_tax": -0.012441
+      },
+      "2021": {
+        "total": 0.245234,
+        "eligible_dividend": 0.102711,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.000961,
+        "foreign_non_business_income": 0.141562,
+        "foreign_tax": -0.022773
+      },
+      "2022": {
+        "total": 0.302318,
+        "eligible_dividend": 0.112106,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.036674,
+        "return_of_capital": 0.04541,
+        "foreign_non_business_income": 0.108128,
+        "foreign_tax": -0.021948
+      },
+      "2023": {
+        "total": 0.378432,
+        "eligible_dividend": 0.105693,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.121461,
+        "return_of_capital": 0.024707,
+        "foreign_non_business_income": 0.126571,
+        "foreign_tax": -0.024123
+      },
+      "2024": {
+        "total": 0.366269,
+        "eligible_dividend": 0.051872,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.193604,
+        "return_of_capital": 0.089249,
+        "foreign_non_business_income": 0.031544,
+        "foreign_tax": -0.01068
+      }
+    },
+    "risk": "Medium",
+    "fund_type": "Global Equity",
+    "account_eligibility": "Non-registered only",
+    "minimum_investment": "500"
+  },
+  "BMO16772": {
+    "fund_code": "BMO16772",
+    "name": "BMO Low Volatility Canadian Equity ETF Fund",
+    "nav": 14.2189,
+    "mer": 1.38,
+    "1yr": 23.66,
+    "3yr": 15.2,
+    "5yr": 14.02,
+    "distribution": {
+      "2019": {
+        "total": 0.098407,
+        "eligible_dividend": 0.077472,
+        "non_eligible_dividend": null,
+        "other_income": 0.003419,
+        "capital_gains": 0.014536,
+        "return_of_capital": 0.001593,
+        "foreign_non_business_income": 0.001387,
+        "foreign_tax": null
+      },
+      "2020": {
+        "total": 0.523767,
+        "eligible_dividend": 0.193307,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.128392,
+        "return_of_capital": 0.202068,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2021": {
+        "total": 0.389354,
+        "eligible_dividend": 0.140964,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.01109,
+        "return_of_capital": 0.2373,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2022": {
+        "total": 0.569328,
+        "eligible_dividend": 0.124047,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.12654,
+        "return_of_capital": 0.318741,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2023": {
+        "total": 0.626785,
+        "eligible_dividend": 0.176256,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": 0.213133,
+        "return_of_capital": 0.237396,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2024": {
+        "total": 0.422124,
+        "eligible_dividend": 0.17712,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.245004,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      }
+    },
+    "risk": "Low to medium",
+    "fund_type": "Canadian Equity",
+    "account_eligibility": "RRSP / RIF / TFSA / Non-Reg",
+    "minimum_investment": "500"
+  },
+  "BMO95274": {
+    "fund_code": "BMO95274",
+    "name": "BMO Ascent Balanced Portfolio",
+    "nav": 15.2144,
+    "mer": 0.74,
+    "1yr": 15.24,
+    "3yr": 13.58,
+    "5yr": 7.84,
+    "distribution": {
+      "2017": {
+        "total": 0.089749,
+        "eligible_dividend": 0.011664,
+        "non_eligible_dividend": null,
+        "other_income": 0.015332,
+        "capital_gains": 0.03074,
+        "return_of_capital": null,
+        "foreign_non_business_income": 0.032013,
+        "foreign_tax": -0.004785
+      },
+      "2018": {
+        "total": 0.228235,
+        "eligible_dividend": 0.043124,
+        "non_eligible_dividend": null,
+        "other_income": 0.032208,
+        "capital_gains": 0.070736,
+        "return_of_capital": 0.006525,
+        "foreign_non_business_income": 0.075642,
+        "foreign_tax": -0.009585
+      },
+      "2019": {
+        "total": 0.162153,
+        "eligible_dividend": 0.042187,
+        "non_eligible_dividend": null,
+        "other_income": 0.021095,
+        "capital_gains": null,
+        "return_of_capital": 0.0104,
+        "foreign_non_business_income": 0.088471,
+        "foreign_tax": -0.009513
+      },
+      "2020": {
+        "total": 0.212509,
+        "eligible_dividend": 0.045866,
+        "non_eligible_dividend": null,
+        "other_income": 0.040167,
+        "capital_gains": null,
+        "return_of_capital": 0.021221,
+        "foreign_non_business_income": 0.105255,
+        "foreign_tax": -0.00965
+      },
+      "2021": {
+        "total": 0.279537,
+        "eligible_dividend": 0.049182,
+        "non_eligible_dividend": null,
+        "other_income": 0.007697,
+        "capital_gains": 0.090466,
+        "return_of_capital": 0.008835,
+        "foreign_non_business_income": 0.123357,
+        "foreign_tax": -0.011417
+      },
+      "2022": {
+        "total": 0.255114,
+        "eligible_dividend": 0.057035,
+        "non_eligible_dividend": null,
+        "other_income": 0.016515,
+        "capital_gains": 0.049315,
+        "return_of_capital": 0.010268,
+        "foreign_non_business_income": 0.121981,
+        "foreign_tax": -0.011753
+      },
+      "2023": {
+        "total": 0.278019,
+        "eligible_dividend": 0.069117,
+        "non_eligible_dividend": null,
+        "other_income": 0.00299,
+        "capital_gains": null,
+        "return_of_capital": 0.013544,
+        "foreign_non_business_income": 0.192368,
+        "foreign_tax": -0.016719
+      },
+      "2024": {
+        "total": 0.070346,
+        "eligible_dividend": 0.010398,
+        "non_eligible_dividend": null,
+        "other_income": 0.00695,
+        "capital_gains": null,
+        "return_of_capital": 0.001379,
+        "foreign_non_business_income": 0.051619,
+        "foreign_tax": -0.004599
+      }
+    },
+    "risk": "Low to medium",
+    "fund_type": "Global Neutral Balanced",
+    "account_eligibility": "RRSP / RESP / RRIF / TFSA / RDSP / Non-Reg",
+    "minimum_investment": "75000"
+  },
+  "BMO95111": {
+    "fund_code": "BMO95111",
+    "name": "BMO Sustainable Opportunities Canadian Equity Fund",
+    "nav": 17.4004,
+    "mer": 0.65,
+    "1yr": 14.24,
+    "3yr": 14.97,
+    "5yr": 9.6,
+    "distribution": {
+      "2020": {
+        "total": 0.0,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": null,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2021": {
+        "total": 0.0,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": null,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2022": {
+        "total": 0.065833,
+        "eligible_dividend": 0.062698,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.003135,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2023": {
+        "total": 0.192757,
+        "eligible_dividend": 0.183579,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.009178,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2024": {
+        "total": 0.161984,
+        "eligible_dividend": 0.15427,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.007714,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      }
+    },
+    "risk": "Medium",
+    "fund_type": "Canadian Equity",
+    "account_eligibility": "RRSP / RESP / RRIF / TFSA / RDSP / Non-Reg",
+    "minimum_investment": "500"
+  },
+  "BMO95116": {
+    "fund_code": "BMO95116",
+    "name": "BMO Sustainable Opportunities China Equity Fund",
+    "nav": 6.4102,
+    "mer": 1.07,
+    "1yr": -15.37,
+    "3yr": -11.21,
+    "5yr": null,
+    "distribution": {
+      "2021": {
+        "total": 0.0,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": null,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      },
+      "2022": {
+        "total": 0.063026,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.000313,
+        "foreign_non_business_income": 0.062713,
+        "foreign_tax": -0.006764
+      },
+      "2023": {
+        "total": 0.104652,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": 0.000521,
+        "foreign_non_business_income": 0.104131,
+        "foreign_tax": -0.00495
+      },
+      "2024": {
+        "total": 0.0,
+        "eligible_dividend": null,
+        "non_eligible_dividend": null,
+        "other_income": null,
+        "capital_gains": null,
+        "return_of_capital": null,
+        "foreign_non_business_income": null,
+        "foreign_tax": null
+      }
+    },
+    "risk": "High",
+    "fund_type": "Greater China Equity",
+    "account_eligibility": "RRSP / RESP / RRIF / TFSA / RDSP / Non-Reg",
+    "minimum_investment": "500"
+  },
+  "BMO95223": {
+    "fund_code": "BMO95223",
+    "name": "BMO Retirement Income Portfolio",
+    "nav": 11.5963,
+    "mer": 0.61,
+    "1yr": 5.63,
+    "3yr": 7.18,
+    "5yr": 3.19,
+    "distribution": {
+      "2016": {
+        "total": 0.140237,
+        "eligible_dividend": 0.006299,
+        "non_eligible_dividend": null,
+        "other_income": 0.013063,
+        "capital_gains": 0.013368,
+        "return_of_capital": 0.00649,
+        "foreign_non_business_income": 0.101017,
+        "foreign_tax": -0.005295
+      },
+      "2017": {
+        "total": 0.220675,
+        "eligible_dividend": 0.005544,
+        "non_eligible_dividend": null,
+        "other_income": 0.068416,
+        "capital_gains": 0.021875,
+        "return_of_capital": 0.007546,
+        "foreign_non_business_income": 0.117294,
+        "foreign_tax": -0.007983
+      },
+      "2018": {
+        "total": 0.225984,
+        "eligible_dividend": 0.005099,
+        "non_eligible_dividend": null,
+        "other_income": 0.102371,
+        "capital_gains": 0.039089,
+        "return_of_capital": 0.009357,
+        "foreign_non_business_income": 0.070068,
+        "foreign_tax": -0.008709
+      },
+      "2019": {
+        "total": 0.183762,
+        "eligible_dividend": 0.005358,
+        "non_eligible_dividend": null,
+        "other_income": 0.106012,
+        "capital_gains": null,
+        "return_of_capital": 0.020883,
+        "foreign_non_business_income": 0.051509,
+        "foreign_tax": -0.006535
+      },
+      "2020": {
+        "total": 0.182246,
+        "eligible_dividend": 0.006254,
+        "non_eligible_dividend": null,
+        "other_income": 0.092413,
+        "capital_gains": null,
+        "return_of_capital": 0.010877,
+        "foreign_non_business_income": 0.072702,
+        "foreign_tax": -0.007233
+      },
+      "2021": {
+        "total": 0.156962,
+        "eligible_dividend": 0.006958,
+        "non_eligible_dividend": null,
+        "other_income": 0.088878,
+        "capital_gains": null,
+        "return_of_capital": 0.003686,
+        "foreign_non_business_income": 0.05744,
+        "foreign_tax": -0.006276
+      },
+      "2022": {
+        "total": 0.300981,
+        "eligible_dividend": 0.008115,
+        "non_eligible_dividend": null,
+        "other_income": 0.100912,
+        "capital_gains": 0.071703,
+        "return_of_capital": 0.034441,
+        "foreign_non_business_income": 0.08581,
+        "foreign_tax": -0.006156
+      },
+      "2023": {
+        "total": 0.266371,
+        "eligible_dividend": 0.009228,
+        "non_eligible_dividend": null,
+        "other_income": 0.143492,
+        "capital_gains": null,
+        "return_of_capital": 0.022984,
+        "foreign_non_business_income": 0.090667,
+        "foreign_tax": -0.00653
+      },
+      "2024": {
+        "total": 0.246518,
+        "eligible_dividend": 0.005214,
+        "non_eligible_dividend": null,
+        "other_income": 0.160017,
+        "capital_gains": null,
+        "return_of_capital": 0.001254,
+        "foreign_non_business_income": 0.080033,
+        "foreign_tax": -0.004863
+      }
+    },
+    "risk": "Low",
+    "fund_type": "Global Fixed Income Balanced",
+    "account_eligibility": "RRSP / RESP / RRIF / TFSA / RDSP / Non-Reg",
+    "minimum_investment": "500"
+  },
+  "ATL103": {
+    "fund_code": "103",
+    "name": "CIBC Asia Pacific Fund - Class F Units",
+    "nav": 12.5478,
+    "mer": null,
+    "1yr": 33.19,
+    "3yr": 13.92,
+    "5yr": 3.51,
+    "distribution": null,
+    "risk": null,
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": null
+  },
+  "ATL104": {
+    "fund_code": "104",
+    "name": "CIBC Asia Pacific Index Fund - Class F Units",
+    "nav": 14.4984,
+    "mer": null,
+    "1yr": 38.11,
+    "3yr": 20.49,
+    "5yr": 7.36,
+    "distribution": null,
+    "risk": null,
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": null
+  },
+  "ATL105": {
+    "fund_code": "105",
+    "name": "CIBC Balanced Fund - Class F Units",
+    "nav": 12.0133,
+    "mer": null,
+    "1yr": 11.92,
+    "3yr": 11.28,
+    "5yr": 7.39,
+    "distribution": null,
+    "risk": null,
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": null
+  },
+  "ATL107": {
+    "fund_code": "107",
+    "name": "CIBC Balanced Index Fund - Class F Units",
+    "nav": 14.3652,
+    "mer": null,
+    "1yr": 16.65,
+    "3yr": 13.64,
+    "5yr": 8.82,
+    "distribution": null,
+    "risk": null,
+    "fund_type": "Equity",
+    "account_eligibility": null,
+    "minimum_investment": null
+  },
+  "ATL109": {
+    "fund_code": "109",
+    "name": "CIBC Canadian Bond Fund - Class F Units",
+    "nav": 8.3942,
+    "mer": null,
+    "1yr": 2.72,
+    "3yr": 5.18,
+    "5yr": 0.83,
+    "distribution": null,
+    "risk": null,
+    "fund_type": "Fixed Income",
+    "account_eligibility": null,
+    "minimum_investment": null
+  },
+  "ATL477": {
+    "fund_code": "ATL477",
+    "name": "CIBC Balanced Fund - Class A Units",
+    "nav": 23.4872,
+    "mer": null,
+    "1yr": 7.1,
+    "3yr": 8.1,
+    "5yr": 5.7,
+    "distribution": null,
+    "risk": "Low to Medium",
+    "fund_type": "Equity",
+    "account_eligibility": "Yes",
+    "minimum_investment": "500"
+  },
+  "ATL486": {
+    "fund_code": "ATL486",
+    "name": "CIBC Dividend Growth Fund - Class A Units",
+    "nav": 56.4199,
+    "mer": null,
+    "1yr": 18.6,
+    "3yr": 13.6,
+    "5yr": 13.2,
+    "distribution": null,
+    "risk": "Medium",
+    "fund_type": "Equity",
+    "account_eligibility": "Yes",
+    "minimum_investment": "500"
+  },
+  "ATL489": {
+    "fund_code": "ATL489",
+    "name": "CIBC Canadian Short -Term Bond Index Fund - Class A Units",
+    "nav": 9.469,
+    "mer": null,
+    "1yr": 2.4,
+    "3yr": 3.5,
+    "5yr": 0.9,
+    "distribution": null,
+    "risk": "Low",
+    "fund_type": "Fixed Income",
+    "account_eligibility": "Yes",
+    "minimum_investment": "500"
+  },
+  "ATL491": {
+    "fund_code": "ATL491",
+    "name": "CIBC Emerging Markets Fund - Class A Units",
+    "nav": 21.1933,
+    "mer": null,
+    "1yr": 30.2,
+    "3yr": 14.7,
+    "5yr": 3.7,
+    "distribution": null,
+    "risk": "Medium to High",
+    "fund_type": "Equity",
+    "account_eligibility": "Yes",
+    "minimum_investment": "500"
+  },
+  "ATL494": {
+    "fund_code": "ATL494",
+    "name": "CIBC European Equity Fund - Class A Units",
+    "nav": 20.9912,
+    "mer": null,
+    "1yr": 4.4,
+    "3yr": 5.3,
+    "5yr": 2.8,
+    "distribution": null,
+    "risk": "Medium",
+    "fund_type": "Equity",
+    "account_eligibility": "Yes",
+    "minimum_investment": "500"
+  },
+  "TDB161": {
+    "fund_code": "TDB161",
+    "name": "TD Canadian Equity Fund - I",
+    "nav": 68.82,
+    "mer": 2.17,
+    "1yr": 24.01,
+    "3yr": 15.21,
+    "5yr": 14.24,
+    "distribution": null,
+    "risk": "Medium",
+    "fund_type": "Canadian Focused Equity",
+    "account_eligibility": null,
+    "minimum_investment": "100"
+  },
+  "TDB162": {
+    "fund_code": "TDB162",
+    "name": "TD Canadian Bond Fund - I",
+    "nav": 12.72,
+    "mer": 1.1,
+    "1yr": 1.93,
+    "3yr": 4.51,
+    "5yr": 0.13,
+    "distribution": null,
+    "risk": "Low",
+    "fund_type": "Canadian Fixed Income",
+    "account_eligibility": null,
+    "minimum_investment": "100"
+  },
+  "TDB271": {
+    "fund_code": "TDB271",
+    "name": "TD Dividend Income Fund - H8",
+    "nav": 10.25,
+    "mer": 2.02,
+    "1yr": 13.78,
+    "3yr": 11.4,
+    "5yr": 9.61,
+    "distribution": null,
+    "risk": "Medium",
+    "fund_type": "Canadian Equity Balanced",
+    "account_eligibility": null,
+    "minimum_investment": "5000"
+  },
+  "TDB164": {
+    "fund_code": "TDB164",
+    "name": "TD Canadian Money Market Fund - I",
+    "nav": null,
+    "mer": 0.39,
+    "1yr": 2.45,
+    "3yr": 3.84,
+    "5yr": 2.79,
+    "distribution": null,
+    "risk": "Low",
+    "fund_type": "Canadian Money Market",
+    "account_eligibility": null,
+    "minimum_investment": "100"
+  },
+  "TDB165": {
+    "fund_code": "TDB165",
+    "name": "TD Premium Money Market Fund - I",
+    "nav": null,
+    "mer": 0.33,
+    "1yr": 2.52,
+    "3yr": 3.9,
+    "5yr": 2.83,
+    "distribution": null,
+    "risk": "Low",
+    "fund_type": "Canadian Money Market",
+    "account_eligibility": null,
+    "minimum_investment": "100000"
+  },
+  "TDB166": {
+    "fund_code": "TDB166",
+    "name": "TD U.S. Money Market Fund (US$) - I",
+    "nav": null,
+    "mer": 0.39,
+    "1yr": 4.0,
+    "3yr": 4.72,
+    "5yr": 3.28,
+    "distribution": null,
+    "risk": "Low",
+    "fund_type": "U.S. Money Market",
+    "account_eligibility": null,
+    "minimum_investment": "100"
+  },
+  "TDB627": {
+    "fund_code": "TDB627",
+    "name": "TD Dividend Income Fund - I",
+    "nav": 61.43,
+    "mer": 2.03,
+    "1yr": 13.87,
+    "3yr": 11.4,
+    "5yr": 9.56,
+    "distribution": null,
+    "risk": "Medium",
+    "fund_type": "Canadian Equity Balanced",
+    "account_eligibility": null,
+    "minimum_investment": "100"
+  },
+  "TDB170": {
+    "fund_code": "TDB170",
+    "name": "TD Managed Income Portfolio - P",
+    "nav": 13.17,
+    "mer": 1.6,
+    "1yr": 5.9,
+    "3yr": 7.58,
+    "5yr": 3.12,
+    "distribution": null,
+    "risk": "Medium Low",
+    "fund_type": "Canadian Fixed Income Balanced",
+    "account_eligibility": null,
+    "minimum_investment": "150000"
+  },
+  "TDB171": {
+    "fund_code": "TDB171",
+    "name": "TD Managed Income &amp; Moderate Growth Portfolio - P",
+    "nav": 15.7,
+    "mer": 1.8,
+    "1yr": 7.69,
+    "3yr": 9.37,
+    "5yr": 4.7,
+    "distribution": null,
+    "risk": "Medium Low",
+    "fund_type": "Global Neutral Balanced",
+    "account_eligibility": null,
+    "minimum_investment": "150000"
+  },
+  "TDB172": {
+    "fund_code": "TDB172",
+    "name": "TD Managed Balanced Growth Portfolio - P",
+    "nav": 19.04,
+    "mer": 1.95,
+    "1yr": 9.53,
+    "3yr": 10.97,
+    "5yr": 6.4,
+    "distribution": null,
+    "risk": "Medium Low",
+    "fund_type": "Global Neutral Balanced",
+    "account_eligibility": null,
+    "minimum_investment": "150000"
+  }
+}
