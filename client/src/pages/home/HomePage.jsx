@@ -1,4 +1,4 @@
-import { Box, Modal, Alert } from '@mui/material';
+import { Box, Modal } from '@mui/material';
 import { Navbar } from '../../components/navbar/Navbar';
 import { HeroSection } from '../../components/homepageSections/heroSection/HeroSection';
 import { ProductSection } from '../../components/homepageSections/productSection/ProductSection';

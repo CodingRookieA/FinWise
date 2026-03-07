@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Box } from "@mui/material";
 
 import ProfileContent from "../../components/profileSections/placeholder_content";
