@@ -5,6 +5,7 @@ import { Sidebar } from '../../components/chat/sidebar/Sidebar'
 import { EmptyState } from '../../components/chat/emptyState/EmptyState'
 import { MessagesList } from '../../components/chat/messagesList/MessagesList'
 import { InputArea } from '../../components/chat/inputArea/InputArea'
+import { InfoAlert } from '../../components/alerts/InfoAlert'
 import { SERVERURL } from '../../utils/constants'
 
 export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
@@ -178,7 +179,23 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     }
 
     return (
-        <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'background.default', overflow: 'hidden' }}>
+        <Box
+            sx={{
+                display: 'flex',
+                height: '100vh',
+                bgcolor: 'background.default',
+                overflow: 'hidden',
+                background: `radial-gradient(ellipse 90% 60% at -5% -5%, rgba(45,212,191,0.09) 0%, transparent 100%),
+                             radial-gradient(ellipse 70% 45% at -5% -5%, rgba(56,189,248,0.07) 0%, transparent 80%),
+                             radial-gradient(ellipse 120% 80% at -15% -15%, rgba(15,40,70,0.6) 0%, transparent 100%)`,
+            }}
+        >
+            {
+                user.userId && !user.isVerified &&
+                <InfoAlert topOffset='0.5rem'>
+                    <a style={{ textDecoration: 'none', color: '#0EA5E9' }} href='/email-verification'>Verify your email</a> to unlock full features
+                </InfoAlert>
+            }
             {/* Sidebar */}
             <Sidebar
                 user={user}
