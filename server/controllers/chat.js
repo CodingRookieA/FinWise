@@ -1,6 +1,5 @@
 import promptengineering from '../helpers/promptengineering.js'
 import { classifyQuery } from '../helpers/classifier.js'
-import axios from 'axios'
 import Message from '../models/Message.js'
 import { randomUUID } from 'crypto'
 import mongoose from 'mongoose'

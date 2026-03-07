@@ -5,7 +5,7 @@
  * Usage: node testChunking.js
  */
 
-import { chunkArticle } from './services/article/chunkingService.js'
+import { chunkArticle } from '../services/article/chunkingService.js'
 
 const testArticle = `What is a mutual fund?
 A mutual fund is a type of investment vehicle where the money collected from various investors is pooled together to invest in different assets including bonds, stocks, and/or money market investments. Mutual funds are professionally managed by Fund Managers, who allocate the fund's assets and attempt to produce returns for investors.

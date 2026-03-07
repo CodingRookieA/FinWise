@@ -8,8 +8,8 @@
 
 import mongoose from 'mongoose'
 import * as readline from 'readline'
-import { ENVIRONMENT } from './utils/constants.js'
-import { classifyQuery } from './helpers/classifier.js'
+import { ENVIRONMENT } from '../utils/constants.js'
+import { classifyQuery } from '../helpers/classifier.js'
 
 const defaultTestQueries = [
     "What is a mutual fund?",
@@ -19,7 +19,10 @@ const defaultTestQueries = [
     "Compare the performance of fund ABC123 vs DEF456",
     "What's the weather today?",
     "Should I invest in a TFSA or RRSP?",
-    "What is the MER for fund XYZ789?"
+    "What is the MER for fund XYZ789?",
+    "What distributions did fund RBF565 pay in 2024?",
+    "Show me the capital gains and dividend history for this fund",
+    "Compare top performing ETFs in Canada"
 ]
 
 // Create readline interface for interactive mode
@@ -43,8 +46,10 @@ async function testClassifier() {
         
         try {
             const result = await classifyQuery(query)
-            console.log(`   Articles needed: ${result.needs_articles ? '✅' : '❌'}`)
-            console.log(`   Funds needed:    ${result.needs_funds ? '✅' : '❌'}`)
+            console.log(`   Articles needed:      ${result.needs_articles ? '✅' : '❌'}`)
+            console.log(`   Funds needed:         ${result.needs_funds ? '✅' : '❌'}`)
+            console.log(`   ETF needed:           ${result.needs_ETF ? '✅' : '❌'}`)
+            console.log(`   Distribution needed:  ${result.needs_distribution_mutual_funds ? '✅' : '❌'}`)
         } catch (error) {
             console.error(`   ❌ Error: ${error.message}`)
         }
@@ -75,8 +80,10 @@ async function testClassifier() {
         
         try {
             const result = await classifyQuery(userQuery)
-            console.log(`   Articles needed: ${result.needs_articles ? '✅' : '❌'}`)
-            console.log(`   Funds needed:    ${result.needs_funds ? '✅' : '❌'}\n`)
+            console.log(`   Articles needed:      ${result.needs_articles ? '✅' : '❌'}`)
+            console.log(`   Funds needed:         ${result.needs_funds ? '✅' : '❌'}`)
+            console.log(`   ETF needed:           ${result.needs_ETF ? '✅' : '❌'}`)
+            console.log(`   Distribution needed:  ${result.needs_distribution_mutual_funds ? '✅' : '❌'}\n`)
         } catch (error) {
             console.error(`   ❌ Error: ${error.message}\n`)
         }
