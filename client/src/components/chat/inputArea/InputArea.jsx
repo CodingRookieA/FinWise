@@ -73,7 +73,10 @@ export const InputArea = ({
                     </IconButton>
                 </Paper>
             </Box>
-            <Typography variant='subtitle2' sx={{paddingTop: '0.5rem'}}>
+            <Typography
+                className={styles.warning}
+                variant='subtitle2' sx={{paddingTop: '0.5rem'}}
+            >
                 Not a financial advisor, just your AI guide.
             </Typography>
         </Box>

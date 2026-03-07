@@ -1,4 +1,4 @@
-.inputArea{
+.inputArea, .warning{
     animation: fadeUp 0.6s 0.3s ease both;
 }
 

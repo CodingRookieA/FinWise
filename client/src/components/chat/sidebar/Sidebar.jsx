@@ -62,8 +62,7 @@ export const Sidebar = ({
                                         bgcolor: '#2A3A4E'
                                     },
                                     flexDirection: 'column',
-                                    alignItems: 'flex-start',
-                                    p: 1.5
+                                    alignItems: 'flex-start'
                                 }}
                             >
                                 <ListItemText
