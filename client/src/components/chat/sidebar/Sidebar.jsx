@@ -113,17 +113,19 @@ export const Sidebar = ({
             <Box 
                 onClick={() => navigate('/profile')}
                 sx={{ 
-                    mt: 'auto',
-                    pt: 2,
-                    borderTop: '1px solid rgba(255,255,255,0.06)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    px: 1,
-                    py: 1.5,
-                    borderRadius: '12px',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1.5, 
+                    pt: 2, 
+                    borderTop: 1, 
+                    borderColor: 'divider',
                     cursor: 'pointer',
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.04)' },
+                    borderRadius: 1,
+                    p: 1,
+                    mt: 1,
+                    '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.05)'
+                    }
                 }}
             >
                 <Avatar src={user?.picture} sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}>
