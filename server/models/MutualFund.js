@@ -64,4 +64,6 @@ const MutualFundSchema = new mongoose.Schema(
     { timestamps: true }
 )
 
-export const MutualFund = mongoose.model('FinWise-mutualfunds', MutualFundSchema)
+// Use explicit collection name 'mutual-funds' so the model maps to the
+// existing collection in the database (avoids Mongoose name transformations).
+export const MutualFund = mongoose.model('MutualFund', MutualFundSchema, 'mutual-funds')

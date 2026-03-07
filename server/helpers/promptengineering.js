@@ -99,10 +99,19 @@ export default {
             }
 
             // Filter by minimum investment: only funds the user can afford
+            // Use $expr + $convert to handle minimum_investment stored as string or number
             if (profile.savings_balance != null) {
                 filter.$or = [
-                    { minimum_investment: { $lte: profile.savings_balance } },
-                    { minimum_investment: null }
+                    {
+                        $expr: {
+                            $lte: [
+                                { $convert: { input: '$minimum_investment', to: 'double', onError: null, onNull: null } },
+                                profile.savings_balance
+                            ]
+                        }
+                    },
+                    { minimum_investment: null },
+                    { minimum_investment: { $exists: false } }
                 ]
             }
 

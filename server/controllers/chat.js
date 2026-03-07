@@ -25,19 +25,19 @@ export default {
             const messages = await promptengineering.generatePrompt(message, userId, classification)
 
             // Call Gemma 3 27B via Google AI API
+            // Note: Gemma models do not support system_instruction — prepend it to the first user turn instead
             const response = await fetch(
                 `${ENVIRONMENT.aiGeneralUrl}?key=${ENVIRONMENT.aiGeneralApiKey}`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        system_instruction: {
-                            parts: [{ text: messages[0].content }]
-                        },
-                        contents: [{
-                            role: 'user',
-                            parts: [{ text: messages[1].content }]
-                        }],
+                        contents: [
+                            {
+                                role: 'user',
+                                parts: [{ text: messages[0].content + '\n\n' + messages[1].content }]
+                            }
+                        ],
                         generationConfig: {
                             maxOutputTokens: ENVIRONMENT.aiMaxTokens,
                             temperature: ENVIRONMENT.aiTemperature
