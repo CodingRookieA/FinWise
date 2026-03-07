@@ -13,7 +13,7 @@ import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
 
 import Field from "./field";
 
-export default function Fields() {
+export default function Fields({ activeSection = "general" }) {
   const [meta, setMeta] = React.useState([]);      // questions array from /meta
   const [values, setValues] = React.useState({});  // profile values from /api/profile
   const [loading, setLoading] = React.useState(true);
@@ -22,6 +22,7 @@ export default function Fields() {
   const [success, setSuccess] = React.useState(null);
 
 const isYes = (v) => typeof v === "string" && v.trim().toLowerCase() === "yes";
+
 const clearFields = (keys) => {
   setValues((prev) => {
     const next = { ...prev };
@@ -44,12 +45,12 @@ const DEPENDENCIES = {
   frequency_ETFs: ["has_ETFs"],
 };
 
-const shouldShowField = (field, currentValues) => {
+const shouldDisableField = (field, currentValues) => {
   const prereqs = DEPENDENCIES[field];
-  if (!prereqs) return true; // not a dependent field
+  if (!prereqs) return false; // not a dependent field
 
-  // show only if all prereqs are answered "yes"
-  return prereqs.every((p) => isYes(currentValues[p]));
+  // Disable if any prereq is NOT "yes"
+  return !prereqs.every((p) => isYes(currentValues[p]));
 };
 
 
@@ -91,27 +92,23 @@ const shouldShowField = (field, currentValues) => {
     run();
   }, []);
 
-  // const handleChange = (field, rawValue) => {
-  //   // keep as string in state, convert number only on save (or you can do it here)
-  //   setValues((prev) => ({ ...prev, [field]: rawValue }));
-  // };
-
   const handleChange = (field, rawValue) => {
-  setValues((prev) => ({ ...prev, [field]: rawValue }));
+    setValues((prev) => ({ ...prev, [field]: rawValue }));
 
-  if (field === "has_ETFs" && !isYes(rawValue)) {
-    clearFields(["where_ETFs", "type_ETFs", "ETFs_amount", "frequency_ETFs"]);
-  }
+    // Clear dependent fields if prerequisite is set to "no"
+    if (field === "has_ETFs" && !isYes(rawValue)) {
+      clearFields(["where_ETFs", "type_ETFs", "ETFs_amount", "frequency_ETFs"]);
+    }
 
-  if (field === "has_mutual_funds" && !isYes(rawValue)) {
-    clearFields([
-      "where_mutual_funds",
-      "type_mutual_funds",
-      "fee_level_mutual_funds",
-      "mutual_funds_amount",
-    ]);
-  }
-};
+    if (field === "has_mutual_funds" && !isYes(rawValue)) {
+      clearFields([
+        "where_mutual_funds",
+        "type_mutual_funds",
+        "fee_level_mutual_funds",
+        "mutual_funds_amount",
+      ]);
+    }
+  };
 
 
   const handleSave = async () => {
@@ -162,9 +159,9 @@ const shouldShowField = (field, currentValues) => {
   };
 
 
-  const visibleMeta = React.useMemo(() => {
-    return meta.filter((q) => shouldShowField(q.field, values));
-  }, [meta, values]);
+  const getSectionFields = (section) => {
+    return meta.filter((q) => q.section === section);
+  };
 
 
   return (
@@ -178,7 +175,9 @@ const shouldShowField = (field, currentValues) => {
       }}
     >
       <Stack spacing={1}>
-
+        <Typography variant="h5" sx={{ fontWeight: 700, textTransform: "capitalize" }}>
+          {activeSection === "general" ? "Profile" : activeSection.replace("_", " ")}
+        </Typography>
         <Typography variant="body2" color="text.secondary">
           Edit your info and click Save.
         </Typography>
@@ -207,20 +206,23 @@ const shouldShowField = (field, currentValues) => {
 
       {!loading && !error && meta.length > 0 && (
         <>
+          {/* RENDER ACTIVE SECTION FIELDS */}
           <Box
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sd: "1fr 1fr", md: "1fr 1fr 1fr" },
               gap: 2,
               alignItems: "start",
+              mb: 3,
             }}
           >
-            {visibleMeta.map((q) => (
+            {getSectionFields(activeSection).map((q) => (
               <Field
                 key={q.field}
                 meta={q}
                 value={values[q.field]}
                 onChange={handleChange}
+                disabled={shouldDisableField(q.field, values)}
               />
             ))}
           </Box>
@@ -242,7 +244,7 @@ const shouldShowField = (field, currentValues) => {
         </>
       )}
 
-      {!loading && !error && visibleMeta.length === 0 && (
+      {!loading && !error && getSectionFields(activeSection).length === 0 && (
         <Alert severity="info" variant="outlined">
           No fields available.
         </Alert>

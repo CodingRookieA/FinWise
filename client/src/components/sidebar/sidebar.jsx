@@ -16,15 +16,59 @@ import {
 
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import FolderRoundedIcon from "@mui/icons-material/FolderRounded";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 
 const NAV = [
+  { label: "Chat", path: "/chat", icon: <ChatRoundedIcon /> },
   { label: "Profile", path: "/profile", icon: <PersonRoundedIcon /> },
-  { label: "Portfolio", path: "/portfolio", icon: <FolderRoundedIcon /> }, // keeping your spelling
+  { label: "Portfolio", path: "/portfolio", icon: <FolderRoundedIcon /> },
 ];
 
-export default function Sidebar({ user, logout }) {
+const PROFILE_SECTIONS = [
+  { label: "Profile", value: "general", icon: <PersonRoundedIcon /> },
+  { label: "ETFs", value: "etfs", icon: <TrendingUpIcon /> },
+  { label: "Mutual Funds", value: "mutual_funds", icon: <AccountBalanceIcon /> },
+];
+
+export default function Sidebar({ user, logout, activeSection, onSectionChange }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const isProfilePage = location.pathname === "/profile";
+
+  // Always show all items consistently
+  const itemsToShow = [
+    // Profile sections
+    ...PROFILE_SECTIONS.map(section => ({
+      ...section,
+      isSection: true,
+      onClick: () => {
+        if (isProfilePage) {
+          // Already on profile page, just change section
+          onSectionChange?.(section.value);
+        } else {
+          // Navigate to profile with section
+          navigate("/profile", { state: { section: section.value } });
+        }
+      },
+      isActive: isProfilePage && activeSection === section.value,
+    })),
+    // Portfolio
+    {
+      label: "Portfolio",
+      icon: <FolderRoundedIcon />,
+      onClick: () => navigate("/portfolio"),
+      isActive: location.pathname === "/portfolio",
+    },
+  ];
+
+  // Chat item for use in the list
+  const chatItem = {
+    label: "Chat",
+    icon: <ChatRoundedIcon />,
+    onClick: () => navigate("/chat"),
+    isActive: location.pathname === "/chat",
+  };
 
   return (
     <>
@@ -45,29 +89,6 @@ export default function Sidebar({ user, logout }) {
         >
           
           <Box sx={{ p: 2.25 }}>
-            {/* Underlined Chat link at the top-left INSIDE the sidebar (no overlap) */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-              <ChatRoundedIcon fontSize="small" sx={{ color: "primary.main" }} />
-              <Typography
-                component="button"
-                onClick={() => navigate("/chat")}
-                sx={{
-                  p: 0,
-                  m: 0,
-                  border: "none",
-                  background: "transparent",
-                  color: "primary.main",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                  fontSize: "0.95rem",
-                  "&:hover": { opacity: 0.85 },
-                }}
-              >
-                Chat
-              </Typography>
-            </Box>
-
             <Typography variant="h6" sx={{ fontWeight: 800 }}>
               FinWise
             </Typography>
@@ -79,43 +100,72 @@ export default function Sidebar({ user, logout }) {
           <Divider />
 
           <List sx={{ p: 1, flex: 1 }}>
-            {NAV.map((item) => {
-              const active = location.pathname === item.path;
-
-              return (
-                <ListItemButton
-                  key={item.path}
-                  onClick={() => navigate(item.path)}
-                  selected={active}
+            {/* SHOW ITEMS CONSISTENTLY */}
+            {itemsToShow.map((item) => (
+              <ListItemButton
+                key={item.label}
+                onClick={item.onClick}
+                selected={item.isActive}
+                sx={{
+                  borderRadius: 2,
+                  mb: 0.75,
+                  "&.Mui-selected": {
+                    bgcolor: "rgba(14, 165, 233, 0.14)",
+                    border: "1px solid rgba(14, 165, 233, 0.35)",
+                  },
+                  "&.Mui-selected:hover": {
+                    bgcolor: "rgba(14, 165, 233, 0.18)",
+                  },
+                }}
+              >
+                <ListItemIcon
                   sx={{
-                    borderRadius: 2,
-                    mb: 0.75,
-                    "&.Mui-selected": {
-                      bgcolor: "rgba(14, 165, 233, 0.14)",
-                      border: "1px solid rgba(14, 165, 233, 0.35)",
-                    },
-                    "&.Mui-selected:hover": {
-                      bgcolor: "rgba(14, 165, 233, 0.18)",
-                    },
+                    minWidth: 40,
+                    color: item.isActive ? "primary.main" : "text.secondary",
                   }}
                 >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 40,
-                      color: active ? "primary.main" : "text.secondary",
-                    }}
-                  >
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={item.label}
-                    primaryTypographyProps={{
-                      sx: { fontWeight: active ? 800 : 600 },
-                    }}
-                  />
-                </ListItemButton>
-              );
-            })}
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    sx: { fontWeight: item.isActive ? 800 : 600 },
+                  }}
+                />
+              </ListItemButton>
+            ))}
+
+            {/* Chat under Portfolio */}
+            <ListItemButton
+              onClick={chatItem.onClick}
+              selected={chatItem.isActive}
+              sx={{
+                borderRadius: 2,
+                mb: 0.75,
+                "&.Mui-selected": {
+                  bgcolor: "rgba(14, 165, 233, 0.14)",
+                  border: "1px solid rgba(14, 165, 233, 0.35)",
+                },
+                "&.Mui-selected:hover": {
+                  bgcolor: "rgba(14, 165, 233, 0.18)",
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 40,
+                  color: chatItem.isActive ? "primary.main" : "text.secondary",
+                }}
+              >
+                {chatItem.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={chatItem.label}
+                primaryTypographyProps={{
+                  sx: { fontWeight: chatItem.isActive ? 800 : 600 },
+                }}
+              />
+            </ListItemButton>
           </List>
 
           <Divider />

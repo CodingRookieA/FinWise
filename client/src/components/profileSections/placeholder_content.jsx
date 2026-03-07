@@ -4,7 +4,7 @@ import AccountInfo from "./account_info";
 import Fields from "./fields";
 
 
-export default function ProfileContent({ user }) {
+export default function ProfileContent({ user, activeSection = "general" }) {
   return (
     <Paper
       elevation={0}
@@ -28,7 +28,7 @@ export default function ProfileContent({ user }) {
       </Stack>
 
       <Divider sx={{ my: 2.5 }} />
-      <Fields />
+      <Fields activeSection={activeSection} />
 
 
     </Paper>

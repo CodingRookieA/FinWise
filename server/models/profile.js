@@ -158,6 +158,15 @@ const ProfileSchema = new mongoose.Schema(
             default: null,
             trim: true,
         },
+        has_TFSA: {
+            type: String,
+            enum: [
+                "yes",
+                "no",
+            ],
+            default: null,
+            trim: true,
+        },
 
         //fill_in questions
         monthly_income:{
