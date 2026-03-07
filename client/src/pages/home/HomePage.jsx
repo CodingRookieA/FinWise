@@ -7,6 +7,7 @@ import { AboutSection } from '../../components/homepageSections/aboutSection/Abo
 import { BottomSection } from '../../components/homepageSections/bottomSection/BottomSection';
 import { LoginModal } from '../../components/loginModal/loginModal';
 import { useState } from 'react';
+import { InfoAlert } from '../../components/alerts/InfoAlert';
 
 export const HomePage = ({ user, logout }) => {
     const [loginModalOpen, setLoginModalOpen] = useState(false)
@@ -25,19 +26,9 @@ export const HomePage = ({ user, logout }) => {
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
             {
                 user.userId && !user.isVerified &&
-                <Alert
-                    severity="info"
-                    sx={{
-                        backgroundColor: 'background.paper',
-                        position: 'fixed',
-                        zIndex: 1000,
-                        justifySelf: 'center',
-                        top: '5rem',
-                        width: '21rem'
-                    }}
-                >
+                <InfoAlert>
                     <a style={{ textDecoration: 'none', color: '#0EA5E9' }} href='/email-verification'>Verify your email</a> to unlock full features
-                </Alert>
+                </InfoAlert>
             }
             <Navbar handleModalOpen={handleModalOpen} user={user} handleGoToChat={handleGoToChat} logout={logout} />
             <HeroSection handleModalOpen={handleModalOpen} />
