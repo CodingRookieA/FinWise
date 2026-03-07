@@ -6,6 +6,7 @@ import { EmptyState } from '../../components/chat/emptyState/EmptyState'
 import { MessagesList } from '../../components/chat/messagesList/MessagesList'
 import { InputArea } from '../../components/chat/inputArea/InputArea'
 import { InfoAlert } from '../../components/alerts/InfoAlert'
+import { SERVERURL } from '../../utils/constants'
 
 export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [message, setMessage] = useState('')
@@ -31,7 +32,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
             setLoadingHistory(true)
             try {
                 // Use /history endpoint which uses default userId for testing
-                const response = await fetch('http://localhost:9000/api/chat/history', {
+                const response = await fetch(`${SERVERURL}/api/chat/history`, {
                     credentials: 'include'
                 })
 
@@ -57,10 +58,10 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
 
     // Function to refresh chat history
     const refreshChatHistory = async () => {
-        if (!guestChat) return
+        if (guestChat) return
 
         try {
-            const response = await fetch('http://localhost:9000/api/chat/history', {
+            const response = await fetch(`${SERVERURL}/api/chat/history`, {
                 credentials: 'include'
             })
 
@@ -87,7 +88,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setLoading(true)
 
         try {
-            const response = await fetch('http://localhost:9000/api/chat/send', {
+            const response = await fetch(`${SERVERURL}/api/chat/send`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -152,7 +153,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setLoading(true)
         try {
             console.log('Loading session:', selectedSessionId)
-            const response = await fetch(`http://localhost:9000/api/chat/session/${selectedSessionId}`, {
+            const response = await fetch(`${SERVERURL}/api/chat/session/${selectedSessionId}`, {
                 credentials: 'include'
             })
 
