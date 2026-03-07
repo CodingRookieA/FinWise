@@ -26,7 +26,7 @@ export const HomePage = ({ user, logout }) => {
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
             {
                 user.userId && !user.isVerified &&
-                <InfoAlert>
+                <InfoAlert topOffset='5rem'>
                     <a style={{ textDecoration: 'none', color: '#0EA5E9' }} href='/email-verification'>Verify your email</a> to unlock full features
                 </InfoAlert>
             }

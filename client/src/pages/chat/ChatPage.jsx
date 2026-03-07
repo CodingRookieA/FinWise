@@ -5,6 +5,7 @@ import { Sidebar } from '../../components/chat/sidebar/Sidebar'
 import { EmptyState } from '../../components/chat/emptyState/EmptyState'
 import { MessagesList } from '../../components/chat/messagesList/MessagesList'
 import { InputArea } from '../../components/chat/inputArea/InputArea'
+import { InfoAlert } from '../../components/alerts/InfoAlert'
 
 export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [message, setMessage] = useState('')
@@ -178,6 +179,12 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
 
     return (
         <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'background.default', overflow: 'hidden' }}>
+            {
+                user.userId && !user.isVerified &&
+                <InfoAlert topOffset='0.5rem'>
+                    <a style={{ textDecoration: 'none', color: '#0EA5E9' }} href='/email-verification'>Verify your email</a> to unlock full features
+                </InfoAlert>
+            }
             {/* Sidebar */}
             <Sidebar
                 user={user}
