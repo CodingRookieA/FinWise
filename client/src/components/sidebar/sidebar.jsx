@@ -16,23 +16,16 @@ import {
 
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import FolderRoundedIcon from "@mui/icons-material/FolderRounded";
-import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
 import AccountBalanceRoundedIcon from "@mui/icons-material/AccountBalanceRounded";
 
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 
-const NAV = [
-  { label: "Chat", path: "/chat", icon: <ChatRoundedIcon /> },
-  { label: "Profile", path: "/profile", icon: <PersonRoundedIcon /> },
-  { label: "Portfolio", path: "/portfolio", icon: <FolderRoundedIcon /> },
-  { label: "Plaid", path: "/connect-plaid", icon: <AccountBalanceRoundedIcon /> },
-];
-
 const PROFILE_SECTIONS = [
-  { label: "Profile", value: "general", icon: <PersonRoundedIcon /> },
-  { label: "ETFs", value: "etfs", icon: <TrendingUpIcon /> },
-  { label: "Mutual Funds", value: "mutual_funds", icon: <AccountBalanceIcon /> },
+    { label: "Profile", value: "general", icon: <PersonRoundedIcon /> },
+    { label: "ETFs", value: "etfs", icon: <TrendingUpIcon /> },
+    { label: "Mutual Funds", value: "mutual_funds", icon: <AccountBalanceIcon /> },
+    { label: "Plaid", path: "/connect-plaid", icon: <AccountBalanceRoundedIcon /> },
 ];
 
 export default function Sidebar({ user, logout, activeSection, onSectionChange }) {
