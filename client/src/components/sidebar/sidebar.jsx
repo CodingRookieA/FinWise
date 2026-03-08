@@ -16,10 +16,12 @@ import {
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import FolderRoundedIcon from "@mui/icons-material/FolderRounded";
 import ChatRoundedIcon from "@mui/icons-material/ChatRounded";
+import AccountBalanceRoundedIcon from "@mui/icons-material/AccountBalanceRounded";
 
 const NAV = [
   { label: "Profile", path: "/profile", icon: <PersonRoundedIcon /> },
-  { label: "Portfolio", path: "/portfolio", icon: <FolderRoundedIcon /> }, // keeping your spelling
+  { label: "Portfolio", path: "/portfolio", icon: <FolderRoundedIcon /> },
+  { label: "Plaid", path: "/connect-plaid", icon: <AccountBalanceRoundedIcon /> },
   { label: "Chat", path: "/chat", icon: <ChatRoundedIcon /> },
 ];
 

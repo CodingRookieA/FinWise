@@ -2,6 +2,7 @@ import './App.css'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/home/HomePage'
 import { PortfolioPage } from './pages/portfolio/PortfolioPage'
+import { PlaidConnectPage } from './pages/plaid/PlaidConnectPage'
 import { QuestionnairePage } from './pages/questionnaire/QuestionnairePage'
 import ProfilePage from './pages/profile/ProfilePage'
 import { GoogleRedirectPage } from './pages/googleRedirectPage/GoogleRedirectPage'
@@ -92,6 +93,7 @@ function App() {
                     <Route path='/portfolio' element={<PortfolioPage user={user} logout={logout} />}/>
                     <Route path="/questionnaire" element={<QuestionnairePage/>} />
                     <Route path="/profile" element={<ProfilePage user={user} logout={logout} />} />
+                    <Route path="/connect-plaid" element={<PlaidConnectPage user={user} logout={logout} />} />
                 </Route>
 
                 {/* Catch-all route for 404 page*/}
