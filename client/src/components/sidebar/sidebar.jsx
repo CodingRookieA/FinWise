@@ -25,7 +25,6 @@ const PROFILE_SECTIONS = [
     { label: "Profile", value: "general", icon: <PersonRoundedIcon /> },
     { label: "ETFs", value: "etfs", icon: <TrendingUpIcon /> },
     { label: "Mutual Funds", value: "mutual_funds", icon: <AccountBalanceIcon /> },
-    { label: "Plaid", path: "/connect-plaid", icon: <AccountBalanceRoundedIcon /> },
 ];
 
 export default function Sidebar({ user, logout, activeSection, onSectionChange }) {
@@ -57,6 +56,12 @@ export default function Sidebar({ user, logout, activeSection, onSectionChange }
       onClick: () => navigate("/portfolio"),
       isActive: location.pathname === "/portfolio",
     },
+    {
+      label: "Plaid",
+      icon: <AccountBalanceRoundedIcon /> ,
+      onClick: () => navigate("/connect-plaid"),
+      isActive: location.pathname === "/connect-plaid",
+    }
   ];
 
   // Chat item for use in the list
