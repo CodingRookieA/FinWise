@@ -3,6 +3,8 @@ import CloseIcon from '@mui/icons-material/Close'
 import AddIcon from '@mui/icons-material/Add'
 import { useNavigate } from 'react-router-dom'
 
+import styles from './Sidebar.module.css'
+
 const SIDEBAR_WIDTH = 280
 
 export const Sidebar = ({ 
@@ -60,8 +62,7 @@ export const Sidebar = ({
                                         bgcolor: '#2A3A4E'
                                     },
                                     flexDirection: 'column',
-                                    alignItems: 'flex-start',
-                                    p: 1.5
+                                    alignItems: 'flex-start'
                                 }}
                             >
                                 <ListItemText
@@ -90,13 +91,18 @@ export const Sidebar = ({
                 startIcon={<AddIcon />}
                 onClick={onNewChat}
                 sx={{
-                    bgcolor: '#0EA5E9',
-                    color: '#0B1120',
+                    background: 'linear-gradient(135deg, #2dd4bf, #38bdf8)',
+                    color: '#07101e',
                     fontWeight: 600,
-                    mb: 2,
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontSize: '13px',
+                    boxShadow: '0 2px 12px rgba(45,212,191,0.3)',
                     '&:hover': {
-                        bgcolor: '#0284C7'
-                    }
+                        boxShadow: '0 4px 20px rgba(45,212,191,0.45)',
+                        transform: 'scale(1.02)'
+                    },
+                    mb: 2,
                 }}
             >
                 New Chat
@@ -115,7 +121,7 @@ export const Sidebar = ({
                     cursor: 'pointer',
                     borderRadius: 1,
                     p: 1,
-                    mt: -1,
+                    mt: 1,
                     '&:hover': {
                         bgcolor: 'rgba(255, 255, 255, 0.05)'
                     }
@@ -142,6 +148,7 @@ export const Sidebar = ({
         <>
             {/* Desktop Sidebar - Permanent, toggleable */}
             <Drawer
+                className={styles.sidebar}
                 variant="persistent"
                 open={sidebarOpen}
                 sx={{
@@ -151,9 +158,13 @@ export const Sidebar = ({
                     '& .MuiDrawer-paper': {
                         width: SIDEBAR_WIDTH,
                         boxSizing: 'border-box',
-                        bgcolor: '#1A2332',
-                        border: 'none',
+                        bgcolor: 'background.default',
+                        borderRadius: '1.5rem',
+                        border: `1px solid #2A3A4E`,
+                        boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 10px 20px 0 rgba(0, 0, 0, 0.19)',
                         p: 2,
+                        height: 'auto',
+                        inset: '2rem'
                     },
                 }}
             >
@@ -170,9 +181,13 @@ export const Sidebar = ({
                     '& .MuiDrawer-paper': {
                         width: SIDEBAR_WIDTH,
                         boxSizing: 'border-box',
-                        bgcolor: '#1A2332',
-                        border: 'none',
+                        bgcolor: 'background.default',
+                        borderRadius: '1.5rem',
+                        border: `1px solid #2A3A4E`,
+                        boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 10px 20px 0 rgba(0, 0, 0, 0.19)',
                         p: 2,
+                        height: 'auto',
+                        inset: '2rem'
                     },
                 }}
             >

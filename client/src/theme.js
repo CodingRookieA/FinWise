@@ -23,7 +23,7 @@ const theme = createTheme({
     divider: '#2A3A4E',
   },
   typography: {
-    fontFamily: "'Inter', system-ui, sans-serif",
+    fontFamily: "'DM sans', system-ui, sans-serif",
     h1: {
       fontWeight: 700,
     },

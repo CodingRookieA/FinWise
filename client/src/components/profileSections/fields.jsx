@@ -13,13 +13,46 @@ import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
 
 import Field from "./field";
 
-export default function Fields() {
+export default function Fields({ activeSection = "general" }) {
   const [meta, setMeta] = React.useState([]);      // questions array from /meta
   const [values, setValues] = React.useState({});  // profile values from /api/profile
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(null);
+
+const isYes = (v) => typeof v === "string" && v.trim().toLowerCase() === "yes";
+
+const clearFields = (keys) => {
+  setValues((prev) => {
+    const next = { ...prev };
+    for (const k of keys) next[k] = null;
+    return next;
+  });
+};
+
+const DEPENDENCIES = {
+  // mutual fund detail fields depend on has_mutual_funds
+  where_mutual_funds: ["has_mutual_funds"],
+  type_mutual_funds: ["has_mutual_funds"],
+  fee_level_mutual_funds: ["has_mutual_funds"],
+  mutual_funds_amount: ["has_mutual_funds"],
+
+  // ETF detail fields depend on has_ETFs
+  where_ETFs: ["has_ETFs"],
+  type_ETFs: ["has_ETFs"],
+  ETFs_amount: ["has_ETFs"],
+  frequency_ETFs: ["has_ETFs"],
+};
+
+const shouldDisableField = (field, currentValues) => {
+  const prereqs = DEPENDENCIES[field];
+  if (!prereqs) return false; // not a dependent field
+
+  // Disable if any prereq is NOT "yes"
+  return !prereqs.every((p) => isYes(currentValues[p]));
+};
+
 
   // load profile values + meta definitions
   React.useEffect(() => {
@@ -60,9 +93,23 @@ export default function Fields() {
   }, []);
 
   const handleChange = (field, rawValue) => {
-    // keep as string in state, convert number only on save (or you can do it here)
     setValues((prev) => ({ ...prev, [field]: rawValue }));
+
+    // Clear dependent fields if prerequisite is set to "no"
+    if (field === "has_ETFs" && !isYes(rawValue)) {
+      clearFields(["where_ETFs", "type_ETFs", "ETFs_amount", "frequency_ETFs"]);
+    }
+
+    if (field === "has_mutual_funds" && !isYes(rawValue)) {
+      clearFields([
+        "where_mutual_funds",
+        "type_mutual_funds",
+        "fee_level_mutual_funds",
+        "mutual_funds_amount",
+      ]);
+    }
   };
+
 
   const handleSave = async () => {
     try {
@@ -111,6 +158,12 @@ export default function Fields() {
     }
   };
 
+
+  const getSectionFields = (section) => {
+    return meta.filter((q) => q.section === section);
+  };
+
+
   return (
     <Paper
       elevation={0}
@@ -122,7 +175,9 @@ export default function Fields() {
       }}
     >
       <Stack spacing={1}>
-
+        <Typography variant="h5" sx={{ fontWeight: 700, textTransform: "capitalize" }}>
+          {activeSection === "general" ? "Profile" : activeSection.replace("_", " ")}
+        </Typography>
         <Typography variant="body2" color="text.secondary">
           Edit your info and click Save.
         </Typography>
@@ -151,20 +206,23 @@ export default function Fields() {
 
       {!loading && !error && meta.length > 0 && (
         <>
+          {/* RENDER ACTIVE SECTION FIELDS */}
           <Box
             sx={{
               display: "grid",
               gridTemplateColumns: { xs: "1fr", sd: "1fr 1fr", md: "1fr 1fr 1fr" },
               gap: 2,
               alignItems: "start",
+              mb: 3,
             }}
           >
-            {meta.map((q) => (
+            {getSectionFields(activeSection).map((q) => (
               <Field
                 key={q.field}
                 meta={q}
                 value={values[q.field]}
                 onChange={handleChange}
+                disabled={shouldDisableField(q.field, values)}
               />
             ))}
           </Box>
@@ -186,7 +244,7 @@ export default function Fields() {
         </>
       )}
 
-      {!loading && !error && meta.length === 0 && (
+      {!loading && !error && getSectionFields(activeSection).length === 0 && (
         <Alert severity="info" variant="outlined">
           No fields available.
         </Alert>
