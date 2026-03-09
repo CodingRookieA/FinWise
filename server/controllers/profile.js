@@ -1,16 +1,85 @@
 import { Profile } from "../models/profile.js";
 
-const ALL_FIELDS = [
-  "income_stability",
-  "employment_status",
-  "risk_tolerance",
-  "investment_experience",
-  "financial_goal",
-  "housing_status",
-  "monthly_income",
-  "savings_balance",
-  "debt_amount",
-];
+// Define which section each field belongs to
+const SECTION_MAPPING = {
+  general: [
+    "income_stability",
+    "employment_status",
+    "risk_tolerance",
+    "investment_experience",
+    "financial_goal",
+    "housing_status",
+    "monthly_income",
+    "savings_balance",
+    "debt_amount",
+    "has_TFSA",
+  ],
+  mutual_funds: [
+    "has_mutual_funds",
+    "where_mutual_funds",
+    "type_mutual_funds",
+    "fee_level_mutual_funds",
+    "mutual_funds_amount",
+  ],
+  etfs: [
+    "has_ETFs",
+    "where_ETFs",
+    "type_ETFs",
+    "ETFs_amount",
+    "frequency_ETFs",
+  ],
+};
+
+// Flatten to get all fields and track which section they belong to
+const ALL_FIELDS = Object.values(SECTION_MAPPING).flat();
+
+// Create reverse mapping: field => section
+const FIELD_TO_SECTION = {};
+for (const [section, fields] of Object.entries(SECTION_MAPPING)) {
+  fields.forEach((field) => {
+    FIELD_TO_SECTION[field] = section;
+  });
+}
+
+const DEPENDENCIES = {
+  // Mutual funds details only make sense if user has mutual funds
+  where_mutual_funds: ["has_mutual_funds"],
+  type_mutual_funds: ["has_mutual_funds"],
+  fee_level_mutual_funds: ["has_mutual_funds"],
+  mutual_funds_amount: ["has_mutual_funds"],
+
+  // ETFs details only make sense if user has ETFs
+  where_ETFs: ["has_ETFs"],
+  type_ETFs: ["has_ETFs"],
+  ETFs_amount: ["has_ETFs"],
+  frequency_ETFs: ["has_ETFs"],
+  // (If you later add fee_level_ETFs, add it here too)
+};
+
+
+function isTruthyYes(value) {
+  // adapt to your enum values
+  // If your schema stores "yes"/"no"/"not sure", this works.
+  if (typeof value !== "string") return false;
+  return value.toLowerCase() === "yes";
+}
+
+function prereqsSatisfied(profile, field) {
+  const prereqs = DEPENDENCIES[field];
+  if (!prereqs) return true;
+
+  // All prereqs must be "yes"
+  return prereqs.every((p) => isTruthyYes(profile[p]));
+}
+
+function isUnanswered(profile, field) {
+  const v = profile[field];
+  return v == null || (typeof v === "string" && v.trim() === "");
+}
+
+
+
+
 
 // function getDemoUserId(req) {
   // Temporary until login exists:
@@ -54,10 +123,72 @@ function defaultPrompt(title) {
 }
 
 const QUESTION_META = {
-  risk_tolerance: { prompt: "How much risk are you comfortable with?" },
+  // General fields
+  income_stability: { 
+    prompt: "How stable is your income?" 
+  },
+  employment_status: { 
+    prompt: "What is your current employment status?" 
+  },
+  risk_tolerance: { 
+    prompt: "How much risk are you comfortable with?" 
+  },
+  investment_experience: { 
+    prompt: "What is your level of investing experience?" 
+  },
+  financial_goal: { 
+    prompt: "What is your primary financial goal?" 
+  },
+  housing_status: { 
+    prompt: "What is your current housing situation?" 
+  },
   monthly_income: {
     prompt: "What is your approximate monthly income (CAD)?",
     placeholder: "e.g., 3000",
+  },
+  savings_balance: {
+    prompt: "What is your current savings balance (CAD)?",
+    placeholder: "e.g., 5000",
+  },
+  debt_amount: {
+    prompt: "What is your total debt amount (CAD)?",
+    placeholder: "e.g., 10000",
+  },
+
+  // Mutual Funds fields
+  has_mutual_funds: { 
+    prompt: "Do you currently have any mutual funds?" 
+  },
+  where_mutual_funds: { 
+    prompt: "Where are your mutual funds held?" 
+  },
+  type_mutual_funds: { 
+    prompt: "What type of mutual funds do you have?" 
+  },
+  fee_level_mutual_funds: { 
+    prompt: "What is the approximate fee level of your mutual funds?" 
+  },
+  mutual_funds_amount: {
+    prompt: "What is the total amount invested in mutual funds (CAD)?",
+    placeholder: "e.g., 5000",
+  },
+
+  // ETFs fields
+  has_ETFs: { 
+    prompt: "Do you currently have any ETFs?" 
+  },
+  where_ETFs: { 
+    prompt: "Where are your ETFs held?" 
+  },
+  type_ETFs: { 
+    prompt: "What type of ETFs do you have?" 
+  },
+  ETFs_amount: {
+    prompt: "What is the total amount invested in ETFs (CAD)?",
+    placeholder: "e.g., 5000",
+  },
+  frequency_ETFs: { 
+    prompt: "How frequently do you contribute to your ETFs?" 
   },
 };
 
@@ -67,6 +198,7 @@ function buildQuestionFromSchema(field) {
 
   const title = QUESTION_META[field]?.title || titleFromField(field);
   const prompt = QUESTION_META[field]?.prompt || defaultPrompt(title);
+  const section = FIELD_TO_SECTION[field] || "general"; // default to general
 
   const enumValues = Array.isArray(path.enumValues) ? path.enumValues : [];
   const isNumber = path.instance === "Number";
@@ -78,6 +210,7 @@ function buildQuestionFromSchema(field) {
       type: "mcq",
       title,
       prompt,
+      section,
       options: enumValues,
     };
   }
@@ -88,6 +221,7 @@ function buildQuestionFromSchema(field) {
     type: "fill",
     title,
     prompt,
+    section,
     inputType: isNumber ? "number" : "text",
     placeholder:
       QUESTION_META[field]?.placeholder ||
@@ -149,18 +283,24 @@ export default {
 
       const profile = await findOrCreateProfile(userId);
 
-      const unanswered = ALL_FIELDS.filter((f) => {
-        const v = profile[f];
-        return v == null || (typeof v === "string" && v.trim() === "");
-      });
+      // const unanswered = ALL_FIELDS.filter((f) => {
+      //   const v = profile[f];
+      //   return v == null || (typeof v === "string" && v.trim() === "");
+      // });
 
-      const pickedFields = pickRandom(unanswered, Math.min(3, unanswered.length));
+      const unanswered = ALL_FIELDS.filter((f) => isUnanswered(profile, f));
+
+      // only pick from unanswered fields that are currently eligible
+      const eligibleUnanswered = unanswered.filter((f) => prereqsSatisfied(profile, f));
+
+      const pickedFields = pickRandom(eligibleUnanswered, Math.min(3, unanswered.length));
       const questions = pickedFields.map(buildQuestionFromSchema).filter(Boolean);
 
       return res.status(200).json({
         questions,
         pickedFields,
         remainingUnansweredCount: unanswered.length,
+        eligibleUnansweredCount: eligibleUnanswered.length,
       });
     } catch (err) {
       console.error(err);

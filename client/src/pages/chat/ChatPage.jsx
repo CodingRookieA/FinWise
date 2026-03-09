@@ -5,6 +5,8 @@ import { Sidebar } from '../../components/chat/sidebar/Sidebar'
 import { EmptyState } from '../../components/chat/emptyState/EmptyState'
 import { MessagesList } from '../../components/chat/messagesList/MessagesList'
 import { InputArea } from '../../components/chat/inputArea/InputArea'
+import { InfoAlert } from '../../components/alerts/InfoAlert'
+import { SERVERURL } from '../../utils/constants'
 
 export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [message, setMessage] = useState('')
@@ -16,11 +18,12 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [loadingHistory, setLoadingHistory] = useState(false)
     const [loadingSession, setLoadingSession] = useState(false)
 
+    const guestChat = !loggedIn || !user.isVerified
 
     // Fetch chat history when user is logged in
     useEffect(() => {
         const fetchChatHistory = async () => {
-            if (!loggedIn) {
+            if (guestChat) {
                 // Clear history when user logs out
                 setChatHistory([])
                 return
@@ -29,7 +32,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
             setLoadingHistory(true)
             try {
                 // Use /history endpoint which uses default userId for testing
-                const response = await fetch('http://localhost:9000/api/chat/history', {
+                const response = await fetch(`${SERVERURL}/api/chat/history`, {
                     credentials: 'include'
                 })
 
@@ -45,20 +48,20 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         }
 
         fetchChatHistory()
-    }, [loggedIn, user?.userId])
+    }, [guestChat, user?.userId])
 
     // Clear messages when user changes or logs out
     useEffect(() => {
         setMessages([])
         setSessionId(crypto.randomUUID())
-    }, [user?.userId, loggedIn])
+    }, [user?.userId, guestChat])
 
     // Function to refresh chat history
     const refreshChatHistory = async () => {
-        if (!loggedIn) return
+        if (guestChat) return
 
         try {
-            const response = await fetch('http://localhost:9000/api/chat/history', {
+            const response = await fetch(`${SERVERURL}/api/chat/history`, {
                 credentials: 'include'
             })
 
@@ -85,7 +88,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setLoading(true)
 
         try {
-            const response = await fetch('http://localhost:9000/api/chat/send', {
+            const response = await fetch(`${SERVERURL}/api/chat/send`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -150,7 +153,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setLoading(true)
         try {
             console.log('Loading session:', selectedSessionId)
-            const response = await fetch(`http://localhost:9000/api/chat/session/${selectedSessionId}`, {
+            const response = await fetch(`${SERVERURL}/api/chat/session/${selectedSessionId}`, {
                 credentials: 'include'
             })
 
@@ -176,7 +179,23 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     }
 
     return (
-        <Box sx={{ display: 'flex', height: '100vh', bgcolor: 'background.default', overflow: 'hidden' }}>
+        <Box
+            sx={{
+                display: 'flex',
+                height: '100vh',
+                bgcolor: 'background.default',
+                overflow: 'hidden',
+                background: `radial-gradient(ellipse 90% 60% at -5% -5%, rgba(45,212,191,0.09) 0%, transparent 100%),
+                             radial-gradient(ellipse 70% 45% at -5% -5%, rgba(56,189,248,0.07) 0%, transparent 80%),
+                             radial-gradient(ellipse 120% 80% at -15% -15%, rgba(15,40,70,0.6) 0%, transparent 100%)`,
+            }}
+        >
+            {
+                user.userId && !user.isVerified &&
+                <InfoAlert topOffset='0.5rem'>
+                    <a style={{ textDecoration: 'none', color: '#0EA5E9' }} href='/email-verification'>Verify your email</a> to unlock full features
+                </InfoAlert>
+            }
             {/* Sidebar */}
             <Sidebar
                 user={user}
@@ -185,7 +204,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                 onToggleSidebar={toggleSidebar}
                 onNewChat={handleNewChat}
                 onLoadSession={handleLoadSession}
-                loggedIn={loggedIn}
+                loggedIn={!guestChat}
             />
 
             {/* Main Chat Area */}
@@ -195,13 +214,13 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                     flexGrow: 1,
                     display: 'flex',
                     flexDirection: 'column',
-                    ml: { xs: 0, md: loggedIn ? 0 : 0 },
+                    ml: { xs: 0, md: !guestChat ? 0 : 0 },
                     height: '100vh',
                     overflow: 'hidden'
                 }}
             >
                 {/* Menu Button - Show when logged in and sidebar can be toggled */}
-                {loggedIn && (
+                {!guestChat && (
                     <Box 
                         sx={{ 
                             p: 2,

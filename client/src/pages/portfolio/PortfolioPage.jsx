@@ -1,5 +1,4 @@
 import { Box } from '@mui/material';
-import { Navbar } from '../../components/navbar/Navbar';
 import { PortfolioHero } from '../../components/portfolioSections/portfolioHero/PortfolioHero';
 import { PortfolioDashboard } from '../../components/portfolioSections/portfolioDashboard/PortfolioDashboard';
 import Sidebar from '../../components/sidebar/sidebar';

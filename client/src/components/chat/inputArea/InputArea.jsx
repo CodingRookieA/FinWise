@@ -1,5 +1,7 @@
-import { Box, Paper, TextField, IconButton } from '@mui/material'
+import { Box, Paper, TextField, IconButton, Typography } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send'
+
+import styles from './inputArea.module.css'
 
 export const InputArea = ({ 
     message, 
@@ -11,14 +13,13 @@ export const InputArea = ({
     return (
         <Box
             sx={{
-                p: { xs: 2, md: 3 },
-                borderTop: 1,
+                p: { xs: 3, md: 5 },
                 borderColor: 'divider',
-                bgcolor: 'background.default'
             }}
         >
             <Box sx={{ maxWidth: 900, mx: 'auto' }}>
                 <Paper
+                    className={styles.inputArea}
                     sx={{
                         display: 'flex',
                         gap: 1,
@@ -27,7 +28,8 @@ export const InputArea = ({
                         border: '1px solid #2A3A4E',
                         px: 2,
                         py: 1,
-                        borderRadius: 10
+                        borderRadius: 10,
+                        boxShadow: '0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)'
                     }}
                 >
                     <TextField
@@ -37,14 +39,16 @@ export const InputArea = ({
                         placeholder="What would you like to know?"
                         value={message}
                         onChange={onMessageChange}
-                        onKeyPress={onKeyPress}
+                        onKeyDown={onKeyPress}
                         disabled={loading}
                         variant="standard"
-                        InputProps={{
-                            disableUnderline: true,
-                            sx: {
-                                color: 'text.primary',
-                                fontSize: '0.95rem'
+                        slotProps={{
+                            input: {
+                                disableUnderline: true,
+                                sx: {
+                                    color: 'text.primary',
+                                    fontSize: '0.95rem'
+                                }
                             }
                         }}
                     />
@@ -69,6 +73,12 @@ export const InputArea = ({
                     </IconButton>
                 </Paper>
             </Box>
+            <Typography
+                className={styles.warning}
+                variant='subtitle2' sx={{paddingTop: '0.5rem'}}
+            >
+                Not a financial advisor, just your AI guide.
+            </Typography>
         </Box>
     )
 }

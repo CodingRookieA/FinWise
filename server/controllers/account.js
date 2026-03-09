@@ -1,15 +1,9 @@
-import { config } from 'dotenv'
 import { Account } from '../models/Account.js'
-
-config()
-
-const clientId = process.env.OAUTH_CLIENT_ID
-const clientSecret = process.env.OAUTH_SECRET_KEY
-const nodeEnv = process.env.NODE_ENV
-const clientURL = 
-    nodeEnv === 'production'
-    ? process.env.CLIENT_URL
-    : process.env.CLIENT_URL_DEVELOPMENT
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { sendVerificationEmail } from '../lib/mailtrap.js';
+import { CLIENTURL, ENVIRONMENT } from '../utils/constants.js';
+import { saveUserToSession } from '../helpers/saveUserToSession.js';
 
 export default {
     async googleLogin(req, res) {
@@ -22,9 +16,9 @@ export default {
                 },
                 body: new URLSearchParams({
                     code,
-                    client_id: clientId,
-                    client_secret: clientSecret,
-                    redirect_uri: `${clientURL}/google-redirect`,
+                    client_id: ENVIRONMENT.oauthClientId,
+                    client_secret: ENVIRONMENT.oauthClientSecret,
+                    redirect_uri: `${CLIENTURL}/google-redirect`,
                     grant_type: 'authorization_code'
                 })
             })
@@ -56,18 +50,17 @@ export default {
                 user = new Account({
                     email,
                     name,
-                    picture
+                    picture,
+                    authType: 'google',
+                    isVerified: true
                 })
                 await user.save()
             }
 
             // Save to session
-            req.session.userId = user._id
-            req.session.email = user.email
-            req.session.name = user.name
-            req.session.picture = user.picture
+            saveUserToSession(req.session, user)
 
-            return res.status(200).json({
+            res.status(200).json({
                 message: 'Login success'
             })
         } catch (error) {
@@ -77,6 +70,102 @@ export default {
             })
         }
     },
+    async localSignup(req, res) {
+        try {
+            const { email, name, password } = req.body
+
+            // Check email, name and password fields are non-empty
+            if(!email || !name || !password){
+                return res.status(400).json({
+                    error: "Email, name or password is missing"
+                })
+            }
+
+            const existingUser = await Account.findOne({ email })
+            
+            if(existingUser){
+                return res.status(400).json({
+                    error: "The email is already registered."
+                })
+            }
+
+            // Hash password
+            const saltRounds = 10
+            const salt = await bcrypt.genSalt(saltRounds)
+            const hashedPassword = await bcrypt.hash(password, salt)
+
+            const user = await Account.create({
+                name,
+                email,
+                password: hashedPassword
+            });
+
+            // Create token
+            const token = jwt.sign({
+                email
+            }, ENVIRONMENT.jwtSecret, { expiresIn: '1h' })
+
+            sendVerificationEmail(email, token)
+
+            // Save to session
+            saveUserToSession(req.session, user)
+
+            res.status(201).json({
+                message: "The user has been successfully registered. A verification email should have been sent to your email"
+            })
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: 'An error occurred while signing up'
+            });
+        }
+    },
+    async localLogin(req, res) {
+        try {
+            const { email, password } = req.body
+
+            // Check email and password fields are non-empty
+            if(!email || !password){
+                return res.status(400).json({
+                    error: "Email or password is missing"
+                })
+            }
+
+            const existingUser = await Account.findOne({ email })
+            
+            if(!existingUser){
+                return res.status(400).json({
+                    error: "This account does not exist"
+                })
+            }
+
+            if(existingUser.authType === 'google'){
+                return res.status(400).json({
+                    error: 'This account was created using google. Please use google to log in'
+                })
+            }
+
+            const passwordMatch = await bcrypt.compare(password, existingUser.password)
+
+            if(!passwordMatch){
+                return res.status(401).json({
+                    error: "The password is incorrect"
+                })
+            }
+
+            // Save to session
+            saveUserToSession(req.session, existingUser)
+
+            res.status(201).json({
+                message: "Logged in successfully"
+            })
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                error: 'An error occurred while logging in'
+            });
+        }
+    },
     async logout(req, res) {
         try {
             req.session.destroy();
@@ -84,8 +173,8 @@ export default {
                 message: 'The user has been logged out',
             });
         }
-        catch (err) {
-            console.error(err);
+        catch (error) {
+            console.error(error);
             res.status(500).json({
                 error: 'An error occurred while logging out'
             });
@@ -99,16 +188,17 @@ export default {
                 })
             }
 
-            const { userId, email, name, picture } = req.session
+            const { userId, email, name, picture, isVerified } = req.session
             
             res.status(200).json({
                 userId,
                 email,
                 name,
-                picture
+                picture,
+                isVerified
             })
         } catch (error) {
-            console.error(err);
+            console.error(error);
             res.status(500).json({
                 error: 'An error occurred while authenticating user'
             });

@@ -1,0 +1,6 @@
+Please find comments on design pattern in:
+
+/server/index.js
+/server/routes/(all files in that folder)
+
+In summary: we used factory design pattern for routing API requests

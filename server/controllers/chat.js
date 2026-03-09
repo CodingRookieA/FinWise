@@ -1,8 +1,9 @@
 import promptengineering from '../helpers/promptengineering.js'
-import axios from 'axios'
+import { classifyQuery } from '../helpers/classifier.js'
 import Message from '../models/Message.js'
 import { randomUUID } from 'crypto'
 import mongoose from 'mongoose'
+import { ENVIRONMENT } from '../utils/constants.js'
 
 export default {
     async sendMessage(req, res) {
@@ -14,32 +15,45 @@ export default {
                 return res.status(400).json({ error: 'Message is required' })
             }
 
-            //Build the prompts
-            const messages = promptengineering.generatePrompt(message, userId)
+            //Call the classifier to determine if we need to fetch articles or funds data before responding
+            //This will help the AI model provide more accurate and relevant responses to user queries
+            const classification = await classifyQuery(message)
+            console.log('Classification result:', classification)
 
-            // Call Perplexity API
-            const response = await axios.post(
-                'https://api.perplexity.ai/chat/completions',
+
+            //Build the prompts
+            const messages = await promptengineering.generatePrompt(message, userId, classification)
+
+            // Call Gemma 3 27B via Google AI API
+            // Note: Gemma models do not support system_instruction — prepend it to the first user turn instead
+            const response = await fetch(
+                `${ENVIRONMENT.aiGeneralUrl}?key=${ENVIRONMENT.aiGeneralApiKey}`,
                 {
-                    model: 'sonar',
-                    messages: messages,
-                    max_tokens: 500,
-                    temperature: 0.7,
-                    return_citations: true
-                },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-                        'Content-Type': 'application/json'
-                    }
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                role: 'user',
+                                parts: [{ text: messages[0].content + '\n\n' + messages[1].content }]
+                            }
+                        ],
+                        generationConfig: {
+                            maxOutputTokens: ENVIRONMENT.aiMaxTokens,
+                            temperature: ENVIRONMENT.aiTemperature
+                        }
+                    })
                 }
             )
 
-            const aiResponse = response.data.choices[0].message.content
-            const citations = response.data.citations || []
+            if (!response.ok) {
+                const error = await response.json()
+                throw new Error(`AI API error: ${JSON.stringify(error)}`)
+            }
 
-            // Store messages if user has a session (for testing, default to storing)
-            // Guest users: no sessionId or userId means don't store
+            const data = await response.json()
+            const aiResponse = data.candidates[0].content.parts[0].text
+
             const shouldStore = req.session.userId ? true : false
             let savedUserMessage = null
             let savedAIMessage = null
@@ -75,8 +89,6 @@ export default {
             return res.status(200).json({
                 success: true,
                 response: aiResponse,
-                citations: citations,
-                usage: response.data.usage,
                 stored: shouldStore,
                 sessionId: savedUserMessage?.sessionId,
                 messageIds: shouldStore ? {
@@ -86,7 +98,7 @@ export default {
             })
 
         } catch (error) {
-            console.error('Error calling Perplexity API:', error.response?.data || error.message)
+            console.error('Error calling AI API:', error.response?.data || error.message)
             return res.status(500).json({
                 error: 'Failed to process message',
                 details: error.response?.data?.error || error.message

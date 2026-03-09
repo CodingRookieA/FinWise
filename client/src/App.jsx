@@ -2,6 +2,7 @@ import './App.css'
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/home/HomePage'
 import { PortfolioPage } from './pages/portfolio/PortfolioPage'
+import { PlaidConnectPage } from './pages/plaid/PlaidConnectPage'
 import { QuestionnairePage } from './pages/questionnaire/QuestionnairePage'
 import ProfilePage from './pages/profile/ProfilePage'
 import { GoogleRedirectPage } from './pages/googleRedirectPage/GoogleRedirectPage'
@@ -9,11 +10,10 @@ import { ChatPage } from './pages/chat/ChatPage'
 import { useEffect } from 'react'
 import { useState } from 'react'
 import { NotFoundPage } from './pages/notFound/NotFoundPage'
-
-const mode = import.meta.env.MODE
-const serverURL = mode === 'production' 
-    ? import.meta.env.VITE_SERVER_URL 
-    : import.meta.env.VITE_SERVER_URL_DEVELOPMENT
+import { EmailVerificationPage } from './pages/emailVerification/EmailVerificationPage'
+import { VerifyingEmailPage } from './pages/emailVerification/VerifyingEmailPage'
+import { Toaster } from 'react-hot-toast';
+import { SERVERURL } from './utils/constants'
 
 function App() {
     const [loading, setLoading] = useState(true)
@@ -22,7 +22,7 @@ function App() {
 
     const logout = async () => {
         await fetch(
-            `${serverURL}/api/users/logout`,
+            `${SERVERURL}/api/users/logout`,
             {
                 method: 'POST',
                 headers: {
@@ -38,14 +38,23 @@ function App() {
     }
 
     const ProtectedRoutes = () => {
+        console.log(user)
         if(!loggedIn) return <Navigate to='/' />
+        if(!user.isVerified) return <Navigate to='/email-verification'/>
+
+        return (<Outlet />)
+    }
+
+    const EmailVerificationRoutes = () => {
+        if(!loggedIn) return <Navigate to='/' />
+        if(user.isVerified) return <Navigate to='/questionnaire'/>
 
         return (<Outlet />)
     }
 
     useEffect(() => {
         const checkAuth = async () => {
-            const response = await fetch(`${serverURL}/api/users/checkUserAuth`,{
+            const response = await fetch(`${SERVERURL}/api/users/checkUserAuth`,{
                 method: 'GET',
                 credentials: 'include',
             });
@@ -68,16 +77,23 @@ function App() {
 
     return (
         <BrowserRouter>
+            <Toaster />
             <Routes>
                 <Route path='/' element={<HomePage user={user} logout={logout} />}/>
                 <Route path='/chat' element={<ChatPage user={user} logout={logout} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}/> 
                 <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/>
+                <Route path='/verifying-email' element={<VerifyingEmailPage/> } />
+                
+                <Route element={<EmailVerificationRoutes/>}>
+                    <Route path='/email-verification' element={<EmailVerificationPage/>} />
+                </Route>
                 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoutes/>}>
                     <Route path='/portfolio' element={<PortfolioPage user={user} logout={logout} />}/>
                     <Route path="/questionnaire" element={<QuestionnairePage/>} />
                     <Route path="/profile" element={<ProfilePage user={user} logout={logout} />} />
+                    <Route path="/connect-plaid" element={<PlaidConnectPage user={user} logout={logout} />} />
                 </Route>
 
                 {/* Catch-all route for 404 page*/}

@@ -1,11 +1,7 @@
 import { CircularProgress, Typography } from '@mui/material';
 import styles from './googleRedirectPage.module.css';
 import { useEffect, useState } from 'react';
-
-const mode = import.meta.env.MODE
-const serverURL = mode === 'production' 
-    ? import.meta.env.VITE_SERVER_URL 
-    : import.meta.env.VITE_SERVER_URL_DEVELOPMENT
+import { SERVERURL } from '../../utils/constants';
 
 export const GoogleRedirectPage = () => {
 
@@ -21,7 +17,7 @@ export const GoogleRedirectPage = () => {
         const googleSignIn = async () => {
             try {
                 const res = await fetch(
-                    `${serverURL}/api/users/googleLogin`,
+                    `${SERVERURL}/api/users/googleLogin`,
                     {
                         method: 'POST',
                         headers: {

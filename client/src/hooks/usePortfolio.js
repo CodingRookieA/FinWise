@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { SERVERURL } from '../utils/constants';
 
-const API_URL = `${import.meta.env.VITE_SERVER_URL_DEVELOPMENT}/api/assets`;
+const API_URL = `${SERVERURL}/api/assets`;
 
 export const usePortfolio = () => {
     const [assets, setAssets] = useState([]);

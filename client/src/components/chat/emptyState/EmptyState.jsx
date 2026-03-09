@@ -1,8 +1,9 @@
 import { Box, Typography, Chip } from '@mui/material'
+import styles from './EmptyState.module.css'
 
 const sampleQuestions = [
     'What should I invest in?',
-    'What are some finantial advices for beginners?',
+    'What are some financial advices for beginners?',
     'Canadian ETF funds market today?',
 ]
 
@@ -20,6 +21,7 @@ export const EmptyState = ({ onSampleQuestion }) => {
             }}
         >
             <Typography
+                className={styles.header}
                 variant="h3"
                 fontWeight={700}
                 color="text.primary"
@@ -33,29 +35,48 @@ export const EmptyState = ({ onSampleQuestion }) => {
             </Typography>
 
             {/* Sample Questions */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', maxWidth: 600, mb: 8 }}>
-                {sampleQuestions.map((question, index) => (
-                    <Chip
-                        key={index}
-                        label={question}
-                        onClick={() => onSampleQuestion(question)}
-                        sx={{
-                            bgcolor: '#2A4A6E',
-                            color: 'text.primary',
-                            py: 3,
-                            px: 2,
-                            fontSize: '1rem',
-                            fontStyle: 'italic',
-                            cursor: 'pointer',
-                            '&:hover': {
-                                bgcolor: '#3A5A7E'
-                            },
-                            '& .MuiChip-label': {
-                                px: 2
-                            }
-                        }}
-                    />
-                ))}
+            <Box
+                className={styles.quickActions}
+            >
+                <Typography
+                    fontWeight={700}
+                    color="text.primary"
+                    variant='h6'
+                    gutterBottom
+                >
+                    Quick Actions
+                </Typography>
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    width: '100%',
+                    maxWidth: 600
+                }}>
+                    {sampleQuestions.map((question, index) => (
+                        <Chip
+                            className={styles.chip}
+                            key={index}
+                            label={question}
+                            onClick={() => onSampleQuestion(question)}
+                            sx={{
+                                bgcolor: '#2A4A6E',
+                                color: 'text.primary',
+                                py: 3,
+                                px: 2,
+                                fontSize: '1rem',
+                                fontStyle: 'italic',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    bgcolor: '#3A5A7E'
+                                },
+                                '& .MuiChip-label': {
+                                    px: 2
+                                }
+                            }}
+                        />
+                    ))}
+                </Box>
             </Box>
         </Box>
     )

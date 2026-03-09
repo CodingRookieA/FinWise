@@ -21,7 +21,7 @@ import {
  *   placeholder?: "e.g., 3000"
  * }
  */
-export default function Field({ meta, value, onChange }) {
+export default function Field({ meta, value, onChange, disabled = false }) {
   const { field, title, type, options = [], inputType, placeholder } = meta;
 
   const label = title || field;
@@ -37,6 +37,9 @@ export default function Field({ meta, value, onChange }) {
       maxWidth: 420,   // ✅ slimmer
       width: "100%",
       mx: "auto",      // ✅ centered in its grid cell
+      opacity: disabled ? 0.6 : 1,
+      pointerEvents: disabled ? "none" : "auto",
+      transition: "opacity 0.2s ease",
     }}
   >
     <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
@@ -45,11 +48,12 @@ export default function Field({ meta, value, onChange }) {
 
     {/* MCQ => dropdown */}
     {type === "mcq" ? (
-      <FormControl fullWidth>
+      <FormControl fullWidth disabled={disabled}>
         <Select
           value={value ?? ""}
           onChange={(e) => onChange(field, e.target.value)}
           displayEmpty
+          disabled={disabled}
           renderValue={(selected) => {
             if (!selected) return <span style={{ opacity: 0.7 }}>Not set</span>;
             return selected;
@@ -78,6 +82,7 @@ export default function Field({ meta, value, onChange }) {
         onChange={(e) => onChange(field, e.target.value)}
         placeholder={placeholder || (inputType === "number" ? "e.g., 3000" : "")}
         type={inputType === "number" ? "number" : "text"}
+        disabled={disabled}
         InputLabelProps={{ shrink: true }}
         sx={{
           "& .MuiOutlinedInput-root": {
