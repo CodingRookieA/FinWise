@@ -10,10 +10,10 @@ import {
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close';
 import googleLogo from '../../assets/google_logo.png'
-import toast from 'react-hot-toast';
 import { ENVIRONMENT, SERVERURL } from '../../utils/constants';
 
 import styles from './loginModal.module.css'
+import toastHelper from '../../utils/toastHelper';
 
 export const LoginModal = ({ handleModalClose }) => {
     const [tab, setTab] = useState(0);
@@ -44,8 +44,7 @@ export const LoginModal = ({ handleModalClose }) => {
 
                 const result = await res.json()
                 if(result.error) {
-                    toast.dismiss();
-                    toast.error(result.error)
+                    toastHelper('error', result.error)
                 } else {
                     window.location.href = '/questionnaire'
                 }
@@ -70,8 +69,7 @@ export const LoginModal = ({ handleModalClose }) => {
 
                 const result = await res.json()
                 if(result.error) {
-                    toast.dismiss();
-                    toast.error(result.error)
+                    toastHelper('error', result.error)
                 } else {
                     window.location.href = '/email-verification'
                 }
@@ -84,9 +82,7 @@ export const LoginModal = ({ handleModalClose }) => {
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if(!emailRegex.test(email)){
-            toast.dismiss();
-            toast.error('Invalid email')
-            return
+            return toastHelper('error', 'Invalid email')
         }
 
         if(tab === 0){

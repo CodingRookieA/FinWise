@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { SERVERURL } from '../utils/constants';
+import toastHelper from '../utils/toastHelper';
 
 const API_URL = `${SERVERURL}/api/assets`;
 
@@ -25,6 +26,7 @@ export const usePortfolio = () => {
         } catch (err) {
             console.error(err);
             setError(err.message);
+            toastHelper('error', err.message)
         } finally {
             setLoading(false);
         }
@@ -48,14 +50,15 @@ export const usePortfolio = () => {
             if (!response.ok){
                 const res = await response.json()
                 console.log(res)
-                throw new Error('Failed to add asset');
-            } 
+                throw new Error(res.message);
+            }
             
             // Refresh list after success
             await fetchAssets();
             return true; // Indicate success to the UI
         } catch (err) {
             setError(err.message);
+            toastHelper('error', err.message)
             return false;
         }
     };
@@ -75,6 +78,7 @@ export const usePortfolio = () => {
             return true;
         } catch (err) {
             setError(err.message);
+            toastHelper('error', err.message)
             return false;
         }
     };
@@ -92,6 +96,7 @@ export const usePortfolio = () => {
             return true;
         } catch (err) {
             setError(err.message);
+            toastHelper('error', err.message)
             return false;
         }
     };

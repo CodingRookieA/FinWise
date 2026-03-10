@@ -51,7 +51,7 @@ app.use(express.json())
 // Strategy Pattern: each app.use() call registers a concrete routing strategy
 // under a specific path prefix. Express acts as the dispatcher, selecting
 // the matching strategy and forwarding the request to it.
-//Routes
+// Routes
 app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK '})
 })

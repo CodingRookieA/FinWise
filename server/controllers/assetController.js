@@ -1,4 +1,5 @@
 import { Asset } from '../models/Asset.js'
+import yahooFinance from '../helpers/yahooFinance.js';
 
 export default {
     // GET /api/assets
@@ -33,6 +34,12 @@ export default {
             // Force Uppercase so 'vfv' matches 'VFV'
             symbol = symbol.toUpperCase();
             quantity = Number(quantity);
+
+            // Check if it is a valid Canadian ETF
+            const isValidETF = await yahooFinance.isValidCanadianETF(symbol)
+            if(!isValidETF){
+                return res.status(400).json({ message: 'This ETF is invalid, or not part of the Canadian market' })
+            }
 
             // Check if this asset already exists for this specific user
             const existingAsset = await Asset.findOne({ 
