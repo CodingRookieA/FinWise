@@ -12,7 +12,8 @@
     "ar": "node addArticle.js",
     "watch": "node watchArticle.js",
     "test-classifier": "node testClassifier.js",
-    "list-models": "node listModels.js"
+    "list-models": "node listModels.js",
+    "extract-etfs": "py ./etfs/extractCanadianETFS.py"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
