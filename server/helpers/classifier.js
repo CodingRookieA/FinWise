@@ -11,6 +11,7 @@ import { ENVIRONMENT } from '../utils/constants.js'
 const CLASSIFICATION_PROMPT = `You are a query classifier for a financial guidance assistant focused on mutual funds.
 
 Your task: Analyze the user's query and determine what data sources are needed to answer it.
+You may receive an optional user profile summary. Use it only to disambiguate intent; do not infer new data needs unless the query itself implies it.
 
 Data sources available:
 1. **Articles** - Educational content about mutual fund concepts (what is NAV, how funds work, RRSP/TFSA info, investment strategies, fees, taxes, etc.)
@@ -21,44 +22,76 @@ Data sources available:
 Classification rules:
 - Set "needs_articles" to true if the query asks about concepts, definitions, how-to, strategies, or general education
 - Set "needs_funds" to true if the query asks about specific mutual funds, mutual fund performance, mutual fund recommendations, or mutual fund comparisons
-- Set "needs_ETF" to true if the query asks about specific ETFs, ETF performance, ETF recommendations, or ETF comparisons
+- Set "needs_etfs" to true if the query mentions ETFs, asks for general investment recommendations, asks "what should I invest in", or compares investment options
+- Set "needs_etfs" to false if the query is specifically and only about mutual funds, articles, or non-investment topics
 - Set "needs_distribution_mutual_funds" to true if the query asks about mutual fund distributions, payouts, dividends, capital gains distributions, tax breakdowns, or distribution history. This is only relevant when needs_funds is also true.
 - Multiple fields can be true if the query spans multiple data sources
 - All can be false only if the query is off-topic (not about investing/mutual funds/ETFs)
 
 Examples:
-- "What is a mutual fund?" → needs_articles: true, needs_funds: false, needs_ETF: false, needs_distribution_mutual_funds: false
-- "Show me the top performing Canadian equity funds" → needs_articles: false, needs_funds: true, needs_ETF: false, needs_distribution_mutual_funds: false
-- "How do RRSP contribution limits work?" → needs_articles: true, needs_funds: false, needs_ETF: false, needs_distribution_mutual_funds: false
-- "What are some good balanced funds and how do they work?" → needs_articles: true, needs_funds: true, needs_ETF: false, needs_distribution_mutual_funds: false
-- "Compare the fees of fund ABC123 vs DEF456" → needs_articles: false, needs_funds: true, needs_ETF: false, needs_distribution_mutual_funds: false
-- "Show me top performing ETFs" → needs_articles: false, needs_funds: false, needs_ETF: true, needs_distribution_mutual_funds: false
-- "Compare ETF XYZ with mutual fund ABC" → needs_articles: false, needs_funds: true, needs_ETF: true, needs_distribution_mutual_funds: false
-- "How do ETFs differ from mutual funds?" → needs_articles: true, needs_funds: false, needs_ETF: false, needs_distribution_mutual_funds: false
-- "What distributions did fund RBF565 pay last year?" → needs_articles: false, needs_funds: true, needs_ETF: false, needs_distribution_mutual_funds: true
-- "Show me the capital gains history for this fund" → needs_articles: false, needs_funds: true, needs_ETF: false, needs_distribution_mutual_funds: true
-- "What's the weather today?" → needs_articles: false, needs_funds: false, needs_ETF: false, needs_distribution_mutual_funds: false
+- "What is a mutual fund?" → needs_articles: true, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false
+- "Show me the top performing Canadian equity funds" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: false
+- "How do RRSP contribution limits work?" → needs_articles: true, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false
+- "What are some good balanced funds and how do they work?" → needs_articles: true, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: false
+- "Compare the fees of fund ABC123 vs DEF456" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: false
+- "Show me top performing ETFs" → needs_articles: false, needs_funds: false, needs_etfs: true, needs_distribution_mutual_funds: false
+- "Compare ETF XYZ with mutual fund ABC" → needs_articles: false, needs_funds: true, needs_etfs: true, needs_distribution_mutual_funds: false
+- "How do ETFs differ from mutual funds?" → needs_articles: true, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false
+- "What distributions did fund RBF565 pay last year?" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: true
+- "Show me the capital gains history for this fund" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: true
+- "What's the weather today?" → needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false
 
 Respond ONLY with valid JSON in this exact format:
 {
   "needs_articles": true or false,
   "needs_funds": true or false,
-  "needs_ETF": true or false,
+    "needs_etfs": true or false,
   "needs_distribution_mutual_funds": true or false
 }`
+
+const PROFILE_FIELDS = [
+    'income_stability',
+    'employment_status',
+    'risk_tolerance',
+    'investment_experience',
+    'financial_goal',
+    'housing_status',
+    'has_TFSA',
+    'monthly_income',
+    'savings_balance',
+    'debt_amount'
+]
+
+function buildProfileSummary(profile) {
+    if (!profile || typeof profile !== 'object') {
+        return null
+    }
+
+    const summary = {}
+    for (const field of PROFILE_FIELDS) {
+        if (profile[field] !== null && profile[field] !== undefined && profile[field] !== '') {
+            summary[field] = profile[field]
+        }
+    }
+
+    return Object.keys(summary).length ? summary : null
+}
 
 /**
  * Classifies a user query to determine what data sources are needed
  * 
  * @param {string} userQuery - The user's question or input
- * @returns {Promise<{needs_articles: boolean, needs_funds: boolean, needs_ETF: boolean, needs_distribution_mutual_funds: boolean}>} Classification result
+ * @returns {Promise<{needs_articles: boolean, needs_funds: boolean, needs_etfs: boolean, needs_distribution_mutual_funds: boolean}>} Classification result
  */
-export async function classifyQuery(userQuery) {
+export async function classifyQuery(userQuery, userProfile = null) {
     if (!userQuery || typeof userQuery !== 'string' || !userQuery.trim()) {
         throw new Error('Invalid query: must be a non-empty string')
     }
 
     try {
+        const profileSummary = buildProfileSummary(userProfile)
+        const profileText = profileSummary ? JSON.stringify(profileSummary) : 'none'
+
         const response = await fetch(
             `${ENVIRONMENT.aiGeneralUrl}?key=${ENVIRONMENT.aiGeneralApiKey}`,
             {
@@ -69,7 +102,7 @@ export async function classifyQuery(userQuery) {
                         {
                             role: 'user',
                             parts: [
-                                { text: `${CLASSIFICATION_PROMPT}\n\nUser query: "${userQuery}"` }
+                                { text: `${CLASSIFICATION_PROMPT}\n\nUser profile summary: ${profileText}\n\nUser query: "${userQuery}"` }
                             ]
                         }
                     ],
@@ -117,18 +150,22 @@ export async function classifyQuery(userQuery) {
 
         // Parse JSON response
         const classification = JSON.parse(textResponse)
+
+        if (typeof classification.needs_etfs !== 'boolean' && typeof classification.needs_ETF === 'boolean') {
+            classification.needs_etfs = classification.needs_ETF
+        }
         
         // Validate response structure
         if (
             typeof classification.needs_articles !== 'boolean' ||
             typeof classification.needs_funds !== 'boolean' ||
-            typeof classification.needs_ETF !== 'boolean' ||
+            typeof classification.needs_etfs !== 'boolean' ||
             typeof classification.needs_distribution_mutual_funds !== 'boolean'
         ) {
             throw new Error('Invalid classification response: missing or invalid boolean fields')
         }
 
-        console.log(`📊 Query classified: articles=${classification.needs_articles}, funds=${classification.needs_funds}, ETF=${classification.needs_ETF}, distribution=${classification.needs_distribution_mutual_funds}`)
+        console.log(`📊 Query classified: articles=${classification.needs_articles}, funds=${classification.needs_funds}, etfs=${classification.needs_etfs}, distribution=${classification.needs_distribution_mutual_funds}`)
         
         return classification
 
@@ -139,7 +176,7 @@ export async function classifyQuery(userQuery) {
         return {
             needs_articles: true,
             needs_funds: true,
-            needs_ETF: true,
+            needs_etfs: true,
             needs_distribution_mutual_funds: false
         }
     }

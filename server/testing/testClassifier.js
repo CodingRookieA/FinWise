@@ -48,7 +48,7 @@ async function testClassifier() {
             const result = await classifyQuery(query)
             console.log(`   Articles needed:      ${result.needs_articles ? '✅' : '❌'}`)
             console.log(`   Funds needed:         ${result.needs_funds ? '✅' : '❌'}`)
-            console.log(`   ETF needed:           ${result.needs_ETF ? '✅' : '❌'}`)
+            console.log(`   ETF needed:           ${result.needs_etfs ? '✅' : '❌'}`)
             console.log(`   Distribution needed:  ${result.needs_distribution_mutual_funds ? '✅' : '❌'}`)
         } catch (error) {
             console.error(`   ❌ Error: ${error.message}`)
@@ -82,7 +82,7 @@ async function testClassifier() {
             const result = await classifyQuery(userQuery)
             console.log(`   Articles needed:      ${result.needs_articles ? '✅' : '❌'}`)
             console.log(`   Funds needed:         ${result.needs_funds ? '✅' : '❌'}`)
-            console.log(`   ETF needed:           ${result.needs_ETF ? '✅' : '❌'}`)
+            console.log(`   ETF needed:           ${result.needs_etfs ? '✅' : '❌'}`)
             console.log(`   Distribution needed:  ${result.needs_distribution_mutual_funds ? '✅' : '❌'}\n`)
         } catch (error) {
             console.error(`   ❌ Error: ${error.message}\n`)

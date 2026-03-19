@@ -1,6 +1,7 @@
 import promptengineering from '../helpers/promptengineering.js'
 import { classifyQuery } from '../helpers/classifier.js'
 import Message from '../models/Message.js'
+import { Profile } from '../models/profile.js'
 import { randomUUID } from 'crypto'
 import mongoose from 'mongoose'
 import { ENVIRONMENT } from '../utils/constants.js'
@@ -15,9 +16,15 @@ export default {
                 return res.status(400).json({ error: 'Message is required' })
             }
 
-            //Call the classifier to determine if we need to fetch articles or funds data before responding
-            //This will help the AI model provide more accurate and relevant responses to user queries
-            const classification = await classifyQuery(message)
+            // Call the classifier to determine if we need to fetch articles or funds data before responding
+            // This will help the AI model provide more accurate and relevant responses to user queries
+            let userProfile = null
+            const profileUserId = req.session.userId
+            if (profileUserId && mongoose.Types.ObjectId.isValid(profileUserId)) {
+                userProfile = await Profile.findOne({ userId: profileUserId }).lean()
+            }
+
+            const classification = await classifyQuery(message, userProfile)
             console.log('Classification result:', classification)
 
 
