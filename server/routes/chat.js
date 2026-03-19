@@ -4,7 +4,7 @@
 // It encapsulates the routing logic for the /api/chat namespace,
 // keeping it independent from other routing strategies.
 import express from 'express'
-import ChatController from '../controllers/chat.js'
+import ChatController from '../controllers/chatController.js'
 
 const chatRouter = express.Router()
 
