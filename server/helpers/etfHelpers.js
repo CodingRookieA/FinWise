@@ -13,38 +13,12 @@ try {
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
 
 export default {
-    async isValidCanadianETF(symbol) {
-        const quote = await yahooFinance.quote(symbol + '.TO',
-            {
-                region: 'CA',
-                lang: 'en-CA'
-            }
-        )
-
-        if(quote?.market !== 'ca_market' || quote?.quoteType !== 'ETF'){
+    isValidCanadianETF(symbol) {
+        if(!etfs.includes(symbol + '.TO')){
             return false
         }
 
-        console.log('Quote ----------------\n', quote)
         return true
-    },
-
-    async getCanadianETFS() {
-        const quote = await yahooFinance.quote(etfs,
-            {
-                region: 'CA',
-                lang: 'en-CA',
-            }
-        )
-
-        console.log(quote)
-        // const chartInfo = await yahooFinance.chart('APLE.TO',
-        //     {
-        //         period1: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        //         interval: '1h'
-        //     }
-        // )
-        // console.log(chartInfo)
     },
 
     async fetchAllETFs() {

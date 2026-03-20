@@ -52,11 +52,8 @@ app.use(express.json())
 // under a specific path prefix. Express acts as the dispatcher, selecting
 // the matching strategy and forwarding the request to it.
 // Routes
-import etfHelpers from './helpers/etfHelpers.js';
 
 app.get('/api/health', (req, res) => {
-    // etfHelpers.isValidCanadianETF('APLE')
-    etfHelpers.getCanadianETFS()
     res.status(200).json({ status: 'OK '})
 })
 
