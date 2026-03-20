@@ -1,5 +1,5 @@
 import { Asset } from '../models/Asset.js'
-import yahooFinance from '../helpers/yahooFinance.js';
+import etfHelpers from '../helpers/etfHelpers.js';
 
 export default {
     // GET /api/assets
@@ -36,7 +36,7 @@ export default {
             quantity = Number(quantity);
 
             // Check if it is a valid Canadian ETF
-            const isValidETF = await yahooFinance.isValidCanadianETF(symbol)
+            const isValidETF = await etfHelpers.isValidCanadianETF(symbol)
             if(!isValidETF){
                 return res.status(400).json({ message: 'This ETF is invalid, or not part of the Canadian market' })
             }

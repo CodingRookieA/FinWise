@@ -2,7 +2,7 @@ import { embedText } from '../services/article/embeddingService.js'
 import { Chunk } from '../models/Chunks.js'
 import { MutualFund } from '../models/MutualFund.js'
 import { Profile } from '../models/profile.js'
-import yahooFinance from './yahooFinance.js'
+import etfHelpers from './etfHelpers.js'
 import { getMatchingETFs } from './etfService.js'
 import { ENVIRONMENT } from '../utils/constants.js'
 
@@ -182,7 +182,7 @@ export default {
     async getSETFInfo(userId) {
         try {
             const profile = userId ? await Profile.findOne({ userId }).lean() : null
-            const allETFs = await yahooFinance.fetchAllETFs()
+            const allETFs = await etfHelpers.fetchAllETFs()
             const matches = getMatchingETFs(profile || {}, allETFs)
 
             if (!matches || matches.length === 0) {
