@@ -13,21 +13,9 @@ const SECTION_MAPPING = {
     "savings_balance",
     "debt_amount",
     "has_TFSA",
+    "investment_preference",
   ],
-  mutual_funds: [
-    "has_mutual_funds",
-    "where_mutual_funds",
-    "type_mutual_funds",
-    "fee_level_mutual_funds",
-    "mutual_funds_amount",
-  ],
-  etfs: [
-    "has_ETFs",
-    "where_ETFs",
-    "type_ETFs",
-    "ETFs_amount",
-    "frequency_ETFs",
-  ],
+
 };
 
 // Flatten to get all fields and track which section they belong to
@@ -41,43 +29,13 @@ for (const [section, fields] of Object.entries(SECTION_MAPPING)) {
   });
 }
 
-const DEPENDENCIES = {
-  // Mutual funds details only make sense if user has mutual funds
-  where_mutual_funds: ["has_mutual_funds"],
-  type_mutual_funds: ["has_mutual_funds"],
-  fee_level_mutual_funds: ["has_mutual_funds"],
-  mutual_funds_amount: ["has_mutual_funds"],
-
-  // ETFs details only make sense if user has ETFs
-  where_ETFs: ["has_ETFs"],
-  type_ETFs: ["has_ETFs"],
-  ETFs_amount: ["has_ETFs"],
-  frequency_ETFs: ["has_ETFs"],
-  // (If you later add fee_level_ETFs, add it here too)
-};
 
 
-function isTruthyYes(value) {
-  // adapt to your enum values
-  // If your schema stores "yes"/"no"/"not sure", this works.
-  if (typeof value !== "string") return false;
-  return value.toLowerCase() === "yes";
-}
-
-function prereqsSatisfied(profile, field) {
-  const prereqs = DEPENDENCIES[field];
-  if (!prereqs) return true;
-
-  // All prereqs must be "yes"
-  return prereqs.every((p) => isTruthyYes(profile[p]));
-}
 
 function isUnanswered(profile, field) {
   const v = profile[field];
   return v == null || (typeof v === "string" && v.trim() === "");
 }
-
-
 
 
 
@@ -155,41 +113,7 @@ const QUESTION_META = {
     placeholder: "e.g., 10000",
   },
 
-  // Mutual Funds fields
-  has_mutual_funds: { 
-    prompt: "Do you currently have any mutual funds?" 
-  },
-  where_mutual_funds: { 
-    prompt: "Where are your mutual funds held?" 
-  },
-  type_mutual_funds: { 
-    prompt: "What type of mutual funds do you have?" 
-  },
-  fee_level_mutual_funds: { 
-    prompt: "What is the approximate fee level of your mutual funds?" 
-  },
-  mutual_funds_amount: {
-    prompt: "What is the total amount invested in mutual funds (CAD)?",
-    placeholder: "e.g., 5000",
-  },
 
-  // ETFs fields
-  has_ETFs: { 
-    prompt: "Do you currently have any ETFs?" 
-  },
-  where_ETFs: { 
-    prompt: "Where are your ETFs held?" 
-  },
-  type_ETFs: { 
-    prompt: "What type of ETFs do you have?" 
-  },
-  ETFs_amount: {
-    prompt: "What is the total amount invested in ETFs (CAD)?",
-    placeholder: "e.g., 5000",
-  },
-  frequency_ETFs: { 
-    prompt: "How frequently do you contribute to your ETFs?" 
-  },
 };
 
 function buildQuestionFromSchema(field) {
@@ -290,17 +214,13 @@ export default {
 
       const unanswered = ALL_FIELDS.filter((f) => isUnanswered(profile, f));
 
-      // only pick from unanswered fields that are currently eligible
-      const eligibleUnanswered = unanswered.filter((f) => prereqsSatisfied(profile, f));
-
-      const pickedFields = pickRandom(eligibleUnanswered, Math.min(3, unanswered.length));
+      const pickedFields = pickRandom(unanswered, Math.min(3, unanswered.length));
       const questions = pickedFields.map(buildQuestionFromSchema).filter(Boolean);
 
       return res.status(200).json({
         questions,
         pickedFields,
         remainingUnansweredCount: unanswered.length,
-        eligibleUnansweredCount: eligibleUnanswered.length,
       });
     } catch (err) {
       console.error(err);
