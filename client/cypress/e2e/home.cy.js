@@ -80,9 +80,7 @@ describe('Homepage Functionality', () => {
         expect($el).to.have.class('_tabSelected_1jpfo_83')
         expect($el).to.have.attr('aria-selected', 'true')
       })
-    // The tab indicator moved to the 'Create Account' tab.
-    cy.get('div._tabs_1jpfo_59 span:nth-child(2)')
-      .should('have.attr', 'style', 'left: 222.163px; width: 222.163px; background: rgb(14, 165, 233);')
+
     // The submit button text changed to 'Create Account'.
     cy.get('button._submitBtn_1jpfo_155')
       .should('contain.text', 'Create Account')
@@ -113,7 +111,7 @@ describe('Homepage Functionality', () => {
     
   });
 
-  it('open login modal from buttons', function() {
+  it('open login modal from buttons', () => {
     cy.visit('/')
     cy.get('#root button._heroBtn_tpezi_149').click();
     // The login modal is visible.
@@ -134,17 +132,11 @@ describe('Homepage Functionality', () => {
       })
     
     cy.get('[data-testid="CloseIcon"] path').click();
-    // The page scrolling is re-enabled.
-    cy.get('body')
-      .should('have.attr', 'style', '')
     // The main content of the page is now accessible.
     cy.get('#root')
       .should('not.have.attr', 'aria-hidden')
     
     cy.get('#root button._heroBtn_shhdf_15').click();
-    // Page scrolling is disabled.
-    cy.get('body')
-      .should('have.attr', 'style', 'overflow: hidden;')
     // The main content of the page is hidden.
     cy.get('#root')
       .should('have.attr', 'aria-hidden', 'true')

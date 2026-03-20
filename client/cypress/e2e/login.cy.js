@@ -1,5 +1,5 @@
 describe('Login Flow', () => {
-  it('login to existing account', function() {
+  it('login to existing account', () => {
       cy.visit('/')
       
       cy.get('#root div._navActions_5dmee_85 button:nth-child(1)').click();
@@ -53,7 +53,7 @@ describe('Login Flow', () => {
       
   });
 
-  it('should not be able to create an account with used email', function() {
+  it('should not be able to create an account with used email', () => {
     cy.visit('/')
     
     cy.get('#root div._navActions_5dmee_85 button:nth-child(1)').click();
@@ -71,7 +71,7 @@ describe('Login Flow', () => {
     cy.get('#root div.go3958317564').should('be.visible');
   });
 
-  it('should not be able to login with incorrect password', function() {
+  it('should not be able to login with incorrect password', () => {
     cy.visit('/')
     
     cy.get('#root div._navActions_5dmee_85 button:nth-child(1)').click();
@@ -84,7 +84,7 @@ describe('Login Flow', () => {
     cy.get('#root div.go3958317564').should('have.text', 'The password is incorrect');
   });
 
-  it('should not be able to log into an account that doesnt exist', function() {
+  it('should not be able to log into an account that doesnt exist', () => {
     cy.visit('/')
     cy.get('#root div._navActions_5dmee_85 button:nth-child(1)').click();
     cy.get('input[type="email"]').click();
@@ -95,7 +95,7 @@ describe('Login Flow', () => {
     cy.get('#root div.go3958317564').should('be.visible');
   });
 
-  it('should get message when trying to log into an account registered with google', function() {
+  it('should get message when trying to log into an account registered with google', () => {
     cy.visit('/')
     
     cy.get('#root div._navActions_5dmee_85 button:nth-child(1)').click();
@@ -107,7 +107,7 @@ describe('Login Flow', () => {
     cy.get('#root div.go3958317564').should('have.text', 'This account was created using google. Please use google to log in');
   });
 
-  it('should be redirected to email verification page if account not verified', function() {
+  it('should be redirected to email verification page if account not verified', () => {
     cy.visit('/')
     
     cy.get('#root div._navActions_5dmee_85 button:nth-child(1)').click();
@@ -126,7 +126,7 @@ describe('Login Flow', () => {
     cy.get('#root p:nth-child(5)').should('have.text', 'Didn\'t receive the email? Check your spam folder or request a new one.');
   });
 
-  it('should be able to logout', function() {
+  it('should be able to logout', () => {
     cy.visit('/')
     
     cy.get('#root div._navActions_5dmee_85 button:nth-child(1)').click();
