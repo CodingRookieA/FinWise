@@ -1,5 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { Box, Paper, Typography, Avatar } from '@mui/material'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import styles from './messagesList.module.css'
 
 export const MessagesList = ({ messages, loading, user }) => {
@@ -12,6 +14,8 @@ export const MessagesList = ({ messages, loading, user }) => {
     useEffect(() => {
         scrollToBottom()
     }, [messages, loading])
+
+    const isAssistantMessage = (role) => role === 'assistant' || role === 'AI'
 
     return (
         <Box
@@ -59,17 +63,25 @@ export const MessagesList = ({ messages, loading, user }) => {
                             overflow: 'auto'
                         }}
                     >
-                        <Typography 
-                            variant="body1" 
-                            sx={{ 
-                                whiteSpace: 'pre-wrap',
-                                wordBreak: 'break-word',
-                                overflowWrap: 'break-word',
-                                alignContent: 'center'
-                            }}
-                        >
-                            {msg.content}
-                        </Typography>
+                        {isAssistantMessage(msg.role) ? (
+                            <Box className={styles.assistantMarkdown}>
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    {msg.content || ''}
+                                </ReactMarkdown>
+                            </Box>
+                        ) : (
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    overflowWrap: 'break-word',
+                                    alignContent: 'center'
+                                }}
+                            >
+                                {msg.content}
+                            </Typography>
+                        )}
                     </Paper>
                 </Box>
             ))}
