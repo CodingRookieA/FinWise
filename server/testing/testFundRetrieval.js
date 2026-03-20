@@ -161,7 +161,7 @@ async function testGeneratePrompt() {
     const messages = await promptengineering.generatePrompt(
         testQuery,
         TEST_USER_ID,
-        { needs_articles: false, needs_funds: true, needs_ETF: false, needs_distribution_mutual_funds: false }
+        { needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: false }
     )
 
     console.log('\n  ── System prompt ──────────────────────────────────────')

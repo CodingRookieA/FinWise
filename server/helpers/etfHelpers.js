@@ -21,14 +21,27 @@ export default {
         return true
     },
 
-    async getCanadianETFS() {
-        const quote = await yahooFinance.quote(etfs,
-            {
-                region: 'CA',
-                lang: 'en-CA',
+    async fetchAllETFs() {
+        if (!Array.isArray(etfs) || etfs.length === 0) {
+            return []
+        }
+
+        try {
+            const quote = await yahooFinance.quote(etfs,
+                {
+                    region: 'CA',
+                    lang: 'en-CA',
+                }
+            )
+
+            if (!quote) {
+                return []
             }
-        )
-        return quote
-        // console.log(quote)
-    },
+
+            return Array.isArray(quote) ? quote : [quote]
+        } catch (error) {
+            console.error('Error fetching ETFs:', error.message)
+            return []
+        }
+    }
 }
