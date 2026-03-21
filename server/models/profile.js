@@ -82,7 +82,8 @@ const ProfileSchema = new mongoose.Schema(
             type: String,
             enum: [
                 "ETFs",
-                "mutual funds"
+                "mutual funds",
+                "Both ETFs and mutual funds",
             ],
             default: null,
             trim: true,

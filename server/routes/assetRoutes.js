@@ -8,7 +8,8 @@ import multer from 'multer'
 import AssetController from '../controllers/assetController.js'
 import { checkAuth } from '../middleware/checkAuth.js'
 
-const assetRouter = express.Router()
+export function createAssetRouter(controller = AssetController) {
+	const assetRouter = express.Router()
 
 // Setup multer for memory storage
 const upload = multer({ storage: multer.memoryStorage() })
@@ -20,4 +21,7 @@ assetRouter.post('/upload', checkAuth, upload.single('csvFile'), AssetController
 assetRouter.put('/:id', checkAuth, AssetController.updateAsset)
 assetRouter.delete('/:id', checkAuth, AssetController.deleteAsset)
 
-export default assetRouter
+	return assetRouter
+}
+
+export default createAssetRouter()
