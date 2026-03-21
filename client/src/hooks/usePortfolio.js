@@ -101,33 +101,7 @@ export const usePortfolio = () => {
         }
     };
 
-    // 5. Upload CSV
-    const uploadCSV = async (file) => {
-        try {
-            const formData = new FormData();
-            formData.append('csvFile', file);
-
-            const response = await fetch(`${API_URL}/upload`, {
-                method: 'POST',
-                credentials: 'include',
-                body: formData,
-            });
-            if (!response.ok) {
-                const res = await response.json();
-                throw new Error(res.message || 'Failed to upload CSV');
-            }
-
-            const result = await response.json();
-            toastHelper('success', `Uploaded successfully! Added: ${result.added}, Skipped: ${result.skipped}`);
-            await fetchAssets();
-            return true;
-        } catch (err) {
-            setError(err.message);
-            toastHelper('error', err.message);
-            return false;
-        }
-    };
-
+    // Returning everything needed for the PortfolioDashboard
     return {
         assets,
         loading,
@@ -135,7 +109,6 @@ export const usePortfolio = () => {
         addAsset,
         updateAsset,
         deleteAsset,
-        uploadCSV,
         refresh: fetchAssets
     };
 };
