@@ -17,13 +17,20 @@ export function createAssetService(deps = {}) {
         return AssetModel.find({ user_id: userId })
     }
 
-    async function addAsset({ userId, symbol, quantity }) {
+    async function addAsset({ userId, symbol, quantity, type = 'ETF' }) {
         const normalizedSymbol = symbol.toUpperCase()
         const parsedQuantity = Number(quantity)
+        const normalizedType = type === 'Mutual Fund' ? 'Mutual Fund' : 'ETF'
 
-        const isValidETF = await etfHelperLib.isValidCanadianETF(normalizedSymbol)
-        if (!isValidETF) {
-            throw createHttpError(400, 'This ETF is invalid, or not part of the Canadian market')
+        if (!Number.isFinite(parsedQuantity) || parsedQuantity <= 0) {
+            throw createHttpError(400, 'Quantity must be a positive number')
+        }
+
+        if (normalizedType === 'ETF') {
+            const isValidETF = await etfHelperLib.isValidCanadianETF(normalizedSymbol)
+            if (!isValidETF) {
+                throw createHttpError(400, 'This ETF is invalid, or not part of the Canadian market')
+            }
         }
 
         const existingAsset = await AssetModel.findOne({
@@ -33,6 +40,9 @@ export function createAssetService(deps = {}) {
 
         if (existingAsset) {
             existingAsset.quantity += parsedQuantity
+            if (!existingAsset.type) {
+                existingAsset.type = normalizedType
+            }
             await existingAsset.save()
             return existingAsset
         }
@@ -40,6 +50,7 @@ export function createAssetService(deps = {}) {
         return AssetModel.create({
             user_id: userId,
             symbol: normalizedSymbol,
+            type: normalizedType,
             quantity: parsedQuantity
         })
     }

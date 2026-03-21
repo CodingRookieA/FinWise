@@ -33,7 +33,25 @@ describe('assetService', () => {
 
         // Assert
         expect(result.symbol).toBe('VFV')
-        expect(fakeAssetModel.create).toHaveBeenCalledWith({ user_id: 'u1', symbol: 'VFV', quantity: 2 })
+        expect(fakeAssetModel.create).toHaveBeenCalledWith({ user_id: 'u1', symbol: 'VFV', type: 'ETF', quantity: 2 })
+    })
+
+    test('creates a mutual fund without ETF symbol validation', async () => {
+        // Arrange
+        const fakeAssetModel = {
+            findOne: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue({ symbol: 'TDB900', quantity: 1.5, type: 'Mutual Fund' })
+        }
+        const fakeEtfHelpers = { isValidCanadianETF: jest.fn() }
+        const service = createAssetService({ AssetModel: fakeAssetModel, etfHelperLib: fakeEtfHelpers })
+
+        // Act
+        const result = await service.addAsset({ userId: 'u1', symbol: 'tdb900', quantity: '1.5', type: 'Mutual Fund' })
+
+        // Assert
+        expect(result.type).toBe('Mutual Fund')
+        expect(fakeEtfHelpers.isValidCanadianETF).not.toHaveBeenCalled()
+        expect(fakeAssetModel.create).toHaveBeenCalledWith({ user_id: 'u1', symbol: 'TDB900', type: 'Mutual Fund', quantity: 1.5 })
     })
 
     test('updates existing asset quantity when asset already exists', async () => {

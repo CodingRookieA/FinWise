@@ -21,7 +21,7 @@ export function createAssetController(assetService = createAssetService()) {
         },
 
         async addAsset(req, res) {
-            const { symbol, quantity } = req.body
+            const { symbol, quantity, type } = req.body
             const user_id = req.session.userId
             if (!user_id || !symbol || !quantity) {
                 return res.status(400).json({ message: 'Please include user_id, symbol, and quantity' })
@@ -32,6 +32,7 @@ export function createAssetController(assetService = createAssetService()) {
                     userId: user_id,
                     symbol,
                     quantity,
+                    type,
                 })
 
                 return res.status(200).json(asset)
