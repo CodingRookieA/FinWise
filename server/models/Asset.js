@@ -13,6 +13,11 @@ const AssetSchema = new mongoose.Schema(
             uppercase: true,
             trim: true
         },
+        type: {
+            type: String,
+            enum: ['ETF', 'Mutual Fund'],
+            required: true
+        },
         quantity: {
             type: Number,
             required: true,
