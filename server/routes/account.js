@@ -6,12 +6,16 @@
 import express from 'express'
 import AccountController from '../controllers/account.js'
 
-const accountRouter = express.Router()
+export function createAccountRouter(controller = AccountController) {
+	const accountRouter = express.Router()
 
-accountRouter.get('/checkUserAuth', AccountController.checkUserAuth)
-accountRouter.post('/googleLogin', AccountController.googleLogin)
-accountRouter.post('/logout', AccountController.logout)
-accountRouter.post('/localSignup', AccountController.localSignup)
-accountRouter.post('/localLogin', AccountController.localLogin)
+	accountRouter.get('/checkUserAuth', controller.checkUserAuth)
+	accountRouter.post('/googleLogin', controller.googleLogin)
+	accountRouter.post('/logout', controller.logout)
+	accountRouter.post('/localSignup', controller.localSignup)
+	accountRouter.post('/localLogin', controller.localLogin)
 
-export default accountRouter
+	return accountRouter
+}
+
+export default createAccountRouter()

@@ -7,12 +7,16 @@ import express from 'express'
 import AssetController from '../controllers/assetController.js'
 import { checkAuth } from '../middleware/checkAuth.js'
 
-const assetRouter = express.Router()
+export function createAssetRouter(controller = AssetController) {
+	const assetRouter = express.Router()
 
-// Routes for /api/assets
-assetRouter.get('/', checkAuth, AssetController.getAssets)
-assetRouter.post('/', checkAuth, AssetController.addAsset)
-assetRouter.put('/:id', checkAuth, AssetController.updateAsset)
-assetRouter.delete('/:id', checkAuth, AssetController.deleteAsset)
+	// Routes for /api/assets
+	assetRouter.get('/', checkAuth, controller.getAssets)
+	assetRouter.post('/', checkAuth, controller.addAsset)
+	assetRouter.put('/:id', checkAuth, controller.updateAsset)
+	assetRouter.delete('/:id', checkAuth, controller.deleteAsset)
 
-export default assetRouter
+	return assetRouter
+}
+
+export default createAssetRouter()

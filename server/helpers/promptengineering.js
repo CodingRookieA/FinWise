@@ -228,6 +228,7 @@ export default {
             if (profile.risk_tolerance)       fields.push(`Risk tolerance: ${profile.risk_tolerance}`)
             if (profile.investment_experience) fields.push(`Investment experience: ${profile.investment_experience}`)
             if (profile.financial_goal)       fields.push(`Financial goal: ${profile.financial_goal}`)
+            if (profile.investment_preference) fields.push(`Investment preference: ${profile.investment_preference}`)
 
             if (fields.length === 0) return ''
 

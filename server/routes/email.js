@@ -6,9 +6,13 @@
 import express from 'express'
 import EmailController from '../controllers/email.js'
 
-const emailRouter = express.Router()
+export function createEmailRouter(controller = EmailController) {
+	const emailRouter = express.Router()
 
-emailRouter.post('/verifyEmail/:token', EmailController.verifyEmail)
-emailRouter.post('/sendVerificationEmail', EmailController.sendVerificationEmail)
+	emailRouter.post('/verifyEmail/:token', controller.verifyEmail)
+	emailRouter.post('/sendVerificationEmail', controller.sendVerificationEmail)
 
-export default emailRouter
+	return emailRouter
+}
+
+export default createEmailRouter()
