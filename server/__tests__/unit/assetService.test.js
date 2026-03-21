@@ -106,4 +106,86 @@ describe('assetService', () => {
         // Assert
         await expect(action).rejects.toMatchObject({ status: 404 })
     })
+
+    test('uploadCSV parses holdings and returns added/skipped counts', async () => {
+        // Arrange
+        const save = jest.fn().mockResolvedValue(undefined)
+        const fakeAssetModel = {
+            findOne: jest
+                .fn()
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce({ quantity: 1, type: 'ETF', save }),
+            create: jest.fn().mockResolvedValue({}),
+        }
+        const fakeEtfHelpers = { isValidCanadianETF: jest.fn().mockResolvedValue(true) }
+        const parseCsv = jest.fn((_content, _opts, cb) => cb(null, [{ ticker: 'header-row' }]))
+        const parserRouterFactory = jest.fn(() => ({
+            detectParser: jest.fn(() => ({
+                parse: jest.fn(() => ([
+                    { ticker: 'VFV', shares: '2', assetClass: 'ETF' },
+                    { ticker: 'XIU', shares: '3', assetClass: 'ETF' },
+                    { ticker: 'BAD', shares: '1', assetClass: 'ETF' },
+                    { ticker: 'TDB900', shares: '2.5', assetClass: 'Mutual Fund' },
+                    { ticker: 'VUN', shares: '0', assetClass: 'ETF' },
+                ])),
+            })),
+        }))
+
+        fakeEtfHelpers.isValidCanadianETF
+            .mockResolvedValueOnce(true)
+            .mockResolvedValueOnce(true)
+            .mockResolvedValueOnce(false)
+
+        const service = createAssetService({
+            AssetModel: fakeAssetModel,
+            etfHelperLib: fakeEtfHelpers,
+            parseCsv,
+            parserRouterFactory,
+        })
+
+        // Act
+        const result = await service.uploadCSV({ userId: 'u1', fileContent: 'csv' })
+
+        // Assert
+        expect(result).toEqual({ message: 'CSV processed successfully', added: 3, skipped: 2 })
+        expect(fakeAssetModel.create).toHaveBeenCalledTimes(2)
+        expect(fakeAssetModel.create).toHaveBeenCalledWith({ user_id: 'u1', symbol: 'VFV', type: 'ETF', quantity: 2 })
+        expect(fakeAssetModel.create).toHaveBeenCalledWith({ user_id: 'u1', symbol: 'TDB900', type: 'Mutual Fund', quantity: 2.5 })
+        expect(save).toHaveBeenCalledTimes(1)
+    })
+
+    test('uploadCSV returns 400 when parser yields no records', async () => {
+        // Arrange
+        const parseCsv = jest.fn((_content, _opts, cb) => cb(null, []))
+        const service = createAssetService({
+            AssetModel: {},
+            etfHelperLib: {},
+            parseCsv,
+            parserRouterFactory: jest.fn(),
+        })
+
+        // Act
+        const action = service.uploadCSV({ userId: 'u1', fileContent: 'csv' })
+
+        // Assert
+        await expect(action).rejects.toMatchObject({ status: 400, message: 'CSV file is empty' })
+    })
+
+    test('uploadCSV returns 400 when CSV parsing fails', async () => {
+        // Arrange
+        const parseCsv = jest.fn((_content, _opts, cb) => cb(new Error('bad csv')))
+        const service = createAssetService({
+            AssetModel: {},
+            etfHelperLib: {},
+            parseCsv,
+            parserRouterFactory: jest.fn(),
+        })
+
+        // Act
+        const action = service.uploadCSV({ userId: 'u1', fileContent: 'csv' })
+
+        // Assert
+        await expect(action).rejects.toMatchObject({ status: 400 })
+        await expect(action).rejects.toHaveProperty('message', 'Error parsing CSV file: bad csv')
+    })
 })

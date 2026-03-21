@@ -11,15 +11,15 @@ import { checkAuth } from '../middleware/checkAuth.js'
 export function createAssetRouter(controller = AssetController) {
 	const assetRouter = express.Router()
 
-// Setup multer for memory storage
-const upload = multer({ storage: multer.memoryStorage() })
+	// Setup multer for memory storage
+	const upload = multer({ storage: multer.memoryStorage() })
 
-// Routes for /api/assets
-assetRouter.get('/', checkAuth, AssetController.getAssets)
-assetRouter.post('/', checkAuth, AssetController.addAsset)
-assetRouter.post('/upload', checkAuth, upload.single('csvFile'), AssetController.uploadCSV)
-assetRouter.put('/:id', checkAuth, AssetController.updateAsset)
-assetRouter.delete('/:id', checkAuth, AssetController.deleteAsset)
+	// Routes for /api/assets
+	assetRouter.get('/', checkAuth, controller.getAssets)
+	assetRouter.post('/', checkAuth, controller.addAsset)
+	assetRouter.post('/upload', checkAuth, upload.single('csvFile'), controller.uploadCSV)
+	assetRouter.put('/:id', checkAuth, controller.updateAsset)
+	assetRouter.delete('/:id', checkAuth, controller.deleteAsset)
 
 	return assetRouter
 }

@@ -61,4 +61,25 @@ describe('asset routes', () => {
         expect(res.status).toBe(500)
         expect(res.body).toHaveProperty('message')
     })
+
+    test('returns 200 for CSV upload when service succeeds', async () => {
+        // Arrange
+        const fakeService = {
+            uploadCSV: jest.fn().mockResolvedValue({ message: 'CSV processed successfully', added: 1, skipped: 0 })
+        }
+        const app = createApp({
+            assetController: createAssetController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: 'u1' }; next(); }
+        })
+
+        // Act
+        const res = await request(app)
+            .post('/api/assets/upload')
+            .attach('csvFile', Buffer.from('ticker,shares\nVFV,1'), 'holdings.csv')
+
+        // Assert
+        expect(res.status).toBe(200)
+        expect(res.body).toEqual({ message: 'CSV processed successfully', added: 1, skipped: 0 })
+        expect(fakeService.uploadCSV).toHaveBeenCalledTimes(1)
+    })
 })
