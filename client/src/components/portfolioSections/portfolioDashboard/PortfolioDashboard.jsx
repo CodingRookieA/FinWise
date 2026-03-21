@@ -11,7 +11,7 @@ import { DeleteAssetModal } from './DeleteAssetModal';
 
 export const PortfolioDashboard = () => {
     // 1. Hooks
-    const { assets, loading, error, addAsset, updateAsset, deleteAsset } = usePortfolio();
+    const { assets, loading, error, addAsset, updateAsset, deleteAsset, uploadCSV } = usePortfolio();
 
     // 2. UI State
     const [isModalOpen, setModalOpen] = useState(false);
@@ -56,6 +56,11 @@ export const PortfolioDashboard = () => {
         if (success) setModalOpen(false);
     };
 
+    // Handlers
+    const handleFileUpload = async (file) => {
+        await uploadCSV(file);
+    };
+
     // Calculations for total assets and shares
     const totalAssets = assets.length;
     const totalShares = assets.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
@@ -72,20 +77,21 @@ export const PortfolioDashboard = () => {
                     totalAssets={totalAssets} 
                     totalShares={totalShares} 
                     onAdd={handleOpenAdd} 
+                    onUploadCSV={handleFileUpload}
                 />
 
                 {/* the Table section */}
-                <PortfolioTable 
-                    assets={assets} 
-                    onEdit={handleOpenEdit} 
-                    onDelete={handleDeleteClick} 
+                <PortfolioTable
+                    assets={assets}
+                    onEdit={handleOpenEdit}
+                    onDelete={handleDeleteClick}
                 />
             </Container>
 
-            <AddAssetModal 
-                open={isModalOpen} 
-                onClose={() => setModalOpen(false)} 
-                onSave={handleSave} 
+            <AddAssetModal
+                open={isModalOpen}
+                onClose={() => setModalOpen(false)}
+                onSave={handleSave}
                 initialData={currentAsset}
             />
 
