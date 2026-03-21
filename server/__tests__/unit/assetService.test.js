@@ -54,6 +54,51 @@ describe('assetService', () => {
         expect(fakeAssetModel.create).toHaveBeenCalledWith({ user_id: 'u1', symbol: 'TDB900', type: 'Mutual Fund', quantity: 1.5 })
     })
 
+    test('defaults unknown type to ETF and validates symbol', async () => {
+        // Arrange
+        const fakeAssetModel = {
+            findOne: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue({ symbol: 'VFV', quantity: 1, type: 'ETF' })
+        }
+        const fakeEtfHelpers = { isValidCanadianETF: jest.fn().mockResolvedValue(true) }
+        const service = createAssetService({ AssetModel: fakeAssetModel, etfHelperLib: fakeEtfHelpers })
+
+        // Act
+        const result = await service.addAsset({ userId: 'u1', symbol: 'vfv', quantity: 1, type: 'Stock' })
+
+        // Assert
+        expect(result.type).toBe('ETF')
+        expect(fakeEtfHelpers.isValidCanadianETF).toHaveBeenCalledWith('VFV')
+    })
+
+    test('rejects non-positive quantity for addAsset', async () => {
+        // Arrange
+        const service = createAssetService({ AssetModel: {}, etfHelperLib: {} })
+
+        // Act
+        const action = service.addAsset({ userId: 'u1', symbol: 'VFV', quantity: 0, type: 'ETF' })
+
+        // Assert
+        await expect(action).rejects.toMatchObject({ status: 400, message: 'Quantity must be a positive number' })
+    })
+
+    test('normalizes symbol by trimming whitespace in addAsset', async () => {
+        // Arrange
+        const fakeAssetModel = {
+            findOne: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue({ symbol: 'VFV', quantity: 1, type: 'ETF' })
+        }
+        const fakeEtfHelpers = { isValidCanadianETF: jest.fn().mockResolvedValue(true) }
+        const service = createAssetService({ AssetModel: fakeAssetModel, etfHelperLib: fakeEtfHelpers })
+
+        // Act
+        await service.addAsset({ userId: 'u1', symbol: '  vfv  ', quantity: 1, type: 'ETF' })
+
+        // Assert
+        expect(fakeEtfHelpers.isValidCanadianETF).toHaveBeenCalledWith('VFV')
+        expect(fakeAssetModel.findOne).toHaveBeenCalledWith({ user_id: 'u1', symbol: 'VFV' })
+    })
+
     test('updates existing asset quantity when asset already exists', async () => {
         // Arrange
         const save = jest.fn().mockResolvedValue(undefined)
@@ -67,6 +112,22 @@ describe('assetService', () => {
 
         // Assert
         expect(result.quantity).toBe(5)
+        expect(save).toHaveBeenCalledTimes(1)
+    })
+
+    test('backfills type on existing asset when missing', async () => {
+        // Arrange
+        const save = jest.fn().mockResolvedValue(undefined)
+        const existing = { quantity: 2, type: undefined, save }
+        const fakeAssetModel = { findOne: jest.fn().mockResolvedValue(existing) }
+        const fakeEtfHelpers = { isValidCanadianETF: jest.fn().mockResolvedValue(true) }
+        const service = createAssetService({ AssetModel: fakeAssetModel, etfHelperLib: fakeEtfHelpers })
+
+        // Act
+        await service.addAsset({ userId: 'u1', symbol: 'xiu', quantity: 1, type: 'ETF' })
+
+        // Assert
+        expect(existing.type).toBe('ETF')
         expect(save).toHaveBeenCalledTimes(1)
     })
 
@@ -187,5 +248,27 @@ describe('assetService', () => {
         // Assert
         await expect(action).rejects.toMatchObject({ status: 400 })
         await expect(action).rejects.toHaveProperty('message', 'Error parsing CSV file: bad csv')
+    })
+
+    test('uploadCSV returns 400 when brokerage format is unsupported', async () => {
+        // Arrange
+        const parseCsv = jest.fn((_content, _opts, cb) => cb(null, [{ foo: 'bar' }]))
+        const parserRouterFactory = jest.fn(() => ({
+            detectParser: jest.fn(() => {
+                throw new Error('Unsupported CSV format or unrecognized brokerage.')
+            }),
+        }))
+        const service = createAssetService({
+            AssetModel: {},
+            etfHelperLib: {},
+            parseCsv,
+            parserRouterFactory,
+        })
+
+        // Act
+        const action = service.uploadCSV({ userId: 'u1', fileContent: 'csv' })
+
+        // Assert
+        await expect(action).rejects.toMatchObject({ status: 400, message: 'Unsupported CSV format or unrecognized brokerage.' })
     })
 })

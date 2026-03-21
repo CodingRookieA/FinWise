@@ -22,7 +22,7 @@ export function createAssetService(deps = {}) {
     }
 
     async function addAsset({ userId, symbol, quantity, type = 'ETF' }) {
-        const normalizedSymbol = symbol.toUpperCase()
+        const normalizedSymbol = symbol.toUpperCase().trim()
         const parsedQuantity = Number(quantity)
         const normalizedType = type === 'Mutual Fund' ? 'Mutual Fund' : 'ETF'
 
@@ -92,9 +92,14 @@ export function createAssetService(deps = {}) {
             throw createHttpError(400, 'CSV file is empty')
         }
 
-        const headers = Object.keys(records[0])
-        const parser = parserRouterFactory().detectParser(headers)
-        const holdings = parser.parse(records)
+        let holdings
+        try {
+            const headers = Object.keys(records[0])
+            const parser = parserRouterFactory().detectParser(headers)
+            holdings = parser.parse(records)
+        } catch (error) {
+            throw createHttpError(400, error.message)
+        }
 
         let addedCount = 0
         let skippedCount = 0

@@ -82,4 +82,41 @@ describe('asset routes', () => {
         expect(res.body).toEqual({ message: 'CSV processed successfully', added: 1, skipped: 0 })
         expect(fakeService.uploadCSV).toHaveBeenCalledTimes(1)
     })
+
+    test('returns 401 for CSV upload when unauthenticated', async () => {
+        // Arrange
+        const fakeService = { uploadCSV: jest.fn() }
+        const app = createApp({
+            assetController: createAssetController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = {}; next(); }
+        })
+
+        // Act
+        const res = await request(app)
+            .post('/api/assets/upload')
+            .attach('csvFile', Buffer.from('ticker,shares\nVFV,1'), 'holdings.csv')
+
+        // Assert
+        expect(res.status).toBe(401)
+        expect(res.body.message).toBe('Unauthorized - please log in')
+        expect(fakeService.uploadCSV).not.toHaveBeenCalled()
+    })
+
+    test('returns 400 for CSV upload when file is missing', async () => {
+        // Arrange
+        const fakeService = { uploadCSV: jest.fn() }
+        const app = createApp({
+            assetController: createAssetController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: 'u1' }; next(); }
+        })
+
+        // Act
+        const res = await request(app)
+            .post('/api/assets/upload')
+
+        // Assert
+        expect(res.status).toBe(400)
+        expect(res.body.message).toBe('No CSV file uploaded')
+        expect(fakeService.uploadCSV).not.toHaveBeenCalled()
+    })
 })
