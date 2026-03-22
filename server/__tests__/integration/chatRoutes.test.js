@@ -64,4 +64,106 @@ describe('chat routes', () => {
         expect(res.status).toBe(500)
         expect(res.body).toHaveProperty('error', 'Failed to process message')
     })
+
+    test('returns 200 with empty object for history when user is not logged in', async () => {
+        const fakeService = { getUserChatHistory: jest.fn() }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = {}; next(); }
+        })
+
+        const res = await request(app).get('/api/chat/history')
+
+        expect(res.status).toBe(200)
+        expect(res.body).toEqual({})
+        expect(fakeService.getUserChatHistory).not.toHaveBeenCalled()
+    })
+
+    test('returns 400 for history when session userId format is invalid', async () => {
+        const fakeService = { getUserChatHistory: jest.fn() }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: 'not-an-object-id' }; next(); }
+        })
+
+        const res = await request(app).get('/api/chat/history')
+
+        expect(res.status).toBe(400)
+        expect(res.body.error).toBe('Invalid user ID format')
+    })
+
+    test('returns 200 with sessions for history success', async () => {
+        const fakeService = {
+            getUserChatHistory: jest.fn().mockResolvedValue([{ sessionId: 's1', title: 'My Chat' }])
+        }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: '507f1f77bcf86cd799439011' }; next(); }
+        })
+
+        const res = await request(app).get('/api/chat/history')
+
+        expect(res.status).toBe(200)
+        expect(res.body.success).toBe(true)
+        expect(res.body.sessions).toHaveLength(1)
+    })
+
+    test('returns 500 for history when service throws', async () => {
+        const fakeService = {
+            getUserChatHistory: jest.fn().mockRejectedValue(new Error('history failed'))
+        }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: '507f1f77bcf86cd799439011' }; next(); }
+        })
+
+        const res = await request(app).get('/api/chat/history')
+
+        expect(res.status).toBe(500)
+        expect(res.body.error).toBe('Failed to fetch user chat history')
+    })
+
+    test('returns 400 when session messages userId format is invalid', async () => {
+        const fakeService = { getSessionMessages: jest.fn() }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: 'invalid' }; next(); }
+        })
+
+        const res = await request(app).get('/api/chat/session/s1')
+
+        expect(res.status).toBe(400)
+        expect(res.body.error).toBe('Invalid user ID format')
+    })
+
+    test('returns 200 with session messages on success', async () => {
+        const fakeService = {
+            getSessionMessages: jest.fn().mockResolvedValue({ forbidden: false, messages: [{ message: 'hi' }] })
+        }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: '507f1f77bcf86cd799439011' }; next(); }
+        })
+
+        const res = await request(app).get('/api/chat/session/s1')
+
+        expect(res.status).toBe(200)
+        expect(res.body.success).toBe(true)
+        expect(res.body.messages).toHaveLength(1)
+    })
+
+    test('returns 500 when session messages retrieval throws', async () => {
+        const fakeService = {
+            getSessionMessages: jest.fn().mockRejectedValue(new Error('session fetch failed'))
+        }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: '507f1f77bcf86cd799439011' }; next(); }
+        })
+
+        const res = await request(app).get('/api/chat/session/s1')
+
+        expect(res.status).toBe(500)
+        expect(res.body.error).toBe('Failed to fetch session messages')
+    })
 })

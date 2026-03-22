@@ -117,4 +117,91 @@ describe('accountService', () => {
         // Assert
         expect(action).toThrow('User not authenticated')
     })
+
+    test('rejects local login when account is google-authenticated', async () => {
+        const fakeAccountModel = {
+            findOne: jest.fn().mockResolvedValue({ authType: 'google', password: 'hashed' })
+        }
+        const service = createAccountService({ AccountModel: fakeAccountModel })
+
+        await expect(
+            service.localLogin({ email: 'user@example.com', password: 'pw' })
+        ).rejects.toMatchObject({ status: 400 })
+    })
+
+    test('googleLogin returns existing user when account already exists', async () => {
+        const existingUser = { _id: 'u1', email: 'user@example.com' }
+        const fakeAccountModel = {
+            findOneAndUpdate: jest.fn().mockResolvedValue(existingUser)
+        }
+        const fakeFetch = jest.fn()
+            .mockResolvedValueOnce({ json: async () => ({ access_token: 'token-1' }) })
+            .mockResolvedValueOnce({ json: async () => ({ email: 'user@example.com', picture: 'pic', name: 'User' }) })
+
+        const service = createAccountService({
+            AccountModel: fakeAccountModel,
+            fetchFn: fakeFetch,
+            environment: { oauthClientId: 'id', oauthClientSecret: 'secret' },
+            clientUrl: 'http://localhost:5173'
+        })
+
+        const result = await service.googleLogin('auth-code')
+
+        expect(result.user).toBe(existingUser)
+        expect(result.response.message).toBe('Login success')
+        expect(fakeAccountModel.findOneAndUpdate).toHaveBeenCalledTimes(1)
+    })
+
+    test('googleLogin creates new google account when none exists', async () => {
+        const save = jest.fn().mockResolvedValue(undefined)
+        const fakeAccountModel = function FakeAccount(payload) {
+            return { ...payload, save }
+        }
+        fakeAccountModel.findOneAndUpdate = jest.fn().mockResolvedValue(null)
+
+        const fakeFetch = jest.fn()
+            .mockResolvedValueOnce({ json: async () => ({ access_token: 'token-1' }) })
+            .mockResolvedValueOnce({ json: async () => ({ email: 'new@example.com', picture: 'pic', name: 'New User' }) })
+
+        const service = createAccountService({
+            AccountModel: fakeAccountModel,
+            fetchFn: fakeFetch,
+            environment: { oauthClientId: 'id', oauthClientSecret: 'secret' },
+            clientUrl: 'http://localhost:5173'
+        })
+
+        const result = await service.googleLogin('auth-code')
+
+        expect(result.user.email).toBe('new@example.com')
+        expect(result.user.authType).toBe('google')
+        expect(save).toHaveBeenCalledTimes(1)
+    })
+
+    test('googleLogin throws 400 when token endpoint returns error', async () => {
+        const fakeFetch = jest.fn().mockResolvedValue({
+            json: async () => ({ error: 'invalid_grant' })
+        })
+
+        const service = createAccountService({
+            fetchFn: fakeFetch,
+            environment: { oauthClientId: 'id', oauthClientSecret: 'secret' },
+            clientUrl: 'http://localhost:5173'
+        })
+
+        await expect(service.googleLogin('bad-code')).rejects.toMatchObject({ status: 400 })
+    })
+
+    test('googleLogin throws 400 when userinfo endpoint returns error', async () => {
+        const fakeFetch = jest.fn()
+            .mockResolvedValueOnce({ json: async () => ({ access_token: 'token-1' }) })
+            .mockResolvedValueOnce({ json: async () => ({ error: 'invalid_token' }) })
+
+        const service = createAccountService({
+            fetchFn: fakeFetch,
+            environment: { oauthClientId: 'id', oauthClientSecret: 'secret' },
+            clientUrl: 'http://localhost:5173'
+        })
+
+        await expect(service.googleLogin('auth-code')).rejects.toMatchObject({ status: 400 })
+    })
 })

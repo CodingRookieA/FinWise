@@ -48,4 +48,45 @@ describe('email routes', () => {
         expect(res.status).toBe(401)
         expect(res.body.error).toBe('Not logged in')
     })
+
+    test('returns 400 when verifyEmailToken service returns status error', async () => {
+        const invalidToken = new Error('Token is invalid or expired')
+        invalidToken.status = 400
+        const fakeService = { verifyEmailToken: jest.fn().mockRejectedValue(invalidToken) }
+        const app = createApp({
+            emailController: createEmailController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = {}; next(); }
+        })
+
+        const res = await request(app).post('/api/email/verifyEmail/bad-token')
+
+        expect(res.status).toBe(400)
+        expect(res.body.error).toBe('Token is invalid or expired')
+    })
+
+    test('returns 500 when verifyEmailToken throws unexpected error', async () => {
+        const fakeService = { verifyEmailToken: jest.fn().mockRejectedValue(new Error('db failed')) }
+        const app = createApp({
+            emailController: createEmailController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = {}; next(); }
+        })
+
+        const res = await request(app).post('/api/email/verifyEmail/token')
+
+        expect(res.status).toBe(500)
+        expect(res.body.error).toBe('An error occurred while verifying email')
+    })
+
+    test('returns 500 when sendVerificationEmail throws unexpected error', async () => {
+        const fakeService = { sendVerification: jest.fn().mockRejectedValue(new Error('mail provider down')) }
+        const app = createApp({
+            emailController: createEmailController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: 'u1' }; next(); }
+        })
+
+        const res = await request(app).post('/api/email/sendVerificationEmail')
+
+        expect(res.status).toBe(500)
+        expect(res.body.error).toBe('An error occurred while sending verification email')
+    })
 })
