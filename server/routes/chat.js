@@ -6,15 +6,19 @@
 import express from 'express'
 import ChatController from '../controllers/chatController.js'
 
-const chatRouter = express.Router()
+export function createChatRouter(controller = ChatController) {
+	const chatRouter = express.Router()
 
-// Define send chat message route
-chatRouter.post('/send', ChatController.sendMessage)
+	// Define send chat message route
+	chatRouter.post('/send', controller.sendMessage)
 
-//Get chat history for a specific user
-chatRouter.get('/history', ChatController.getUserChatHistory)
+	//Get chat history for a specific user
+	chatRouter.get('/history', controller.getUserChatHistory)
 
-//Get messages for a specific session
-chatRouter.get('/session/:sessionId', ChatController.getSessionMessages)
+	//Get messages for a specific session
+	chatRouter.get('/session/:sessionId', controller.getSessionMessages)
 
-export default chatRouter
+	return chatRouter
+}
+
+export default createChatRouter()

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Chip } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import styles from './portfolioDashboard.module.css';
@@ -11,6 +11,7 @@ export const PortfolioTable = ({ assets, onEdit, onDelete }) => {
                 <TableHead className={styles.tableHead}>
                     <TableRow>
                         <TableCell className={styles.tableHeadCell}>Symbol</TableCell>
+                        <TableCell className={styles.tableHeadCell}>Type</TableCell>
                         <TableCell className={styles.tableHeadCell} align="right">Quantity</TableCell>
                         <TableCell className={styles.tableHeadCell} align="right">Actions</TableCell>
                     </TableRow>
@@ -18,7 +19,7 @@ export const PortfolioTable = ({ assets, onEdit, onDelete }) => {
                 <TableBody>
                     {assets.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={3} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                            <TableCell colSpan={4} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                                 No assets found. Add one to get started.
                             </TableCell>
                         </TableRow>
@@ -27,6 +28,17 @@ export const PortfolioTable = ({ assets, onEdit, onDelete }) => {
                             <TableRow key={asset._id} className={styles.tableRow}>
                                 <TableCell className={styles.tableCell} sx={{ fontWeight: 700, color: '#0EA5E9 !important' }}>
                                     {asset.symbol}
+                                </TableCell>
+                                <TableCell className={styles.tableCell}>
+                                    <Chip 
+                                        label={asset.type || 'ETF'} 
+                                        size="small" 
+                                        sx={{ 
+                                            bgcolor: asset.type === 'Mutual Fund' ? 'rgba(14, 165, 233, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                                            color: asset.type === 'Mutual Fund' ? '#0EA5E9' : '#10b981',
+                                            fontWeight: 600
+                                        }} 
+                                    />
                                 </TableCell>
                                 <TableCell align="right" className={styles.tableCell}>
                                     {asset.quantity}
