@@ -73,8 +73,7 @@ describe('Profile page', () => {
     cy.get('[name="quantity"]').type('20');
     cy.get('div:nth-child(3) > button:nth-child(2)').click();
     cy.get('#root td:nth-child(1)').should('have.text', 'APLE');
-    cy.get('#root td:nth-child(2)').should('have.text', '20');
-    cy.get('#root div:nth-child(1) > div._statValue_1vrjf_131').should('have.text', '1');
+    cy.get('#root div:nth-child(2) > div._statValue_1vrjf_131').should('have.text', '20');
   });
 
   it('should be able to add more of the same ETF', () => {
@@ -86,7 +85,7 @@ describe('Profile page', () => {
     cy.get('[name="quantity"]').type('10');
     cy.get('div:nth-child(3) > button:nth-child(2)').click();
     cy.get('#root td:nth-child(1)').should('have.text', 'APLE');
-    cy.get('#root td:nth-child(2)').should('have.text', '30');
+    cy.get('#root div:nth-child(2) > div._statValue_1vrjf_131').should('have.text', '30');
     cy.get('#root div:nth-child(1) > div._statValue_1vrjf_131').should('have.text', '1');
   });
 
@@ -97,7 +96,7 @@ describe('Profile page', () => {
     cy.get('[name="quantity"]').clear();
     cy.get('[name="quantity"]').type('5');
     cy.get('div:nth-child(3) > button:nth-child(2)').click();
-    cy.get('#root td:nth-child(2)').should('have.text', '5');
+    cy.get('#root td:nth-child(3)').should('have.text', '5');
     cy.get('#root div:nth-child(2) > div._statValue_1vrjf_131').should('have.text', '5');
   });
 
@@ -106,7 +105,9 @@ describe('Profile page', () => {
     cy.get('[data-testid="DeleteOutlineIcon"]').click();
     cy.get('h5').should('have.text', 'Delete Asset?');
     cy.get('div:nth-child(3) p').should('have.text', 'Are you sure you want to remove this position? This action cannot be undone.');
-    cy.get('div:nth-child(2) > button:nth-child(2)').click();
+    
+    cy.get('div[role="dialog"] button:nth-child(2)').click();
+    cy.get('#root div:nth-child(2) > div._statValue_1vrjf_131').should('have.text', '0');
     cy.get('#root div:nth-child(1) > div._statValue_1vrjf_131').should('have.text', '0');
     cy.get('#root td').should('have.text', 'No assets found. Add one to get started.');
   });
