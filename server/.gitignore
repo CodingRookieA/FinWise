@@ -1,2 +1,13 @@
 node_modules
 .env
+
+# Coverage reports
+coverage/
+coverage-latest.txt
+coverage.txt
+.nyc_output/
+coverage-final.json
+lcov.info
+lcov-report/
+clover.xml
+*.lcov
