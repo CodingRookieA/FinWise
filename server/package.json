@@ -9,6 +9,7 @@
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
     "test:unit": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js __tests__/unit --runInBand",
     "test:integration": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js __tests__/integration --runInBand",
+    "test:security": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config jest.config.security.js --runInBand",
     "start": "node --env-file=.env index.js",
     "dev": "nodemon --env-file=.env index.js",
     "ar": "node addArticle.js",
@@ -20,8 +21,10 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "mongodb-memory-server": "^10.1.4",
-    "nodemon": "^3.1.11"
-    ,"supertest": "^7.1.1"
+    "nodemon": "^3.1.11",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "supertest": "^7.1.1"
   },
   "jest": {
     "testEnvironment": "node",
