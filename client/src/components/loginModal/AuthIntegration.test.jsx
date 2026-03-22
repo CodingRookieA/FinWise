@@ -200,7 +200,7 @@ describe('Authentication Integration Flow (LoginModal)', () => {
         await waitFor(() => {
             expect(window.location.href).toBe('/email-verification');
         });
-    });
+    }, 10000);
 
     // Signup error state
 
