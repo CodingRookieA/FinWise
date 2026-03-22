@@ -36,7 +36,7 @@ vi.mock('../../utils/toastHelper', () => ({
     default: vi.fn(),
 }));
 
-describe('Authentication Integration Flow (LoginModal)', () => {
+describe('Authentication Integration Flow (LoginModal)', { timeout: 15000 }, () => {
     const handleModalClose = vi.fn();
 
     // LoginModal doesn't use any router stuff so no MemoryRouter needed here

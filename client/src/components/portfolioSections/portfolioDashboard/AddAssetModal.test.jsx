@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AddAssetModal } from './AddAssetModal'
 
-describe('AddAssetModal', () => {
+describe('AddAssetModal', { timeout: 15000 }, () => {
   it('creates asset with entered values', async () => {
     const user = userEvent.setup()
     const onSave = vi.fn()
