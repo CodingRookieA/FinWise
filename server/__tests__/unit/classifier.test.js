@@ -94,7 +94,7 @@ describe('classifier', () => {
         })
     })
 
-    test('forces both funds and etfs for generic recommendation intent', async () => {
+    test('forces articles, funds, and etfs for generic recommendation intent', async () => {
         global.fetch = jest.fn().mockResolvedValue({
             ok: true,
             json: async () => ({
@@ -113,6 +113,7 @@ describe('classifier', () => {
         const { classifyQuery } = await import('../../helpers/classifier.js')
         const result = await classifyQuery('What should I invest in?')
 
+        expect(result.needs_articles).toBe(true)
         expect(result.needs_etfs).toBe(true)
         expect(result.needs_funds).toBe(true)
     })

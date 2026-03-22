@@ -23,7 +23,7 @@ Classification rules:
 - Set "needs_articles" to true if the query asks about concepts, definitions, how-to, strategies, or general education
 - Set "needs_funds" to true if the query asks about specific mutual funds, mutual fund performance, mutual fund recommendations, or mutual fund comparisons
 - Set "needs_etfs" to true if the query mentions ETFs, asks for general investment recommendations, asks "what should I invest in", or compares investment options
-- For generic recommendation intent (for example "what should I invest in", "what should I buy", "best investments for me"), set BOTH "needs_funds" and "needs_etfs" to true
+- For generic recommendation intent (for example "what should I invest in", "what should I buy", "best investments for me", "give me investment advice"), set "needs_articles", "needs_funds", and "needs_etfs" to true
 - Set "needs_etfs" to false if the query is specifically and only about mutual funds, articles, or non-investment topics
 - Set "needs_distribution_mutual_funds" to true if the query asks about mutual fund distributions, payouts, dividends, capital gains distributions, tax breakdowns, or distribution history. This is only relevant when needs_funds is also true.
 - Multiple fields can be true if the query spans multiple data sources
@@ -36,7 +36,7 @@ Examples:
 - "What are some good balanced funds and how do they work?" → needs_articles: true, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: false
 - "Compare the fees of fund ABC123 vs DEF456" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: false
 - "Show me top performing ETFs" → needs_articles: false, needs_funds: false, needs_etfs: true, needs_distribution_mutual_funds: false
-- "What should I invest in?" → needs_articles: false, needs_funds: true, needs_etfs: true, needs_distribution_mutual_funds: false
+- "What should I invest in?" → needs_articles: true, needs_funds: true, needs_etfs: true, needs_distribution_mutual_funds: false
 - "Compare ETF XYZ with mutual fund ABC" → needs_articles: false, needs_funds: true, needs_etfs: true, needs_distribution_mutual_funds: false
 - "How do ETFs differ from mutual funds?" → needs_articles: true, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false
 - "What distributions did fund RBF565 pay last year?" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: true
@@ -88,7 +88,9 @@ function isGenericRecommendationIntent(query) {
         /what should i buy/,
         /best investments? for me/,
         /recommend(?: me)? (?:some )?investments?/,
-        /investment recommendations?/
+        /investment recommendations?/,
+        /investment advice/,
+        /investment advices?/
     ]
     return patterns.some((pattern) => pattern.test(normalized))
 }
@@ -182,6 +184,7 @@ export async function classifyQuery(userQuery, userProfile = null) {
         }
 
         if (isGenericRecommendationIntent(userQuery)) {
+            classification.needs_articles = true
             classification.needs_funds = true
             classification.needs_etfs = true
         }
