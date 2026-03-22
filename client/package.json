@@ -10,7 +10,11 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:unit": "vitest run --exclude '**/src/**/*Integration.test.*'",
+    "test:integration": "vitest run -t Integration",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage:unit": "vitest run --coverage --exclude '**/src/**/*Integration.test.*'",
+    "test:coverage:integration": "vitest run --coverage -t Integration"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

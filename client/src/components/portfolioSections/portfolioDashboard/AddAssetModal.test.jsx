@@ -13,7 +13,7 @@ describe('AddAssetModal', () => {
     await user.type(screen.getByLabelText('Quantity'), '10')
     await user.click(screen.getByRole('button', { name: 'Save Asset' }))
 
-    expect(onSave).toHaveBeenCalledWith({ symbol: 'VFV', quantity: '10' })
+    expect(onSave).toHaveBeenCalledWith({ symbol: 'VFV', quantity: '10', type: 'ETF' })
   })
 
   it('prefills values when editing', () => {
