@@ -141,4 +141,44 @@ describe('Chat Flow Integration', () => {
         
         expect(screen.queryByText(/How can I help you/i)).not.toBeInTheDocument();
     });
+
+    it('deletes a chat session from the sidebar and removes it from history', async () => {
+        const user = userEvent.setup();
+
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockChatHistory
+        });
+
+        render(
+            <MemoryRouter>
+                <ChatPage user={mockUser} loggedIn={true} logout={mockLogout} setLoggedIn={vi.fn()} />
+            </MemoryRouter>
+        );
+
+        expect((await screen.findAllByText('ETF advice'))[0]).toBeInTheDocument();
+
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true, deletedCount: 2 })
+        });
+
+        await user.click(screen.getAllByLabelText(/delete session etf advice/i)[0]);
+        expect(await screen.findByText('Delete chat session?')).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Delete Session' }));
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(
+                `${SERVERURL}/api/chat/session/old-session-2`,
+                expect.objectContaining({
+                    method: 'DELETE',
+                    credentials: 'include'
+                })
+            );
+        });
+
+        await waitFor(() => {
+            expect(screen.queryByText('ETF advice')).not.toBeInTheDocument();
+        });
+    });
 });

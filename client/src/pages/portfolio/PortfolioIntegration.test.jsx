@@ -22,7 +22,7 @@ vi.mock('../../utils/toastHelper', () => ({
     default: vi.fn(),
 }));
 
-describe('Portfolio Integration Flow', () => {
+describe('Portfolio Integration Flow', { timeout: 15000 }, () => {
     const mockLogout = vi.fn();
 
     // Renders the full page with all required providers

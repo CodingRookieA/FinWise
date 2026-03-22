@@ -11,12 +11,13 @@ vi.mock('../../components/alerts/InfoAlert', () => ({
 }))
 
 vi.mock('../../components/chat/sidebar/Sidebar', () => ({
-  Sidebar: ({ loggedIn, chatHistory, onNewChat, onLoadSession }) => (
+  Sidebar: ({ loggedIn, chatHistory, onNewChat, onLoadSession, onDeleteSession }) => (
     <div>
       <p>{`sidebar-logged-in:${String(loggedIn)}`}</p>
       <p>{`history-count:${chatHistory.length}`}</p>
       <button onClick={onNewChat}>new-chat</button>
       <button onClick={() => onLoadSession('session-abc')}>load-session</button>
+      <button onClick={() => onDeleteSession('session-abc')}>delete-session</button>
     </div>
   )
 }))
@@ -215,5 +216,54 @@ describe('ChatPage', () => {
         credentials: 'include'
       })
     })
+  })
+
+  it('deletes selected session and clears active chat when deleting current session', async () => {
+    const user = userEvent.setup()
+
+    fetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ sessions: [{ sessionId: 'session-abc' }, { sessionId: 'session-2' }] })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          messages: [
+            { role: 'user', content: 'old question' },
+            { role: 'assistant', content: 'old answer' }
+          ]
+        })
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, deletedCount: 2 }) })
+
+    render(
+      <ChatPage
+        user={{ userId: 'u-1', isVerified: true }}
+        logout={vi.fn()}
+        loggedIn={true}
+        setLoggedIn={vi.fn()}
+      />
+    )
+
+    expect(await screen.findByText('history-count:2')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'load-session' }))
+    expect(await screen.findByText('user:old question')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'delete-session' }))
+
+    expect(await screen.findByText('Delete chat session?')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Delete Session' }))
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith('http://test-server/api/chat/session/session-abc', {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+    })
+
+    expect(await screen.findByText('history-count:1')).toBeInTheDocument()
+    expect(screen.queryByText('user:old question')).not.toBeInTheDocument()
   })
 })

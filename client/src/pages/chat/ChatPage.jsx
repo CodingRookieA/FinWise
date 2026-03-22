@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Box, IconButton } from '@mui/material'
+import { Box, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import { Sidebar } from '../../components/chat/sidebar/Sidebar'
 import { EmptyState } from '../../components/chat/emptyState/EmptyState'
@@ -17,6 +17,8 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [chatHistory, setChatHistory] = useState([])
     const [loadingHistory, setLoadingHistory] = useState(false)
     const [loadingSession, setLoadingSession] = useState(false)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState(null)
 
     const guestChat = !loggedIn || !user.isVerified
 
@@ -174,6 +176,41 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         }
     }
 
+    const confirmDeleteSession = async () => {
+        const selectedSessionId = pendingDeleteSessionId
+        if (guestChat || !selectedSessionId) return
+
+        try {
+            const response = await fetch(`${SERVERURL}/api/chat/session/${selectedSessionId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete session: ${response.status}`)
+            }
+
+            setChatHistory(prev => prev.filter(chat => chat.sessionId !== selectedSessionId))
+
+            if (sessionId === selectedSessionId) {
+                setMessages([])
+                setMessage('')
+                setSessionId(crypto.randomUUID())
+            }
+        } catch (error) {
+            console.error('Error deleting session:', error)
+        } finally {
+            setDeleteDialogOpen(false)
+            setPendingDeleteSessionId(null)
+        }
+    }
+
+    const handleDeleteSession = (selectedSessionId) => {
+        if (!selectedSessionId) return
+        setPendingDeleteSessionId(selectedSessionId)
+        setDeleteDialogOpen(true)
+    }
+
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen)
     }
@@ -204,6 +241,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                 onToggleSidebar={toggleSidebar}
                 onNewChat={handleNewChat}
                 onLoadSession={handleLoadSession}
+                onDeleteSession={handleDeleteSession}
                 loggedIn={!guestChat}
             />
 
@@ -258,6 +296,34 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                     onKeyPress={handleKeyPress}
                 />
             </Box>
+
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={() => {
+                    setDeleteDialogOpen(false)
+                    setPendingDeleteSessionId(null)
+                }}
+            >
+                <DialogTitle>Delete chat session?</DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2">
+                        This action will permanently delete this chat history.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={() => {
+                            setDeleteDialogOpen(false)
+                            setPendingDeleteSessionId(null)
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button color="error" variant="contained" onClick={confirmDeleteSession}>
+                        Delete Session
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     )
 }

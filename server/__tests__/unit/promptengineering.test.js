@@ -2,6 +2,7 @@ import { describe, test, expect, jest, beforeEach, afterEach } from '@jest/globa
 import promptengineering from '../../helpers/promptengineering.js'
 import { Profile } from '../../models/profile.js'
 import { MutualFund } from '../../models/MutualFund.js'
+import { Asset } from '../../models/Asset.js'
 import etfHelpers from '../../helpers/etfHelpers.js'
 import { Chunk } from '../../models/Chunks.js'
 
@@ -24,6 +25,7 @@ describe('promptengineering', () => {
     test('builds full prompt with all context sections', async () => {
         // Arrange
         jest.spyOn(promptengineering, 'getUserInfo').mockResolvedValue('Employment status: employed')
+        jest.spyOn(promptengineering, 'getUserPortfolioContext').mockResolvedValue('Holding 1: VFV | Type: ETF | Quantity: 10')
         jest.spyOn(promptengineering, 'getInvestmentDocs').mockResolvedValue('Article context')
         jest.spyOn(promptengineering, 'getSFundInfo').mockResolvedValue('Fund context')
         jest.spyOn(promptengineering, 'getSETFInfo').mockResolvedValue('ETF context')
@@ -38,6 +40,7 @@ describe('promptengineering', () => {
 
         // Assert
         expect(messages[0].content).toContain('--- USER PROFILE')
+        expect(messages[0].content).toContain('--- USER PORTFOLIO')
         expect(messages[0].content).toContain('--- ARTICLE CONTEXT')
         expect(messages[0].content).toContain('--- MATCHING MUTUAL FUNDS')
         expect(messages[0].content).toContain('--- MATCHING ETFs')
@@ -65,6 +68,7 @@ describe('promptengineering', () => {
     test('passes distribution flag to fund context fetch', async () => {
         const getSFundInfoSpy = jest.spyOn(promptengineering, 'getSFundInfo').mockResolvedValue('Fund context')
         jest.spyOn(promptengineering, 'getUserInfo').mockResolvedValue('')
+        jest.spyOn(promptengineering, 'getUserPortfolioContext').mockResolvedValue('')
 
         await promptengineering.generatePrompt('distribution question', 'u1', {
             needs_articles: false,
@@ -128,6 +132,7 @@ describe('promptengineering', () => {
 
     test('handles mixed empty and populated context sections', async () => {
         jest.spyOn(promptengineering, 'getUserInfo').mockResolvedValue('Employment: freelance')
+        jest.spyOn(promptengineering, 'getUserPortfolioContext').mockResolvedValue('Holding 1: XQQ | Type: ETF | Quantity: 2')
         jest.spyOn(promptengineering, 'getInvestmentDocs').mockResolvedValue('')
         jest.spyOn(promptengineering, 'getSFundInfo').mockResolvedValue('Some fund data')
         jest.spyOn(promptengineering, 'getSETFInfo').mockResolvedValue('')
@@ -140,8 +145,42 @@ describe('promptengineering', () => {
         })
 
         expect(messages[0].content).toContain('--- USER PROFILE')
+        expect(messages[0].content).toContain('--- USER PORTFOLIO')
         expect(messages[0].content).toContain('--- MATCHING MUTUAL FUNDS')
         expect(messages[0].content).not.toContain('--- ARTICLE CONTEXT')
+    })
+
+    test('returns formatted portfolio context for user holdings', async () => {
+        jest.spyOn(Asset, 'find').mockReturnValue({
+            sort: () => ({
+                select: () => ({
+                    lean: async () => ([
+                        { symbol: 'VFV', type: 'ETF', quantity: 10 },
+                        { symbol: 'RBF460', type: 'Mutual Fund', quantity: 5 }
+                    ])
+                })
+            })
+        })
+
+        const result = await promptengineering.getUserPortfolioContext('u1')
+
+        expect(result).toContain('Total holdings: 2 | ETFs: 1 | Mutual Funds: 1 | Aggregate quantity: 15')
+        expect(result).toContain('Holding 1: VFV | Type: ETF | Quantity: 10')
+        expect(result).toContain('Holding 2: RBF460 | Type: Mutual Fund | Quantity: 5')
+    })
+
+    test('returns empty string when portfolio lookup has no assets', async () => {
+        jest.spyOn(Asset, 'find').mockReturnValue({
+            sort: () => ({
+                select: () => ({
+                    lean: async () => ([])
+                })
+            })
+        })
+
+        const result = await promptengineering.getUserPortfolioContext('u1')
+
+        expect(result).toBe('')
     })
 
     test('returns unauthenticated notice when getSFundInfo is called without userId', async () => {

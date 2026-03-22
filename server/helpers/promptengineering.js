@@ -2,6 +2,7 @@ import { embedText } from '../services/article/embeddingService.js'
 import { Chunk } from '../models/Chunks.js'
 import { MutualFund } from '../models/MutualFund.js'
 import { Profile } from '../models/profile.js'
+import { Asset } from '../models/Asset.js'
 import etfHelpers from './etfHelpers.js'
 import { getMatchingETFs } from './etfService.js'
 import { ENVIRONMENT } from '../utils/constants.js'
@@ -24,9 +25,11 @@ CRITICAL RULES:
 
 7. **User personalization**: If a USER PROFILE section is provided, tailor your response to the user's situation (risk tolerance, experience level, financial goals, etc.) without repeating their data back to them.
 
-8. **ETFs with missing fields**: When MER is null for an ETF, do not estimate or guess the value. Tell the user to verify the expense ratio on the ETF provider's website (e.g. iShares.ca, vanguard.ca, bmo.com/etfs) before investing. When fund_category is null, describe the ETF based on its name, performance data, and dividend yield rather than refusing to answer. TSX-listed ETFs are generally eligible for RRSP, TFSA, and FHSA accounts, but always recommend users verify eligibility with their broker.
+8. **Portfolio awareness**: If a USER PORTFOLIO section is provided, use it to ground recommendations in the user's current holdings (diversification, concentration, overlap, and potential gaps).
 
-9. **Source attribution**: At the very end of your response, include a metadata line in this exact format:
+9. **ETFs with missing fields**: When MER is null for an ETF, do not estimate or guess the value. Tell the user to verify the expense ratio on the ETF provider's website (e.g. iShares.ca, vanguard.ca, bmo.com/etfs) before investing. When fund_category is null, describe the ETF based on its name, performance data, and dividend yield rather than refusing to answer. TSX-listed ETFs are generally eligible for RRSP, TFSA, and FHSA accounts, but always recommend users verify eligibility with their broker.
+
+10. **Source attribution**: At the very end of your response, include a metadata line in this exact format:
 [Sources: <comma-separated list of source URLs used> | Context: <"articles", "funds", "etfs", "articles+funds", "articles+etfs", "funds+etfs", "articles+funds+etfs", or "none">]
 If no context was provided, use: [Sources: none | Context: none]`;
 
@@ -40,6 +43,11 @@ export default {
             const userInfo = await this.getUserInfo(userId)
             if (userInfo) {
                 contextSections.push('\n--- USER PROFILE (Use for personalization) ---\n' + userInfo)
+            }
+
+            const portfolioInfo = await this.getUserPortfolioContext(userId)
+            if (portfolioInfo) {
+                contextSections.push('\n--- USER PORTFOLIO (Use for allocation context) ---\n' + portfolioInfo)
             }
         }
 
@@ -238,6 +246,40 @@ export default {
             return ''
         }
     },
+
+    async getUserPortfolioContext(userId) {
+        if (!userId) return ''
+
+        try {
+            const assets = await Asset.find({ user_id: userId })
+                .sort({ updatedAt: -1 })
+                .select('symbol type quantity -_id')
+                .lean()
+
+            if (!assets || assets.length === 0) {
+                return ''
+            }
+
+            const totalQuantity = assets.reduce((sum, asset) => sum + (Number(asset.quantity) || 0), 0)
+            const etfCount = assets.filter((asset) => asset.type === 'ETF').length
+            const mfCount = assets.filter((asset) => asset.type === 'Mutual Fund').length
+
+            const holdingsLines = assets
+                .slice(0, 20)
+                .map((asset, i) => `Holding ${i + 1}: ${asset.symbol} | Type: ${asset.type} | Quantity: ${asset.quantity}`)
+
+            let summary = `Total holdings: ${assets.length} | ETFs: ${etfCount} | Mutual Funds: ${mfCount} | Aggregate quantity: ${totalQuantity}`
+            if (assets.length > 20) {
+                summary += `\n(Showing top 20 most recently updated holdings out of ${assets.length})`
+            }
+
+            return `${summary}\n${holdingsLines.join('\n')}`
+        } catch (error) {
+            console.error('Error fetching user portfolio:', error.message)
+            return ''
+        }
+    },
+
     async getInvestmentDocs(userInput) {
         try {
             // Generate embedding for the user query

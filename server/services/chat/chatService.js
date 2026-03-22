@@ -155,10 +155,33 @@ export function createChatService(deps = {}) {
         }
     }
 
+    async function deleteSession({ sessionId, sessionUserId }) {
+        const hasAccess = await assertSessionOwnership(MessageModel, sessionId, sessionUserId, mongooseLib)
+        if (!hasAccess) {
+            return { forbidden: true, notFound: false, deletedCount: 0 }
+        }
+
+        const result = await MessageModel.deleteMany({
+            sessionId,
+            sender: new mongooseLib.Types.ObjectId(sessionUserId)
+        })
+
+        if (!result.deletedCount) {
+            return { forbidden: false, notFound: true, deletedCount: 0 }
+        }
+
+        return {
+            forbidden: false,
+            notFound: false,
+            deletedCount: result.deletedCount
+        }
+    }
+
     return {
         sendMessage,
         getUserChatHistory,
         getSessionMessages,
+        deleteSession,
         loadUserProfile,
     }
 }

@@ -93,6 +93,50 @@ export function createChatController(chatService = createChatService()) {
                     details: error.message
                 })
             }
+        },
+
+        async deleteSession(req, res) {
+            try {
+                const { sessionId } = req.params
+
+                if (!sessionId) {
+                    return res.status(400).json({ error: 'Session ID is required' })
+                }
+
+                const userId = req.session.userId
+                if (!userId) {
+                    return res.status(401).json({ error: 'Authentication required' })
+                }
+
+                if (!mongoose.Types.ObjectId.isValid(userId)) {
+                    return res.status(400).json({ error: 'Invalid user ID format' })
+                }
+
+                const result = await chatService.deleteSession({
+                    sessionId,
+                    sessionUserId: userId
+                })
+
+                if (result.forbidden) {
+                    return res.status(403).json({ error: 'You do not have access to this session' })
+                }
+
+                if (result.notFound) {
+                    return res.status(404).json({ error: 'Session not found' })
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    sessionId,
+                    deletedCount: result.deletedCount
+                })
+            } catch (error) {
+                console.error('Error deleting session:', error)
+                return res.status(500).json({
+                    error: 'Failed to delete session',
+                    details: error.message
+                })
+            }
         }
     }
 }
