@@ -26,6 +26,7 @@ describe('Chat Sidebar', () => {
         onToggleSidebar={vi.fn()}
         onNewChat={vi.fn()}
         onLoadSession={vi.fn()}
+        onDeleteSession={vi.fn()}
         loggedIn={false}
       />
     )
@@ -46,6 +47,7 @@ describe('Chat Sidebar', () => {
         onToggleSidebar={onToggleSidebar}
         onNewChat={onNewChat}
         onLoadSession={vi.fn()}
+        onDeleteSession={vi.fn()}
         loggedIn={true}
       />
     )
@@ -62,6 +64,7 @@ describe('Chat Sidebar', () => {
   it('loads selected session and navigates to profile from user card', async () => {
     const user = userEvent.setup()
     const onLoadSession = vi.fn()
+    const onDeleteSession = vi.fn()
 
     render(
       <Sidebar
@@ -71,9 +74,14 @@ describe('Chat Sidebar', () => {
         onToggleSidebar={vi.fn()}
         onNewChat={vi.fn()}
         onLoadSession={onLoadSession}
+        onDeleteSession={onDeleteSession}
         loggedIn={true}
       />
     )
+
+    await user.click(screen.getAllByLabelText(/delete session/i)[0])
+    expect(onDeleteSession).toHaveBeenCalledWith('s-1')
+    expect(onLoadSession).not.toHaveBeenCalled()
 
     await user.click(screen.getAllByText('Budget chat')[0])
     expect(onLoadSession).toHaveBeenCalledWith('s-1')

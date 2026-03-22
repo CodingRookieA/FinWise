@@ -93,4 +93,27 @@ describe('classifier', () => {
             needs_distribution_mutual_funds: false,
         })
     })
+
+    test('forces both funds and etfs for generic recommendation intent', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                candidates: [
+                    {
+                        content: {
+                            parts: [
+                                { text: '{"needs_articles":false,"needs_funds":false,"needs_etfs":true,"needs_distribution_mutual_funds":false}' }
+                            ]
+                        }
+                    }
+                ]
+            })
+        })
+
+        const { classifyQuery } = await import('../../helpers/classifier.js')
+        const result = await classifyQuery('What should I invest in?')
+
+        expect(result.needs_etfs).toBe(true)
+        expect(result.needs_funds).toBe(true)
+    })
 })

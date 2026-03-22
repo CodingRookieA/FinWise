@@ -1,6 +1,7 @@
 import { Box, Typography, IconButton, Button, List, ListItem, ListItemText, Avatar, Drawer } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import AddIcon from '@mui/icons-material/Add'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import { useNavigate } from 'react-router-dom'
 
 import styles from './Sidebar.module.css'
@@ -14,6 +15,7 @@ export const Sidebar = ({
     onToggleSidebar, 
     onNewChat,
     onLoadSession,
+    onDeleteSession,
     loggedIn 
 }) => {
     const navigate = useNavigate()
@@ -61,8 +63,7 @@ export const Sidebar = ({
                                     '&:hover': {
                                         bgcolor: '#2A3A4E'
                                     },
-                                    flexDirection: 'column',
-                                    alignItems: 'flex-start'
+                                    alignItems: 'center'
                                 }}
                             >
                                 <ListItemText
@@ -78,7 +79,19 @@ export const Sidebar = ({
                                         variant: 'caption',
                                         color: 'text.secondary'
                                     }}
+                                    sx={{ mr: 1 }}
                                 />
+                                <IconButton
+                                    size="small"
+                                    aria-label={`delete session ${chat.title}`}
+                                    onClick={(event) => {
+                                        event.stopPropagation()
+                                        if (onDeleteSession) onDeleteSession(chat.sessionId)
+                                    }}
+                                    sx={{ color: '#94a3b8', '&:hover': { color: '#ef4444' } }}
+                                >
+                                    <DeleteOutlineIcon fontSize="small" />
+                                </IconButton>
                             </ListItem>
                         ))}
                     </List>

@@ -29,6 +29,7 @@ describe('chatService', () => {
             aggregate: jest.fn(),
             exists: jest.fn(),
             find: jest.fn(),
+            deleteMany: jest.fn(),
         }
         const ProfileModel = {
             findOne: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue(null) })
@@ -127,5 +128,47 @@ describe('chatService', () => {
         expect(result.forbidden).toBe(false)
         expect(result.messages[0]).toMatchObject({ role: 'user', content: 'Hi' })
         expect(deps.MessageModel.find).toHaveBeenCalledWith({ sessionId: 's1' })
+    })
+
+    test('deleteSession returns forbidden when ownership check fails', async () => {
+        // Arrange
+        const { service, deps } = buildService()
+        deps.MessageModel.exists.mockResolvedValue(false)
+
+        // Act
+        const result = await service.deleteSession({ sessionId: 's1', sessionUserId: 'u1' })
+
+        // Assert
+        expect(result).toEqual({ forbidden: true, notFound: false, deletedCount: 0 })
+        expect(deps.MessageModel.deleteMany).not.toHaveBeenCalled()
+    })
+
+    test('deleteSession returns notFound when deleteMany removes nothing', async () => {
+        // Arrange
+        const { service, deps } = buildService()
+        deps.MessageModel.exists.mockResolvedValue(true)
+        deps.MessageModel.deleteMany.mockResolvedValue({ deletedCount: 0 })
+
+        // Act
+        const result = await service.deleteSession({ sessionId: 's1', sessionUserId: 'u1' })
+
+        // Assert
+        expect(result).toEqual({ forbidden: false, notFound: true, deletedCount: 0 })
+        expect(deps.MessageModel.deleteMany).toHaveBeenCalledWith(
+            expect.objectContaining({ sessionId: 's1' })
+        )
+    })
+
+    test('deleteSession returns success with deleted count', async () => {
+        // Arrange
+        const { service, deps } = buildService()
+        deps.MessageModel.exists.mockResolvedValue(true)
+        deps.MessageModel.deleteMany.mockResolvedValue({ deletedCount: 3 })
+
+        // Act
+        const result = await service.deleteSession({ sessionId: 's1', sessionUserId: 'u1' })
+
+        // Assert
+        expect(result).toEqual({ forbidden: false, notFound: false, deletedCount: 3 })
     })
 })

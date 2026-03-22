@@ -166,4 +166,64 @@ describe('chat routes', () => {
         expect(res.status).toBe(500)
         expect(res.body.error).toBe('Failed to fetch session messages')
     })
+
+    test('deletes session successfully', async () => {
+        const fakeService = {
+            deleteSession: jest.fn().mockResolvedValue({ forbidden: false, notFound: false, deletedCount: 2 })
+        }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: '507f1f77bcf86cd799439011' }; next(); }
+        })
+
+        const res = await request(app).delete('/api/chat/session/s1')
+
+        expect(res.status).toBe(200)
+        expect(res.body.success).toBe(true)
+        expect(res.body.deletedCount).toBe(2)
+    })
+
+    test('returns 401 when deleting session without login', async () => {
+        const fakeService = { deleteSession: jest.fn() }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = {}; next(); }
+        })
+
+        const res = await request(app).delete('/api/chat/session/s1')
+
+        expect(res.status).toBe(401)
+        expect(res.body.error).toBe('Authentication required')
+        expect(fakeService.deleteSession).not.toHaveBeenCalled()
+    })
+
+    test('returns 403 when deleting forbidden session', async () => {
+        const fakeService = {
+            deleteSession: jest.fn().mockResolvedValue({ forbidden: true, notFound: false, deletedCount: 0 })
+        }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: '507f1f77bcf86cd799439011' }; next(); }
+        })
+
+        const res = await request(app).delete('/api/chat/session/s1')
+
+        expect(res.status).toBe(403)
+        expect(res.body.error).toBe('You do not have access to this session')
+    })
+
+    test('returns 404 when deleting non-existent session', async () => {
+        const fakeService = {
+            deleteSession: jest.fn().mockResolvedValue({ forbidden: false, notFound: true, deletedCount: 0 })
+        }
+        const app = createApp({
+            chatController: createChatController(fakeService),
+            sessionMiddleware: (req, _res, next) => { req.session = { userId: '507f1f77bcf86cd799439011' }; next(); }
+        })
+
+        const res = await request(app).delete('/api/chat/session/s1')
+
+        expect(res.status).toBe(404)
+        expect(res.body.error).toBe('Session not found')
+    })
 })

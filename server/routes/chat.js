@@ -18,6 +18,9 @@ export function createChatRouter(controller = ChatController) {
 	//Get messages for a specific session
 	chatRouter.get('/session/:sessionId', controller.getSessionMessages)
 
+	//Delete a specific chat session for the current user
+	chatRouter.delete('/session/:sessionId', controller.deleteSession)
+
 	return chatRouter
 }
 
