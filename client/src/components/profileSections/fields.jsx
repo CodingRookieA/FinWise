@@ -21,38 +21,6 @@ export default function Fields({ activeSection = "general" }) {
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(null);
 
-const isYes = (v) => typeof v === "string" && v.trim().toLowerCase() === "yes";
-
-const clearFields = (keys) => {
-  setValues((prev) => {
-    const next = { ...prev };
-    for (const k of keys) next[k] = null;
-    return next;
-  });
-};
-
-const DEPENDENCIES = {
-  // mutual fund detail fields depend on has_mutual_funds
-  where_mutual_funds: ["has_mutual_funds"],
-  type_mutual_funds: ["has_mutual_funds"],
-  fee_level_mutual_funds: ["has_mutual_funds"],
-  mutual_funds_amount: ["has_mutual_funds"],
-
-  // ETF detail fields depend on has_ETFs
-  where_ETFs: ["has_ETFs"],
-  type_ETFs: ["has_ETFs"],
-  ETFs_amount: ["has_ETFs"],
-  frequency_ETFs: ["has_ETFs"],
-};
-
-const shouldDisableField = (field, currentValues) => {
-  const prereqs = DEPENDENCIES[field];
-  if (!prereqs) return false; // not a dependent field
-
-  // Disable if any prereq is NOT "yes"
-  return !prereqs.every((p) => isYes(currentValues[p]));
-};
-
 
   // load profile values + meta definitions
   React.useEffect(() => {
@@ -94,20 +62,6 @@ const shouldDisableField = (field, currentValues) => {
 
   const handleChange = (field, rawValue) => {
     setValues((prev) => ({ ...prev, [field]: rawValue }));
-
-    // Clear dependent fields if prerequisite is set to "no"
-    if (field === "has_ETFs" && !isYes(rawValue)) {
-      clearFields(["where_ETFs", "type_ETFs", "ETFs_amount", "frequency_ETFs"]);
-    }
-
-    if (field === "has_mutual_funds" && !isYes(rawValue)) {
-      clearFields([
-        "where_mutual_funds",
-        "type_mutual_funds",
-        "fee_level_mutual_funds",
-        "mutual_funds_amount",
-      ]);
-    }
   };
 
 
@@ -160,6 +114,7 @@ const shouldDisableField = (field, currentValues) => {
 
 
   const getSectionFields = (section) => {
+    if (section === "general") return meta.filter((q) => q.section === "general");
     return meta.filter((q) => q.section === section);
   };
 
@@ -222,7 +177,6 @@ const shouldDisableField = (field, currentValues) => {
                 meta={q}
                 value={values[q.field]}
                 onChange={handleChange}
-                disabled={shouldDisableField(q.field, values)}
               />
             ))}
           </Box>

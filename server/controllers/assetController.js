@@ -1,100 +1,91 @@
-import { Asset } from '../models/Asset.js'
+import { createAssetService } from '../services/asset/assetService.js'
 
-export default {
-    // GET /api/assets
-    async getAssets(req, res) {
-        try {
-            // TODO: req.user.session
-            // const { user_id } = req.query; // Read userId from the URL query params
+export function createAssetController(assetService = createAssetService()) {
+    return {
+        async getAssets(req, res) {
+            try {
+                const user_id = req.session.userId
+                if (!user_id) {
+                    return res.status(400).json({ message: 'User ID is required' })
+                }
+
+                const assets = await assetService.getAssets(user_id)
+                res.status(200).json(assets)
+            } catch (error) {
+                res.status(500).json({ message: error.message })
+            }
+        },
+
+        async addAsset(req, res) {
+            const { symbol, quantity, type } = req.body
             const user_id = req.session.userId
-
-            if (!user_id) {
-                return res.status(400).json({ message: 'User ID is required' });
+            if (!user_id || !symbol || !quantity) {
+                return res.status(400).json({ message: 'Please include user_id, symbol, and quantity' })
             }
 
-            // Find assets specifically for this user
-            const assets = await Asset.find({ user_id: user_id })
-            res.status(200).json(assets)
-        } catch (error) {
-            res.status(500).json({ message: error.message })
-        }
-    },
+            try {
+                const asset = await assetService.addAsset({
+                    userId: user_id,
+                    symbol,
+                    quantity,
+                    type,
+                })
 
-    // POST /api/assets
-   async addAsset(req, res) {
-        // 1. Basic Validation
-        let { symbol, quantity } = req.body
-        const user_id = req.session.userId
-        if (!user_id || !symbol || !quantity) {
-            return res.status(400).json({ message: 'Please include user_id, symbol, and quantity' })
-        }
-
-        try {
-            // Force Uppercase so 'vfv' matches 'VFV'
-            symbol = symbol.toUpperCase();
-            quantity = Number(quantity);
-
-            // Check if this asset already exists for this specific user
-            const existingAsset = await Asset.findOne({ 
-                user_id: user_id, 
-                symbol: symbol
-            });
-
-            if (existingAsset) {
-                // Asset Exists we Update Quantity
-                existingAsset.quantity += quantity;
-                await existingAsset.save();
-                
-                // Return the updated asset
-                return res.status(200).json(existingAsset);
+                return res.status(200).json(asset)
+            } catch (error) {
+                if (error.status) {
+                    return res.status(error.status).json({ message: error.message })
+                }
+                res.status(400).json({ message: error.message })
             }
+        },
 
-            // Asset is new create it
-            const asset = await Asset.create({
-                user_id: user_id,
-                symbol: symbol,
-                quantity: quantity
-            });
-            
-            res.status(200).json(asset);
+        async uploadCSV(req, res) {
+            try {
+                const user_id = req.session.userId
+                if (!user_id) return res.status(401).json({ message: 'User not authenticated' })
 
-        } catch (error) {
-            res.status(400).json({ message: error.message })
-        }
-    },
+                if (!req.file) return res.status(400).json({ message: 'No CSV file uploaded' })
 
-    // PUT /api/assets/:id
-    async updateAsset(req, res) {
-        console.log(req.body)
-        try {
-            const asset = await Asset.findById(req.params.id)
+                const result = await assetService.uploadCSV({
+                    userId: user_id,
+                    fileContent: req.file.buffer.toString('utf-8'),
+                })
 
-            if (!asset) {
-                return res.status(404).json({ message: 'Asset not found' })
+                return res.status(200).json(result)
+            } catch (error) {
+                if (error.status) {
+                    return res.status(error.status).json({ message: error.message })
+                }
+                res.status(500).json({ message: error.message })
             }
+        },
 
-            const updatedAsset = await Asset.findByIdAndUpdate(req.params.id, req.body, {
-                new: true,
-            })
-            res.status(200).json(updatedAsset)
-        } catch (error) {
-            res.status(400).json({ message: error.message })
-        }
-    },
-    
-    // DELETE /api/assets/:id
-    async deleteAsset(req, res) {
-        try {
-            const asset = await Asset.findById(req.params.id)
-
-            if (!asset) {
-                return res.status(404).json({ message: 'Asset not found' })
+        async updateAsset(req, res) {
+            console.log(req.body)
+            try {
+                const updatedAsset = await assetService.updateAsset(req.params.id, req.body)
+                res.status(200).json(updatedAsset)
+            } catch (error) {
+                if (error.status) {
+                    return res.status(error.status).json({ message: error.message })
+                }
+                res.status(400).json({ message: error.message })
             }
+        },
 
-            await asset.deleteOne()
-            res.status(200).json({ id: req.params.id })
-        } catch (error) {
-            res.status(400).json({ message: error.message })
+        async deleteAsset(req, res) {
+            try {
+                const result = await assetService.deleteAsset(req.params.id)
+                res.status(200).json(result)
+            } catch (error) {
+                if (error.status) {
+                    return res.status(error.status).json({ message: error.message })
+                }
+                res.status(400).json({ message: error.message })
+            }
         }
     }
 }
+
+export default createAssetController()

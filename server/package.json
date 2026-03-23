@@ -6,27 +6,48 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
+    "test:unit": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js __tests__/unit --runInBand",
+    "test:integration": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js __tests__/integration --runInBand",
+    "test:security": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config jest.config.security.js --runInBand",
     "start": "node --env-file=.env index.js",
     "dev": "nodemon --env-file=.env index.js",
     "ar": "node addArticle.js",
     "watch": "node watchArticle.js",
     "test-classifier": "node testClassifier.js",
-    "list-models": "node listModels.js"
+    "list-models": "node listModels.js",
+    "extract-etfs": "py ./etfs/extractCanadianETFS.py"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4",
+    "nodemon": "^3.1.11",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "supertest": "^7.1.1"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/*.test.js"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/__tests__/setup.js"
+    ]
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
+    "csv-parse": "^6.2.0",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "jsonwebtoken": "^9.0.3",
     "mailtrap": "^4.4.0",
-    "mongoose": "^9.1.6"
+    "mongoose": "^9.1.6",
+    "multer": "^2.1.1",
+    "yahoo-finance2": "^3.13.2"
   },
   "directories": {
     "lib": "lib"

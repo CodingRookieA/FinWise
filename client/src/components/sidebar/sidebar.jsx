@@ -16,15 +16,9 @@ import {
 
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import FolderRoundedIcon from "@mui/icons-material/FolderRounded";
-import AccountBalanceRoundedIcon from "@mui/icons-material/AccountBalanceRounded";
-
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 
 const PROFILE_SECTIONS = [
-    { label: "Profile", value: "general", icon: <PersonRoundedIcon /> },
-    { label: "ETFs", value: "etfs", icon: <TrendingUpIcon /> },
-    { label: "Mutual Funds", value: "mutual_funds", icon: <AccountBalanceIcon /> },
+  { label: "Profile", value: "general", icon: <PersonRoundedIcon /> },
 ];
 
 export default function Sidebar({ user, logout, activeSection, onSectionChange }) {
@@ -55,12 +49,6 @@ export default function Sidebar({ user, logout, activeSection, onSectionChange }
       icon: <FolderRoundedIcon />,
       onClick: () => navigate("/portfolio"),
       isActive: location.pathname === "/portfolio",
-    },
-    {
-      label: "Plaid",
-      icon: <AccountBalanceRoundedIcon /> ,
-      onClick: () => navigate("/connect-plaid"),
-      isActive: location.pathname === "/connect-plaid",
     }
   ];
 

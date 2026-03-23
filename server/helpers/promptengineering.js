@@ -2,6 +2,9 @@ import { embedText } from '../services/article/embeddingService.js'
 import { Chunk } from '../models/Chunks.js'
 import { MutualFund } from '../models/MutualFund.js'
 import { Profile } from '../models/profile.js'
+import { Asset } from '../models/Asset.js'
+import etfHelpers from './etfHelpers.js'
+import { getMatchingETFs } from './etfService.js'
 import { ENVIRONMENT } from '../utils/constants.js'
 
 const SYSTEM_PROMPT = 
@@ -22,13 +25,17 @@ CRITICAL RULES:
 
 7. **User personalization**: If a USER PROFILE section is provided, tailor your response to the user's situation (risk tolerance, experience level, financial goals, etc.) without repeating their data back to them.
 
-8. **Source attribution**: At the very end of your response, include a metadata line in this exact format:
-[Sources: <comma-separated list of source URLs used> | Context: <"articles", "funds", "articles+funds", or "none">]
+8. **Portfolio awareness**: If a USER PORTFOLIO section is provided, use it to ground recommendations in the user's current holdings (diversification, concentration, overlap, and potential gaps).
+
+9. **ETFs with missing fields**: When MER is null for an ETF, do not estimate or guess the value. Tell the user to verify the expense ratio on the ETF provider's website (e.g. iShares.ca, vanguard.ca, bmo.com/etfs) before investing. When fund_category is null, describe the ETF based on its name, performance data, and dividend yield rather than refusing to answer. TSX-listed ETFs are generally eligible for RRSP, TFSA, and FHSA accounts, but always recommend users verify eligibility with their broker.
+
+10. **Source attribution**: At the very end of your response, include a metadata line in this exact format:
+[Sources: <comma-separated list of source URLs used> | Context: <"articles", "funds", "etfs", "articles+funds", "articles+etfs", "funds+etfs", "articles+funds+etfs", or "none">]
 If no context was provided, use: [Sources: none | Context: none]`;
 
 export default {
     //Function for generating prompts based on user input and context
-    async generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false, needs_ETF: false, needs_distribution_mutual_funds: false }) {
+    async generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false }) {
         let contextSections = []
 
         // Add user profile info if userId is provided
@@ -36,6 +43,11 @@ export default {
             const userInfo = await this.getUserInfo(userId)
             if (userInfo) {
                 contextSections.push('\n--- USER PROFILE (Use for personalization) ---\n' + userInfo)
+            }
+
+            const portfolioInfo = await this.getUserPortfolioContext(userId)
+            if (portfolioInfo) {
+                contextSections.push('\n--- USER PORTFOLIO (Use for allocation context) ---\n' + portfolioInfo)
             }
         }
 
@@ -52,7 +64,14 @@ export default {
             // Include fund data context in system prompt
             const funds = await this.getSFundInfo(userId, classification.needs_distribution_mutual_funds)
             if (funds) {
-                contextSections.push('\n--- FUND DATA (Source of Truth) ---\n' + funds)
+                contextSections.push('\n--- MATCHING MUTUAL FUNDS (Source of Truth) ---\n' + funds)
+            }
+        }
+
+        if (classification.needs_etfs) {
+            const etfs = await this.getSETFInfo(userId)
+            if (etfs) {
+                contextSections.push('\n--- MATCHING ETFs (Source of Truth) ---\n' + etfs)
             }
         }
 
@@ -127,7 +146,7 @@ export default {
                 projection.distribution = 1
             }
 
-            const funds = await MutualFund.find(filter, projection).lean()
+            const funds = await MutualFund.find(filter, projection).limit(10).lean()
 
             if (!funds || funds.length === 0) {
                 return '[NO MATCHING FUNDS] No mutual funds matched the user\'s risk tolerance and savings. Suggest the user review their profile or consider adjusting their risk tolerance.'
@@ -167,9 +186,36 @@ export default {
         }
     },
 
-    //Function for getting ETF information (placeholder)
-    getSETFInfo() {
-        return ``
+    //Function for getting ETF information
+    async getSETFInfo(userId) {
+        try {
+            const profile = userId ? await Profile.findOne({ userId }).lean() : null
+            const allETFs = await etfHelpers.fetchAllETFs()
+            const matches = getMatchingETFs(profile || {}, allETFs)
+
+            if (!matches || matches.length === 0) {
+                return '[NO MATCHING ETFs] No ETFs matched the current criteria. Suggest the user refine their question or try a different investing goal.'
+            }
+
+            return matches.map((etf, i) => {
+                const currentPrice = etf.current_price != null ? `$${etf.current_price}` : 'N/A'
+                const ytdReturn = etf.ytd_return != null ? `${etf.ytd_return}%` : 'N/A'
+                const threeMonth = etf.three_month_return != null ? `${etf.three_month_return}%` : 'N/A'
+                const oneYear = etf.fifty_two_week_return != null ? `${etf.fifty_two_week_return}%` : 'N/A'
+                const dividendYield = etf.dividend_yield != null ? `${etf.dividend_yield}%` : 'N/A'
+                const netAssets = etf.net_assets != null ? `$${etf.net_assets}` : 'N/A'
+
+                let entry = `ETF ${i + 1}: ${etf.name} (${etf.symbol})\n`
+                entry += `  Price: ${currentPrice} | YTD: ${ytdReturn} | 3mo: ${threeMonth} | 1yr: ${oneYear}\n`
+                entry += `  Yield: ${dividendYield} | Net Assets: ${netAssets} | Market: ${etf.exchange}\n`
+                entry += `  MER: ${etf.mer ?? 'null'} | Category: ${etf.fund_category ?? 'null'}\n`
+                entry += `  Benchmark: ${etf.benchmark ?? 'null'} | Holdings: ${etf.num_holdings ?? 'null'}\n`
+                return entry
+            }).join('\n')
+        } catch (error) {
+            console.error('Error fetching ETF data:', error.message)
+            return ''
+        }
     },
 
 
@@ -190,6 +236,7 @@ export default {
             if (profile.risk_tolerance)       fields.push(`Risk tolerance: ${profile.risk_tolerance}`)
             if (profile.investment_experience) fields.push(`Investment experience: ${profile.investment_experience}`)
             if (profile.financial_goal)       fields.push(`Financial goal: ${profile.financial_goal}`)
+            if (profile.investment_preference) fields.push(`Investment preference: ${profile.investment_preference}`)
 
             if (fields.length === 0) return ''
 
@@ -199,6 +246,40 @@ export default {
             return ''
         }
     },
+
+    async getUserPortfolioContext(userId) {
+        if (!userId) return ''
+
+        try {
+            const assets = await Asset.find({ user_id: userId })
+                .sort({ updatedAt: -1 })
+                .select('symbol type quantity -_id')
+                .lean()
+
+            if (!assets || assets.length === 0) {
+                return ''
+            }
+
+            const totalQuantity = assets.reduce((sum, asset) => sum + (Number(asset.quantity) || 0), 0)
+            const etfCount = assets.filter((asset) => asset.type === 'ETF').length
+            const mfCount = assets.filter((asset) => asset.type === 'Mutual Fund').length
+
+            const holdingsLines = assets
+                .slice(0, 20)
+                .map((asset, i) => `Holding ${i + 1}: ${asset.symbol} | Type: ${asset.type} | Quantity: ${asset.quantity}`)
+
+            let summary = `Total holdings: ${assets.length} | ETFs: ${etfCount} | Mutual Funds: ${mfCount} | Aggregate quantity: ${totalQuantity}`
+            if (assets.length > 20) {
+                summary += `\n(Showing top 20 most recently updated holdings out of ${assets.length})`
+            }
+
+            return `${summary}\n${holdingsLines.join('\n')}`
+        } catch (error) {
+            console.error('Error fetching user portfolio:', error.message)
+            return ''
+        }
+    },
+
     async getInvestmentDocs(userInput) {
         try {
             // Generate embedding for the user query

@@ -4,17 +4,24 @@
 // It encapsulates the routing logic for the /api/chat namespace,
 // keeping it independent from other routing strategies.
 import express from 'express'
-import ChatController from '../controllers/chat.js'
+import ChatController from '../controllers/chatController.js'
 
-const chatRouter = express.Router()
+export function createChatRouter(controller = ChatController) {
+	const chatRouter = express.Router()
 
-// Define send chat message route
-chatRouter.post('/send', ChatController.sendMessage)
+	// Define send chat message route
+	chatRouter.post('/send', controller.sendMessage)
 
-//Get chat history for a specific user
-chatRouter.get('/history', ChatController.getUserChatHistory)
+	//Get chat history for a specific user
+	chatRouter.get('/history', controller.getUserChatHistory)
 
-//Get messages for a specific session
-chatRouter.get('/session/:sessionId', ChatController.getSessionMessages)
+	//Get messages for a specific session
+	chatRouter.get('/session/:sessionId', controller.getSessionMessages)
 
-export default chatRouter
+	//Delete a specific chat session for the current user
+	chatRouter.delete('/session/:sessionId', controller.deleteSession)
+
+	return chatRouter
+}
+
+export default createChatRouter()

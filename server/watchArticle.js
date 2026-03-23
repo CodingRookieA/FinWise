@@ -7,6 +7,8 @@ import { indexSource } from './services/article/indexService.js'
 import { cleanArticle } from './services/article/cleaningService.js'
 import { chunkArticle } from './services/article/chunkingService.js'
 import { ALLOWED_CATEGORIES, ENVIRONMENT } from './utils/constants.js'
+import dns from 'dns'
+dns.setServers(["1.1.1.1", "1.0.0.1"]);
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

@@ -25,3 +25,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Cypress
+cypress/screenshots
+
+# Coverage reports
+/coverage
+/nyc_output
+/.nyc_output
+htmlcov
+.coverage
+.coverage.*
+coverage-final.json
+lcov.info
+lcov-report
+clover.xml
+*.lcov

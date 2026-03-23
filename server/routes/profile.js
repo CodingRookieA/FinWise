@@ -7,11 +7,15 @@ import express from 'express'
 import profileController  from '../controllers/profile.js'
 import { checkAuth } from '../middleware/checkAuth.js';
 
-const profileRouter = express.Router();
+export function createProfileRouter(controller = profileController) {
+	const profileRouter = express.Router();
 
-profileRouter.get('/', checkAuth, profileController.getProfile)
-profileRouter.patch('/', checkAuth, profileController.patchProfile)
-profileRouter.get('/questionnaire', checkAuth, profileController.getRandomUnanswered)
-profileRouter.get("/meta", checkAuth, profileController.getAllFields);
+	profileRouter.get('/', checkAuth, controller.getProfile)
+	profileRouter.patch('/', checkAuth, controller.patchProfile)
+	profileRouter.get('/questionnaire', checkAuth, controller.getRandomUnanswered)
+	profileRouter.get('/meta', checkAuth, controller.getAllFields);
 
-export default profileRouter
+	return profileRouter
+}
+
+export default createProfileRouter()
