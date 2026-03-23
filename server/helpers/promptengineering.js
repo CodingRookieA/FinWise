@@ -31,12 +31,27 @@ CRITICAL RULES:
 
 10. **Source attribution**: At the very end of your response, include a metadata line in this exact format:
 [Sources: <comma-separated list of source URLs used> | Context: <"articles", "funds", "etfs", "articles+funds", "articles+etfs", "funds+etfs", "articles+funds+etfs", or "none">]
-If no context was provided, use: [Sources: none | Context: none]`;
+If no context was provided, use: [Sources: none | Context: none]
+
+11. **DEBUG: Conversation History Awareness**: At the START of your response, include a brief internal note showing what you understand from the conversation history (if any). Use this format:
+[Internal Note: Previous context - <what you see in prior messages, e.g., "User asked about CDZ.TO ETF, I recommended it with 3.24% yield"> OR "No prior context"]
+This helps us debug whether conversation continuity is working.`;
 
 export default {
     //Function for generating prompts based on user input and context
-    async generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false }) {
+    async generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false }, history = []) {
         let contextSections = []
+
+        // DEBUG: Log input parameters
+        console.log('[generatePrompt] Input history length:', history.length)
+        console.log('[generatePrompt] Classification:', JSON.stringify(classification))
+        console.log('[generatePrompt] User input:', userInput)
+        if (history.length > 0) {
+            console.log('[generatePrompt] History messages:')
+            history.forEach((msg, i) => {
+                console.log(`  ${i}. Role: ${msg.role}, Content preview: ${msg.content?.substring(0, 100)}...`)
+            })
+        }
 
         // Add user profile info if userId is provided
         if (userId) {
@@ -80,10 +95,15 @@ export default {
             : SYSTEM_PROMPT + '\n\n(No specific context provided for this query.)\n'
 
         console.log('Generated system prompt:\n', fullSystemPrompt)
+        console.log('[generatePrompt] Final messages array:')
+        console.log(`  Message 0 (system): ${fullSystemPrompt.substring(0, 200)}...`)
+        console.log(`  Messages 1-${history.length} (history): ${history.length} messages`)
+        console.log(`  Message ${history.length + 1} (user): ${userInput.substring(0, 100)}...`)
 
         // Return messages array for API calls
         return [
             { role: "system", content: fullSystemPrompt },
+            ...history,
             { role: "user", content: userInput }
         ]
     },
@@ -286,7 +306,7 @@ export default {
             const queryEmbedding = await embedText(userInput)
             const threshold = ENVIRONMENT.similarityThreshold
 
-            // Perform vector search - retrieve top 5 chunks
+            // Perform vector search - retrieve top 3 chunks
             const results = await Chunk.aggregate([
                 {
                     $vectorSearch: {
@@ -294,7 +314,7 @@ export default {
                         path: "embedding",
                         queryVector: queryEmbedding,
                         numCandidates: 100,
-                        limit: 5
+                        limit: 3
                     }
                 },
                 {

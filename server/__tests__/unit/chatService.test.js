@@ -36,7 +36,13 @@ describe('chatService', () => {
         }
         const randomUUIDFn = jest.fn().mockReturnValue('session-1')
         const aiClient = { generateAIResponse: jest.fn().mockResolvedValue('ai text') }
-        const environment = { aiGeneralUrl: 'u', aiGeneralApiKey: 'k', aiMaxTokens: 1, aiTemperature: 0.1 }
+        const environment = {
+            aiGeneralUrl: 'u',
+            aiGeneralApiKey: 'k',
+            aiMaxTokens: 1,
+            aiTemperature: 0.1,
+            historyTokenBudget: 750,
+        }
 
         return {
             service: createChatService({
@@ -65,6 +71,7 @@ describe('chatService', () => {
         expect(result.stored).toBe(false)
         expect(result.messageIds).toBeNull()
         expect(deps.MessageModel.create).not.toHaveBeenCalled()
+        expect(deps.MessageModel.find).not.toHaveBeenCalled()
     })
 
     test('stores user and ai messages for authenticated user', async () => {
@@ -81,6 +88,52 @@ describe('chatService', () => {
         expect(result.stored).toBe(true)
         expect(result.messageIds).toEqual({ userMessage: 'm1', aiMessage: 'm2' })
         expect(deps.MessageModel.create).toHaveBeenCalledTimes(2)
+    })
+
+    test('loads and injects formatted history when sessionId is provided', async () => {
+        // Arrange
+        const { service, deps } = buildService()
+        deps.promptengineeringLib.generatePrompt.mockResolvedValueOnce([
+            { content: 'system' },
+            { role: 'user', content: 'Old user message' },
+            { role: 'model', content: 'Old AI message' },
+            { content: 'current message' }
+        ])
+        deps.MessageModel.create
+            .mockResolvedValueOnce({ _id: 'm1', sessionId: 's-existing' })
+            .mockResolvedValueOnce({ _id: 'm2', sessionId: 's-existing' })
+
+        const historyLean = jest.fn().mockResolvedValue([
+            { role: 'user', content: 'Old user message' },
+            { role: 'AI', content: 'Old AI message' }
+        ])
+        const historySelect = jest.fn().mockReturnValue({ lean: historyLean })
+        const historySort = jest.fn().mockReturnValue({ select: historySelect })
+        deps.MessageModel.find.mockReturnValue({ sort: historySort })
+
+        // Act
+        await service.sendMessage({ message: 'hello', userId: 'u1', sessionId: 's-existing', sessionUserId: 'u1' })
+
+        // Assert
+        expect(deps.MessageModel.find).toHaveBeenCalledWith({ sessionId: 's-existing' })
+        expect(deps.promptengineeringLib.generatePrompt).toHaveBeenCalledWith(
+            'hello',
+            'u1',
+            expect.any(Object),
+            [
+                { role: 'user', content: 'Old user message' },
+                { role: 'model', content: 'Old AI message' }
+            ]
+        )
+        expect(deps.aiClient.generateAIResponse).toHaveBeenCalledWith(
+            expect.objectContaining({
+                userPrompt: 'current message',
+                conversationHistory: [
+                    { role: 'user', content: 'Old user message' },
+                    { role: 'model', content: 'Old AI message' }
+                ]
+            })
+        )
     })
 
     test('formats user chat history from aggregate result', async () => {

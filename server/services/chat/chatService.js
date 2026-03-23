@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto'
 import mongoose from 'mongoose'
 import { ENVIRONMENT } from '../../utils/constants.js'
 import { generateAIResponse } from '../../clients/aiClient.js'
+import { trimHistoryToTokenBudget, formatHistoryForLLM } from '../history/historyService.js'
 
 function resolveProfileUserId(sessionUserId) {
     return sessionUserId || null
@@ -48,14 +49,50 @@ export function createChatService(deps = {}) {
         const profileUserId = resolveProfileUserId(sessionUserId)
         const userProfile = await loadUserProfile(ProfileModel, profileUserId, mongooseLib)
 
+        console.log('[sendMessage] Processing message:', message.substring(0, 100))
+        console.log('[sendMessage] SessionId:', sessionId)
+
         const classification = await classifyQueryFn(message, userProfile)
         console.log('Classification result:', classification)
 
-        const messages = await promptengineeringLib.generatePrompt(message, userId, classification)
+        const fullHistory = sessionId
+            ? await MessageModel.find({ sessionId })
+                .sort({ createdAt: 1 })
+                .select('role content')
+                .lean()
+            : []
+
+        console.log('[sendMessage] Full history from DB:', fullHistory.length, 'messages')
+        if (fullHistory.length > 0) {
+            fullHistory.slice(0, 3).forEach((msg, i) => {
+                console.log(`  History[${i}]: role=${msg.role}, preview=${msg.content?.substring(0, 80)}...`)
+            })
+        }
+
+        const trimmedHistory = trimHistoryToTokenBudget(fullHistory, environment.historyTokenBudget, 20)
+        console.log('[sendMessage] Trimmed history:', trimmedHistory.length, 'messages')
+
+        const formattedHistory = formatHistoryForLLM(trimmedHistory)
+        console.log('[sendMessage] Formatted history:', formattedHistory.length, 'messages')
+        if (formattedHistory.length > 0) {
+            formattedHistory.slice(0, 3).forEach((msg, i) => {
+                console.log(`  Formatted[${i}]: role=${msg.role}, preview=${msg.content?.substring(0, 80)}...`)
+            })
+        }
+
+        const messages = await promptengineeringLib.generatePrompt(
+            message,
+            userId,
+            classification,
+            formattedHistory
+        )
+
+        console.log('[sendMessage] Messages array from generatePrompt:', messages.length, 'total messages')
 
         const aiResponse = await aiClient.generateAIResponse({
             systemPrompt: messages[0].content,
-            userPrompt: messages[1].content,
+            userPrompt: messages[messages.length - 1].content,
+            conversationHistory: messages.slice(1, -1),
             apiUrl: environment.aiGeneralUrl,
             apiKey: environment.aiGeneralApiKey,
             maxOutputTokens: environment.aiMaxTokens,
