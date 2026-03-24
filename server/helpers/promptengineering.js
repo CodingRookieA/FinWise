@@ -35,23 +35,51 @@ If no context was provided, use: [Sources: none | Context: none]
 
 11. **DEBUG: Conversation History Awareness**: At the START of your response, include a brief internal note showing what you understand from the conversation history (if any). Use this format:
 [Internal Note: Previous context - <what you see in prior messages, e.g., "User asked about CDZ.TO ETF, I recommended it with 3.24% yield"> OR "No prior context"]
-This helps us debug whether conversation continuity is working.`;
+This helps us debug whether conversation continuity is working.
+
+12. **Structured recommendations**: When you recommend specific mutual funds or ETFs,
+        append a RECOMMENDATIONS block at the very end of your response in this exact format:
+
+        RECOMMENDATIONS:
+        {
+            "SYMBOL": "one sentence reason why you recommended this fund/ETF",
+            "SYMBOL2": "reason"
+        }
+
+        Rules for RECOMMENDATIONS:
+        - Only include funds/ETFs you explicitly recommended in your response
+        - Do not include funds/ETFs you merely mentioned or compared without recommending
+        - Omit this block entirely if you made no specific recommendations
+        - Use the exact fund code or ETF ticker as the key (e.g. "MAW104", "XIU.TO")
+        - Keep each reason to 2-3 sentences
+        - In the plain text section, do not list or name specific fund codes or ETF tickers
+        - Put all specific recommended symbols and their detailed reasons only inside the RECOMMENDATIONS JSON block
+
+13. **Structured sources**: When article chunks are provided in the ARTICLE CONTEXT
+        section, and you used them to inform your response, append a SOURCES block at
+        the very end of your response (after RECOMMENDATIONS if present) in this format:
+
+        SOURCES:
+        {
+            "chunk_id_here": chunk_index_number,
+            "chunk_id_here2": chunk_index_number
+        }
+
+        Rules for SOURCES:
+        - The key is the chunk id found in the [Source N: id=<id> | ...] tag
+        - The value is the integer chunk_index from that same tag
+        - Only include chunks you actually drew from to answer the question
+        - Omit this block entirely if no article context was provided or used
+
+14. **Block placement**: RECOMMENDATIONS and SOURCES blocks must ALWAYS appear at
+        the very end of your response, after all plain text. Never interleave them with
+        your explanation. The user will only see the plain text portion - the blocks are
+        for system use only.`;
 
 export default {
     //Function for generating prompts based on user input and context
     async generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false }, history = []) {
         let contextSections = []
-
-        // DEBUG: Log input parameters
-        console.log('[generatePrompt] Input history length:', history.length)
-        console.log('[generatePrompt] Classification:', JSON.stringify(classification))
-        console.log('[generatePrompt] User input:', userInput)
-        if (history.length > 0) {
-            console.log('[generatePrompt] History messages:')
-            history.forEach((msg, i) => {
-                console.log(`  ${i}. Role: ${msg.role}, Content preview: ${msg.content?.substring(0, 100)}...`)
-            })
-        }
 
         // Add user profile info if userId is provided
         if (userId) {
@@ -95,10 +123,6 @@ export default {
             : SYSTEM_PROMPT + '\n\n(No specific context provided for this query.)\n'
 
         console.log('Generated system prompt:\n', fullSystemPrompt)
-        console.log('[generatePrompt] Final messages array:')
-        console.log(`  Message 0 (system): ${fullSystemPrompt.substring(0, 200)}...`)
-        console.log(`  Messages 1-${history.length} (history): ${history.length} messages`)
-        console.log(`  Message ${history.length + 1} (user): ${userInput.substring(0, 100)}...`)
 
         // Return messages array for API calls
         return [
@@ -337,7 +361,7 @@ export default {
 
             // Format chunks into context string
             return relevant.map((chunk, i) => 
-                `[Source ${i + 1}: ${chunk.source_url} | Category: ${chunk.source_category} | Score: ${chunk.score.toFixed(4)}]\n${chunk.content}`
+                `[Source ${i + 1}: id=${chunk._id} | URL: ${chunk.source_url} | Category: ${chunk.source_category} | Score: ${chunk.score.toFixed(4)}]\n${chunk.content}`
             ).join('\n\n')
         } catch (error) {
             console.error('Error fetching article context:', error.message)
