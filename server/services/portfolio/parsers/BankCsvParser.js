@@ -1,5 +1,3 @@
-import PortfolioHolding from '../models/PortfolioHolding.js';
-
 class BankCsvParser {
     constructor() {
         if (this.constructor === BankCsvParser) {
@@ -7,7 +5,7 @@ class BankCsvParser {
         }
     }
 
-    parse(rows) {
+    parse() {
         throw new Error('Method parse() must be implemented.');
     }
 

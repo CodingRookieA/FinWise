@@ -374,7 +374,7 @@ describe('promptengineering', () => {
 
     test('handles getSFundInfo when risk level and savings filters are both skipped', async () => {
         jest.spyOn(Profile, 'findOne').mockResolvedValue({ risk_tolerance: 'unknown', savings_balance: null })
-        jest.spyOn(MutualFund, 'find').mockImplementation((filter) => ({
+        jest.spyOn(MutualFund, 'find').mockImplementation(() => ({
             limit: () => ({
                 lean: async () => ([
                     {

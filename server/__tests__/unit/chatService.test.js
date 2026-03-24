@@ -1,4 +1,4 @@
-import { describe, test, expect, jest, beforeEach, afterAll, afterEach } from '@jest/globals'
+import { describe, test, expect, jest, beforeEach } from '@jest/globals'
 import { createChatService } from '../../services/chat/chatService.js'
 
 describe('chatService', () => {

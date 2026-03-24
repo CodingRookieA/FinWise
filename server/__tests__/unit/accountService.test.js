@@ -1,4 +1,4 @@
-import { describe, test, expect, jest, beforeEach, afterAll, afterEach } from '@jest/globals'
+import { describe, test, expect, jest, beforeEach } from '@jest/globals'
 import { createAccountService } from '../../services/account/accountService.js'
 
 describe('accountService', () => {

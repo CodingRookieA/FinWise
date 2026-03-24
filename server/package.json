@@ -20,9 +20,9 @@
     "extract-etfs": "py ./etfs/extractCanadianETFS.py"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@eslint/json": "^1.2.0",
     "eslint": "^10.1.0",
-    "eslint-plugin-unicorn": "^63.0.0",
     "globals": "^17.4.0",
     "jest": "^29.7.0",
     "mongodb-memory-server": "^10.1.4",
