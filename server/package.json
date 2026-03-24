@@ -12,6 +12,7 @@
     "test:security": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config jest.config.security.js --runInBand",
     "start": "node index.js",
     "dev": "nodemon --env-file=.env index.js",
+    "lint": "eslint .",
     "ar": "node addArticle.js",
     "watch": "node watchArticle.js",
     "test-classifier": "node testClassifier.js",
