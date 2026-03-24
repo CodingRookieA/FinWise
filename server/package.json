@@ -10,7 +10,7 @@
     "test:unit": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js __tests__/unit --runInBand",
     "test:integration": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js __tests__/integration --runInBand",
     "test:security": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --config jest.config.security.js --runInBand",
-    "start": "node --env-file=.env index.js",
+    "start": "node index.js",
     "dev": "nodemon --env-file=.env index.js",
     "ar": "node addArticle.js",
     "watch": "node watchArticle.js",

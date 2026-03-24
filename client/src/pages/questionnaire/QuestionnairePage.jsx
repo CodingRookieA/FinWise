@@ -4,6 +4,7 @@ import QuestionnaireCard from "../../components/questionnaireSections/card";
 
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "../../theme";
+import { SERVERURL } from "../../utils/constants";
 
 import {
   Box,
@@ -27,7 +28,7 @@ export function QuestionnairePage() {
       try {
         setLoading(true);
         const response = await fetch(
-            "http://localhost:9000/api/profile/questionnaire",
+            `${SERVERURL}/api/profile/questionnaire`,
             {
                 method: "GET",
                 headers: { "x-demo-user": "demo" },
@@ -70,7 +71,7 @@ export function QuestionnairePage() {
     try {
       setSubmitting(true);
 
-      const response = await fetch("http://localhost:9000/api/profile", {
+      const response = await fetch(`${SERVERURL}/api/profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
