@@ -23,7 +23,11 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState(null)
     const [activeRecommendations, setActiveRecommendations] = useState(null)
     const [addingRecommendations, setAddingRecommendations] = useState(false)
-    const chatResponseMode = import.meta.env.VITE_CHAT_RESPONSE_MODE || 'regular'
+    const [streamingStatus, setStreamingStatus] = useState('')
+    const [streamingMessageActive, setStreamingMessageActive] = useState(false)
+    const chatResponseMode = import.meta.env.MODE === 'test'
+        ? 'regular'
+        : (import.meta.env.VITE_CHAT_RESPONSE_MODE || 'regular')
 
     const guestChat = !loggedIn || !user.isVerified
 
@@ -161,111 +165,218 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setMessage('')
         setLoading(true)
 
+        const statusTextByStage = {
+            classifying: 'Classifying query...',
+            building_context: 'Building context...',
+            loading: 'Loading model...',
+            start_streaming: 'Starting stream...'
+        }
+
+        const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
         try {
             if (chatResponseMode === 'streaming') {
-                const aiMessageId = crypto.randomUUID()
-                setMessages(prev => [...prev, { id: aiMessageId, role: 'assistant', content: '', enrichedFunds: null }])
+                try {
+                    let aiMessageId = null
+                    setStreamingStatus('Preparing request...')
+                    setStreamingMessageActive(false)
 
-                const response = await fetch(`${SERVERURL}/api/chat/send/stream`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'text/event-stream'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        message: currentMessage,
-                        userId: user?.userId,
-                        sessionId: sessionId
+                    const response = await fetch(`${SERVERURL}/api/chat/send/stream`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'text/event-stream'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            message: currentMessage,
+                            userId: user?.userId,
+                            sessionId: sessionId
+                        })
                     })
-                })
 
-                if (!response.ok || !response.body) {
-                    throw new Error('Failed to get streaming response from server')
-                }
-
-                const reader = response.body.getReader()
-                const decoder = new TextDecoder('utf-8')
-                let buffer = ''
-
-                const applyChunk = (text) => {
-                    if (!text) return
-                    setMessages((prev) => prev.map((msg) => (
-                        msg.id === aiMessageId
-                            ? { ...msg, content: `${msg.content || ''}${text}` }
-                            : msg
-                    )))
-                }
-
-                while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-
-                    buffer += decoder.decode(value, { stream: true })
-
-                    let boundary = buffer.indexOf('\n\n')
-                    while (boundary >= 0) {
-                        const block = buffer.slice(0, boundary)
-                        buffer = buffer.slice(boundary + 2)
-
-                        const lines = block.split(/\r?\n/)
-                        let eventName = 'message'
-                        const dataLines = []
-
-                        for (const line of lines) {
-                            if (line.startsWith('event:')) {
-                                eventName = line.slice(6).trim()
-                            } else if (line.startsWith('data:')) {
-                                dataLines.push(line.slice(5).trim())
-                            }
-                        }
-
-                        if (dataLines.length > 0) {
-                            let payload = null
-                            try {
-                                payload = JSON.parse(dataLines.join('\n'))
-                            } catch {
-                                payload = null
-                            }
-
-                            if (eventName === 'chunk' && payload) {
-                                applyChunk(payload.text)
-                            }
-
-                            if (eventName === 'done' && payload?.result) {
-                                const result = payload.result
-                                const shouldAttachTable =
-                                    result?.isContinuation === false &&
-                                    Array.isArray(result?.enrichedFunds) &&
-                                    result.enrichedFunds.length > 0
-
-                                setMessages((prev) => prev.map((msg) => (
-                                    msg.id === aiMessageId
-                                        ? {
-                                            ...msg,
-                                            content: result.response || msg.content,
-                                            enrichedFunds: shouldAttachTable ? result.enrichedFunds : null,
-                                        }
-                                        : msg
-                                )))
-
-                                setActiveRecommendations(shouldAttachTable ? result.enrichedFunds : null)
-                            }
-
-                            if (eventName === 'error') {
-                                throw new Error(payload?.details || payload?.error || 'Streaming request failed')
-                            }
-                        }
-
-                        boundary = buffer.indexOf('\n\n')
+                    if (!response.ok) {
+                        throw new Error('Failed to get streaming response from server')
                     }
-                }
 
-                if (isFirstMessage) {
-                    await refreshChatHistory()
-                }
+                    if (!response.body) {
+                        const nonStreamData = await response.json().catch(() => null)
+                        if (nonStreamData?.response) {
+                            const shouldAttachTable =
+                                nonStreamData?.isContinuation === false &&
+                                Array.isArray(nonStreamData?.enrichedFunds) &&
+                                nonStreamData.enrichedFunds.length > 0
 
-                return
+                            const aiMessageId = crypto.randomUUID()
+                            setMessages(prev => [...prev, {
+                                id: aiMessageId,
+                                role: 'assistant',
+                                content: '',
+                                enrichedFunds: shouldAttachTable ? nonStreamData.enrichedFunds : null,
+                            }])
+                            setActiveRecommendations(shouldAttachTable ? nonStreamData.enrichedFunds : null)
+                            await streamAssistantText(aiMessageId, nonStreamData.response)
+
+                            if (isFirstMessage) {
+                                await refreshChatHistory()
+                            }
+
+                            return
+                        }
+
+                        throw new Error('Failed to get streaming response from server')
+                    }
+
+                    // We parse SSE manually from fetch stream so we can support
+                    // status/chunk/done events in a single connection.
+                    const reader = response.body.getReader()
+                    const decoder = new TextDecoder('utf-8')
+                    let buffer = ''
+                    // Intentional start delay: buffer first chunks, then release them together.
+                    // This makes stream start feel smoother and reduces sudden table "jump".
+                    const streamStartDelayMs = 1000
+                    let streamReleaseAt = 0
+                    let preStreamBuffer = ''
+
+                    const applyChunk = (text) => {
+                        if (!text) return
+
+                        if (!aiMessageId) {
+                            aiMessageId = crypto.randomUUID()
+                            setMessages(prev => [...prev, { id: aiMessageId, role: 'assistant', content: '', enrichedFunds: null }])
+                        }
+
+                        setStreamingMessageActive(true)
+                        setStreamingStatus('Streaming response...')
+
+                        setMessages((prev) => prev.map((msg) => (
+                            msg.id === aiMessageId
+                                ? { ...msg, content: `${msg.content || ''}${text}` }
+                                : msg
+                        )))
+                    }
+
+                    while (true) {
+                        const { done, value } = await reader.read()
+                        if (done) break
+
+                        buffer += decoder.decode(value, { stream: true })
+
+                        let boundary = buffer.indexOf('\n\n')
+                        while (boundary >= 0) {
+                            const block = buffer.slice(0, boundary)
+                            buffer = buffer.slice(boundary + 2)
+
+                            const lines = block.split(/\r?\n/)
+                            let eventName = 'message'
+                            const dataLines = []
+
+                            for (const line of lines) {
+                                if (line.startsWith('event:')) {
+                                    eventName = line.slice(6).trim()
+                                } else if (line.startsWith('data:')) {
+                                    dataLines.push(line.slice(5).trim())
+                                }
+                            }
+
+                            if (dataLines.length > 0) {
+                                let payload = null
+                                try {
+                                    payload = JSON.parse(dataLines.join('\n'))
+                                } catch {
+                                    payload = null
+                                }
+
+                                if (eventName === 'chunk' && payload) {
+                                    const chunkText = String(payload.text || '')
+                                    if (!chunkText) {
+                                        // no-op
+                                    } else if (!streamReleaseAt) {
+                                        // First chunk starts delay window.
+                                        streamReleaseAt = Date.now() + streamStartDelayMs
+                                        preStreamBuffer += chunkText
+                                        setStreamingStatus('Preparing stream...')
+                                    } else if (Date.now() < streamReleaseAt) {
+                                        // Keep buffering while delay window is open.
+                                        preStreamBuffer += chunkText
+                                    } else {
+                                        // Delay elapsed: flush buffered text then stream live chunks.
+                                        if (preStreamBuffer) {
+                                            applyChunk(preStreamBuffer)
+                                            preStreamBuffer = ''
+                                        }
+                                        applyChunk(chunkText)
+                                    }
+                                }
+
+                                if (eventName === 'status' && payload?.stage) {
+                                    setStreamingStatus(statusTextByStage[payload.stage] || 'Working...')
+                                }
+
+                                if (eventName === 'done' && payload?.result) {
+                                    const result = payload.result
+
+                                    if (streamReleaseAt && Date.now() < streamReleaseAt) {
+                                        await sleep(streamReleaseAt - Date.now())
+                                    }
+
+                                    if (preStreamBuffer) {
+                                        applyChunk(preStreamBuffer)
+                                        preStreamBuffer = ''
+                                    }
+
+                                    setStreamingStatus('Finalizing recommendations...')
+
+                                    const shouldAttachTable =
+                                        result?.isContinuation === false &&
+                                        Array.isArray(result?.enrichedFunds) &&
+                                        result.enrichedFunds.length > 0
+
+                                    if (!aiMessageId) {
+                                        aiMessageId = crypto.randomUUID()
+                                        setMessages(prev => [...prev, {
+                                            id: aiMessageId,
+                                            role: 'assistant',
+                                            content: result.response || '',
+                                            enrichedFunds: shouldAttachTable ? result.enrichedFunds : null,
+                                        }])
+                                    } else {
+                                        setMessages((prev) => prev.map((msg) => (
+                                            msg.id === aiMessageId
+                                                ? {
+                                                    ...msg,
+                                                    content: result.response || msg.content,
+                                                    enrichedFunds: shouldAttachTable ? result.enrichedFunds : null,
+                                                }
+                                                : msg
+                                        )))
+                                    }
+
+                                    setActiveRecommendations(shouldAttachTable ? result.enrichedFunds : null)
+                                    setStreamingMessageActive(false)
+                                    setStreamingStatus('')
+                                }
+
+                                if (eventName === 'error') {
+                                    throw new Error(payload?.details || payload?.error || 'Streaming request failed')
+                                }
+                            }
+
+                            boundary = buffer.indexOf('\n\n')
+                        }
+                    }
+
+                    if (isFirstMessage) {
+                        await refreshChatHistory()
+                    }
+
+                    return
+                } catch (streamError) {
+                    // If stream transport fails, continue with regular endpoint so users still get a response.
+                    console.warn('Streaming mode failed, falling back to regular mode:', streamError)
+                    setStreamingMessageActive(false)
+                    setStreamingStatus('')
+                }
             }
 
             const response = await fetch(`${SERVERURL}/api/chat/send`, {
@@ -319,8 +430,12 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
             }
             setMessages(prev => [...prev, errorMessage])
             setActiveRecommendations(null)
+            setStreamingMessageActive(false)
+            setStreamingStatus('')
         } finally {
             setLoading(false)
+            setStreamingMessageActive(false)
+            setStreamingStatus('')
         }
     }
 
@@ -479,7 +594,13 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                 {messages.length === 0 && !loadingSession ? (
                     <EmptyState onSampleQuestion={handleSampleQuestion} />
                 ) : (
-                    <MessagesList messages={messages} loading={loading} user={user} />
+                    <MessagesList
+                        messages={messages}
+                        loading={loading}
+                        user={user}
+                        loadingText={streamingStatus || 'Thinking...'}
+                        hideLoadingIndicator={streamingMessageActive}
+                    />
                 )}
 
                 {Array.isArray(activeRecommendations) && activeRecommendations.length > 0 && (

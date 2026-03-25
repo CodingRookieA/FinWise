@@ -72,6 +72,8 @@ function findMetadataStartIndex(rawText) {
         return -1
     }
 
+    // Structured metadata is appended at the end. We stream only the visible text
+    // and keep metadata server-side for parsing/enrichment.
     const match = rawText.match(/(?:^|\n)\s*(RECOMMENDATIONS|SOURCES)\s*:/i)
     return typeof match?.index === 'number' ? match.index : -1
 }
@@ -153,7 +155,12 @@ export function createChatService(deps = {}) {
         aiClient = { generateAIResponse, generateAIResponseStream },
     } = deps
 
-    async function buildPromptMessages({ message, userId, sessionId, sessionUserId }) {
+    async function buildPromptMessages({ message, userId, sessionId, sessionUserId, onStatus }) {
+        if (typeof onStatus === 'function') {
+            // Frontend uses status events to show progress before first streamed chunk.
+            await onStatus('classifying')
+        }
+
         const profileUserId = resolveProfileUserId(sessionUserId)
         const userProfile = await loadUserProfile(ProfileModel, profileUserId, mongooseLib)
 
@@ -169,6 +176,10 @@ export function createChatService(deps = {}) {
         const classification = await classifyQueryFn(message, userProfile, classifierHistoryWindow)
         let isContinuationForResponse = Boolean(classification.is_continuation)
         console.log('Classification result:', classification)
+
+        if (typeof onStatus === 'function') {
+            await onStatus('building_context')
+        }
 
         const trimmedHistory = trimHistoryToTokenBudget(fullHistory, environment.historyTokenBudget, 20)
         const formattedHistory = formatHistoryForLLM(trimmedHistory)
@@ -342,16 +353,24 @@ export function createChatService(deps = {}) {
         }
     }
 
-    async function sendMessageStream({ message, userId, sessionId, sessionUserId, onVisibleChunk }) {
+    async function sendMessageStream({ message, userId, sessionId, sessionUserId, onVisibleChunk, onStatus }) {
         const { messages, isContinuationForResponse } = await buildPromptMessages({
             message,
             userId,
             sessionId,
             sessionUserId,
+            onStatus,
         })
+
+        if (typeof onStatus === 'function') {
+            await onStatus('loading')
+            await onStatus('start_streaming')
+        }
 
         let aiResponse = ''
         let emittedChars = 0
+        // Small holdback reduces the chance of leaking a partial metadata header
+        // when the model starts emitting RECOMMENDATIONS/SOURCES near the end.
         const minHoldback = 48
 
         for await (const chunk of aiClient.generateAIResponseStream({
@@ -377,6 +396,21 @@ export function createChatService(deps = {}) {
                     await onVisibleChunk(visibleChunk)
                 }
             }
+        }
+
+        if (!aiResponse || !aiResponse.trim()) {
+            // Safety net: if stream transport yields no text, use the regular API path
+            // so the request still succeeds and persistence remains valid.
+            console.warn('[sendMessageStream] Empty streamed response received; falling back to non-stream generation')
+            aiResponse = await aiClient.generateAIResponse({
+                systemPrompt: messages[0].content,
+                userPrompt: messages[messages.length - 1].content,
+                conversationHistory: messages.slice(1, -1),
+                apiUrl: environment.aiGeneralUrl,
+                apiKey: environment.aiGeneralApiKey,
+                maxOutputTokens: environment.aiMaxTokens,
+                temperature: environment.aiTemperature,
+            })
         }
 
         console.log('[sendMessageStream] Raw AI response:', aiResponse)

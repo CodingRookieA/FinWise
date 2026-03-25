@@ -58,6 +58,9 @@ export function createChatController(chatService = createChatService()) {
                     userId,
                     sessionId,
                     sessionUserId: req.session.userId,
+                    onStatus: async (stage) => {
+                        writeEvent('status', { stage })
+                    },
                     onVisibleChunk: async (textChunk) => {
                         writeEvent('chunk', { text: textChunk })
                     }
