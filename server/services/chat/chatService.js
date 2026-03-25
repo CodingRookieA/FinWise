@@ -1,5 +1,6 @@
 import promptengineering from '../../helpers/promptengineering.js'
 import { classifyQuery } from '../../helpers/classifier.js'
+import { reconstructContinuityContext } from '../../helpers/continuityService.js'
 import Message from '../../models/Message.js'
 import { Profile } from '../../models/profile.js'
 import { randomUUID } from 'crypto'
@@ -8,6 +9,9 @@ import { ENVIRONMENT } from '../../utils/constants.js'
 import { generateAIResponse } from '../../clients/aiClient.js'
 import { trimHistoryToTokenBudget, formatHistoryForLLM } from '../history/historyService.js'
 import { parseAIResponse } from '../../helpers/responseParser.js'
+import { MutualFund } from '../../models/MutualFund.js'
+import etfHelpers from '../../helpers/etfHelpers.js'
+import { slimETF } from '../../helpers/etfService.js'
 
 function resolveProfileUserId(sessionUserId) {
     return sessionUserId || null
@@ -34,10 +38,104 @@ async function assertSessionOwnership(MessageModel, sessionId, sessionUserId, mo
     return Boolean(sessionExists)
 }
 
+function detectPriorAssetTypes(funds = [], etfs = []) {
+    if (!Array.isArray(funds) || funds.length === 0) {
+        return { hasETFs: Array.isArray(etfs) && etfs.length > 0, hasFunds: false }
+    }
+
+    const hasETFsFromFundsArray = funds.some((f) => {
+        const symbol = String(f?.symbol || '').toUpperCase()
+        const fundCode = String(f?.fund_code || '').toUpperCase()
+        return symbol.endsWith('.TO') || (f?.fund_code == null && symbol.length > 0) || fundCode.endsWith('.TO')
+    })
+
+    const hasFunds = funds.some((f) => {
+        const fundCode = String(f?.fund_code || '').toUpperCase()
+        return fundCode.length > 0 && !fundCode.endsWith('.TO')
+    })
+
+    const hasETFs = hasETFsFromFundsArray || (Array.isArray(etfs) && etfs.length > 0)
+    return { hasETFs, hasFunds }
+}
+
+function shouldResetContinuity(classification, priorTypes) {
+    const priorOnlyETFs = priorTypes.hasETFs && !priorTypes.hasFunds
+    const priorOnlyFunds = priorTypes.hasFunds && !priorTypes.hasETFs
+    const newOnlyFunds = classification.needs_funds && !classification.needs_etfs
+    const newOnlyETFs = classification.needs_etfs && !classification.needs_funds
+
+    return (priorOnlyETFs && newOnlyFunds) || (priorOnlyFunds && newOnlyETFs)
+}
+
+async function enrichRecommendations(recommendations, deps = {}) {
+    const {
+        MutualFundModel = MutualFund,
+        fetchAllETFsFn = () => etfHelpers.fetchAllETFs(),
+        slimETFFn = slimETF,
+    } = deps
+
+    try {
+        if (!recommendations || typeof recommendations !== 'object') {
+            return null
+        }
+
+        const symbols = Object.keys(recommendations)
+        if (symbols.length === 0) {
+            return null
+        }
+
+        const etfCodes = symbols.filter((s) => /\.TO$/i.test(s))
+        const mfCodes = symbols.filter((s) => !/\.TO$/i.test(s))
+
+        const [mutualFunds, allETFsRaw] = await Promise.all([
+            mfCodes.length > 0
+                ? MutualFundModel.find({ fund_code: { $in: mfCodes } }).lean()
+                : Promise.resolve([]),
+            etfCodes.length > 0
+                ? fetchAllETFsFn()
+                : Promise.resolve([])
+        ])
+
+        const etfBySymbol = new Map(
+            (Array.isArray(allETFsRaw) ? allETFsRaw : [])
+                .filter((e) => e?.symbol)
+                .map((e) => [String(e.symbol).toUpperCase(), e])
+        )
+
+        const matchedETFs = etfCodes
+            .map((code) => etfBySymbol.get(String(code).toUpperCase()))
+            .filter(Boolean)
+            .map((etf) => slimETFFn(etf))
+
+        const enrichedFunds = [
+            ...(Array.isArray(mutualFunds) ? mutualFunds : []).map((f) => ({
+                ...f,
+                asset_type: 'mutual_fund',
+                symbol: f?.fund_code || null,
+                ai_reason: recommendations[f?.fund_code] || null,
+            })),
+            ...matchedETFs.map((e) => ({
+                ...e,
+                asset_type: 'etf',
+                ai_reason: recommendations[e?.symbol] || null,
+            }))
+        ]
+
+        return enrichedFunds.length > 0 ? enrichedFunds : null
+    } catch (error) {
+        console.error('[sendMessage] Recommendation enrichment failed:', error.message)
+        return null
+    }
+}
+
 export function createChatService(deps = {}) {
     const {
         promptengineeringLib = promptengineering,
         classifyQueryFn = classifyQuery,
+        reconstructContinuityContextFn = reconstructContinuityContext,
+        MutualFundModel = MutualFund,
+        fetchAllETFsFn = () => etfHelpers.fetchAllETFs(),
+        slimETFFn = slimETF,
         MessageModel = Message,
         ProfileModel = Profile,
         randomUUIDFn = randomUUID,
@@ -50,9 +148,6 @@ export function createChatService(deps = {}) {
         const profileUserId = resolveProfileUserId(sessionUserId)
         const userProfile = await loadUserProfile(ProfileModel, profileUserId, mongooseLib)
 
-        const classification = await classifyQueryFn(message, userProfile)
-        console.log('Classification result:', classification)
-
         const fullHistory = sessionId
             ? await MessageModel.find({ sessionId })
                 .sort({ createdAt: 1 })
@@ -60,16 +155,97 @@ export function createChatService(deps = {}) {
                 .lean()
             : []
 
+        const classifierHistoryWindow = fullHistory.slice(-10)
+
+        const classification = await classifyQueryFn(message, userProfile, classifierHistoryWindow)
+        let isContinuationForResponse = Boolean(classification.is_continuation)
+        console.log('Classification result:', classification)
+
         const trimmedHistory = trimHistoryToTokenBudget(fullHistory, environment.historyTokenBudget, 20)
 
         const formattedHistory = formatHistoryForLLM(trimmedHistory)
 
-        const messages = await promptengineeringLib.generatePrompt(
-            message,
-            userId,
-            classification,
-            formattedHistory
-        )
+        let messages
+
+        if (classification.is_continuation && sessionId) {
+            // CONTINUITY MODE — reconstruct context from prior messages
+            console.log('[sendMessage] Continuity mode activated')
+
+            const { funds, chunks, etfs, hasContext } = await reconstructContinuityContextFn(
+                sessionId,
+                MessageModel
+            )
+
+            if (hasContext) {
+                const priorTypes = detectPriorAssetTypes(funds, etfs)
+                const shouldReset = shouldResetContinuity(classification, priorTypes)
+
+                if (shouldReset) {
+                    console.log('[sendMessage] Continuity reset - asset type conflict detected, running full pipeline')
+                    isContinuationForResponse = false
+                    messages = await promptengineeringLib.generatePrompt(
+                        message,
+                        userId,
+                        classification,
+                        formattedHistory
+                    )
+                } else {
+                // MERGE MODE: keep reconstructed context and fetch only what's missing
+                // for the current classification intent.
+                const missingNeededContext = []
+                if (classification.needs_articles && chunks.length === 0) missingNeededContext.push('articles')
+                if (classification.needs_funds && funds.length === 0) missingNeededContext.push('funds')
+                if (classification.needs_etfs && etfs.length === 0) missingNeededContext.push('etfs')
+
+                const continuityClassification = {
+                    ...classification,
+                    // Fetch only missing required context types.
+                    needs_articles: classification.needs_articles && chunks.length === 0,
+                    needs_funds: classification.needs_funds && funds.length === 0,
+                    needs_etfs: classification.needs_etfs && etfs.length === 0,
+                    needs_distribution_mutual_funds:
+                        classification.needs_distribution_mutual_funds &&
+                        classification.needs_funds &&
+                        funds.length === 0,
+                    // Always keep whatever context continuity reconstructed.
+                    _prefetchedFunds: funds,
+                    _prefetchedChunks: chunks,
+                    _prefetchedEtfs: etfs,
+                }
+
+                messages = await promptengineeringLib.generatePrompt(
+                    message,
+                    userId,
+                    continuityClassification,
+                    formattedHistory
+                )
+
+                if (missingNeededContext.length > 0) {
+                    console.log(`[sendMessage] Continuity merge mode: injected ${funds.length} funds, ${etfs.length} etfs, ${chunks.length} chunks; fetching missing ${missingNeededContext.join(', ')}`)
+                } else {
+                    console.log('[sendMessage] Continuity merge mode: fully served from reconstructed context')
+                }
+                }
+            } else {
+                // No usable prior context found — fall back to full pipeline
+                console.log('[sendMessage] Continuity mode: no usable prior context found, falling back to full pipeline')
+                messages = await promptengineeringLib.generatePrompt(
+                    message,
+                    userId,
+                    classification,
+                    formattedHistory
+                )
+            }
+
+        } else {
+            // NORMAL MODE — full retrieval pipeline
+            messages = await promptengineeringLib.generatePrompt(
+                message,
+                userId,
+                classification,
+                formattedHistory
+            )
+        }
 
         const aiResponse = await aiClient.generateAIResponse({
             systemPrompt: messages[0].content,
@@ -84,8 +260,14 @@ export function createChatService(deps = {}) {
         console.log('[sendMessage] Raw AI response:', aiResponse)
 
         const { message: parsedMessage, recommendations, sources } = parseAIResponse(aiResponse)
-        console.log('[sendMessage] Parsed response - recommendations:', recommendations ? Object.keys(recommendations) : 'none')
-        console.log('[sendMessage] Parsed response - sources:', sources ? Object.keys(sources).length + ' chunks' : 'none')
+        console.log('[sendMessage] Parsed response - recommendations (raw):', recommendations)
+        console.log('[sendMessage] Parsed response - sources (raw):', sources)
+
+        const enrichedFunds = await enrichRecommendations(recommendations, {
+            MutualFundModel,
+            fetchAllETFsFn,
+            slimETFFn,
+        })
 
         const shouldStore = Boolean(sessionUserId)
         let savedUserMessage = null
@@ -121,7 +303,10 @@ export function createChatService(deps = {}) {
             messageIds: shouldStore ? {
                 userMessage: savedUserMessage._id,
                 aiMessage: savedAIMessage._id
-            } : null
+            } : null,
+            isContinuation: isContinuationForResponse,
+            recommendations: recommendations || null,
+            enrichedFunds,
         }
     }
 
@@ -174,7 +359,9 @@ export function createChatService(deps = {}) {
             forbidden: false,
             messages: messages.map(msg => ({
                 role: msg.role,
-                content: msg.content,
+                content: msg.role === 'AI'
+                    ? parseAIResponse(msg.content).message
+                    : msg.content,
                 timestamp: msg.createdAt
             }))
         }

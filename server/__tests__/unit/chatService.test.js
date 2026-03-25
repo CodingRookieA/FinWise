@@ -23,6 +23,7 @@ describe('chatService', () => {
             needs_funds: false,
             needs_etfs: false,
             needs_distribution_mutual_funds: false,
+            is_continuation: false,
         })
         const MessageModel = {
             create: jest.fn(),
@@ -36,6 +37,12 @@ describe('chatService', () => {
         }
         const randomUUIDFn = jest.fn().mockReturnValue('session-1')
         const aiClient = { generateAIResponse: jest.fn().mockResolvedValue('ai text') }
+        const reconstructContinuityContextFn = jest.fn().mockResolvedValue({
+            funds: [],
+            chunks: [],
+            etfs: [],
+            hasContext: false,
+        })
         const environment = {
             aiGeneralUrl: 'u',
             aiGeneralApiKey: 'k',
@@ -52,11 +59,12 @@ describe('chatService', () => {
                 ProfileModel,
                 randomUUIDFn,
                 aiClient,
+                reconstructContinuityContextFn,
                 environment,
                 mongooseLib: createFakeMongoose(),
                 ...overrides,
             }),
-            deps: { promptengineeringLib, classifyQueryFn, MessageModel, ProfileModel, aiClient }
+            deps: { promptengineeringLib, classifyQueryFn, MessageModel, ProfileModel, aiClient, reconstructContinuityContextFn }
         }
     }
 
@@ -72,6 +80,7 @@ describe('chatService', () => {
         expect(result.messageIds).toBeNull()
         expect(deps.MessageModel.create).not.toHaveBeenCalled()
         expect(deps.MessageModel.find).not.toHaveBeenCalled()
+        expect(deps.classifyQueryFn).toHaveBeenCalledWith('hi', null, [])
     })
 
     test('stores user and ai messages for authenticated user', async () => {
@@ -116,6 +125,14 @@ describe('chatService', () => {
 
         // Assert
         expect(deps.MessageModel.find).toHaveBeenCalledWith({ sessionId: 's-existing' })
+        expect(deps.classifyQueryFn).toHaveBeenCalledWith(
+            'hello',
+            null,
+            [
+                { role: 'user', content: 'Old user message' },
+                { role: 'AI', content: 'Old AI message' }
+            ]
+        )
         expect(deps.promptengineeringLib.generatePrompt).toHaveBeenCalledWith(
             'hello',
             'u1',
@@ -169,7 +186,12 @@ describe('chatService', () => {
         const { service, deps } = buildService()
         deps.MessageModel.exists.mockResolvedValue(true)
         const select = jest.fn().mockResolvedValue([
-            { role: 'user', content: 'Hi', createdAt: new Date('2026-01-01T00:00:00.000Z') }
+            { role: 'user', content: 'Hi', createdAt: new Date('2026-01-01T00:00:00.000Z') },
+            {
+                role: 'AI',
+                content: 'Short answer.\n\nRECOMMENDATIONS: {"CDZ.TO": "Reason text"}',
+                createdAt: new Date('2026-01-01T00:01:00.000Z')
+            }
         ])
         const sort = jest.fn().mockReturnValue({ select })
         deps.MessageModel.find.mockReturnValue({ sort })
@@ -180,6 +202,7 @@ describe('chatService', () => {
         // Assert
         expect(result.forbidden).toBe(false)
         expect(result.messages[0]).toMatchObject({ role: 'user', content: 'Hi' })
+        expect(result.messages[1]).toMatchObject({ role: 'AI', content: 'Short answer.' })
         expect(deps.MessageModel.find).toHaveBeenCalledWith({ sessionId: 's1' })
     })
 
@@ -223,5 +246,87 @@ describe('chatService', () => {
 
         // Assert
         expect(result).toEqual({ forbidden: false, notFound: false, deletedCount: 3 })
+    })
+
+    test('continuity merge preserves prefetched context and fetches only missing required types', async () => {
+        // Arrange
+        const { service, deps } = buildService()
+        deps.classifyQueryFn.mockResolvedValueOnce({
+            needs_articles: false,
+            needs_funds: true,
+            needs_etfs: false,
+            needs_distribution_mutual_funds: false,
+            is_continuation: true,
+        })
+
+        const historyLean = jest.fn().mockResolvedValue([
+            { role: 'user', content: 'recommend ETFs' },
+            { role: 'AI', content: 'I recommend CDZ.TO' }
+        ])
+        const historySelect = jest.fn().mockReturnValue({ lean: historyLean })
+        const historySort = jest.fn().mockReturnValue({ select: historySelect })
+        deps.MessageModel.find.mockReturnValue({ sort: historySort })
+
+        deps.reconstructContinuityContextFn.mockResolvedValueOnce({
+            funds: [{ fund_code: 'RBF1035', name: 'Fund' }],
+            chunks: [],
+            etfs: [{ symbol: 'CDZ.TO', name: 'ETF' }],
+            hasContext: true,
+        })
+
+        // Act
+        await service.sendMessage({ message: 'recommend me mutual funds too', userId: 'u1', sessionId: 's-existing', sessionUserId: null })
+
+        // Assert
+        expect(deps.promptengineeringLib.generatePrompt).toHaveBeenCalledWith(
+            'recommend me mutual funds too',
+            'u1',
+            expect.objectContaining({
+                _prefetchedEtfs: [{ symbol: 'CDZ.TO', name: 'ETF' }],
+                _prefetchedFunds: [{ fund_code: 'RBF1035', name: 'Fund' }],
+                needs_funds: false,
+                needs_etfs: false,
+                needs_articles: false,
+            }),
+            expect.any(Array)
+        )
+    })
+
+    test('continuity resets on prior-only ETF context with new-only mutual-fund query', async () => {
+        // Arrange
+        const { service, deps } = buildService()
+        deps.classifyQueryFn.mockResolvedValueOnce({
+            needs_articles: false,
+            needs_funds: true,
+            needs_etfs: false,
+            needs_distribution_mutual_funds: false,
+            is_continuation: true,
+        })
+
+        const historyLean = jest.fn().mockResolvedValue([
+            { role: 'user', content: 'recommend ETFs' },
+            { role: 'AI', content: 'I recommend CDZ.TO' }
+        ])
+        const historySelect = jest.fn().mockReturnValue({ lean: historyLean })
+        const historySort = jest.fn().mockReturnValue({ select: historySelect })
+        deps.MessageModel.find.mockReturnValue({ sort: historySort })
+
+        deps.reconstructContinuityContextFn.mockResolvedValueOnce({
+            funds: [],
+            chunks: [],
+            etfs: [{ symbol: 'CDZ.TO', name: 'ETF' }],
+            hasContext: true,
+        })
+
+        // Act
+        await service.sendMessage({ message: 'recommend me mutual funds too', userId: 'u1', sessionId: 's-existing', sessionUserId: null })
+
+        // Assert
+        expect(deps.promptengineeringLib.generatePrompt).toHaveBeenCalledWith(
+            'recommend me mutual funds too',
+            'u1',
+            expect.not.objectContaining({ _prefetchedEtfs: expect.anything() }),
+            expect.any(Array)
+        )
     })
 })

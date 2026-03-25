@@ -4,9 +4,11 @@ import MenuIcon from '@mui/icons-material/Menu'
 import { Sidebar } from '../../components/chat/sidebar/Sidebar'
 import { EmptyState } from '../../components/chat/emptyState/EmptyState'
 import { MessagesList } from '../../components/chat/messagesList/MessagesList'
+import { RecommendationPanel } from '../../components/chat/recommendationPanel/RecommendationPanel'
 import { InputArea } from '../../components/chat/inputArea/InputArea'
 import { InfoAlert } from '../../components/alerts/InfoAlert'
 import { SERVERURL } from '../../utils/constants'
+import toastHelper from '../../utils/toastHelper'
 
 export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [message, setMessage] = useState('')
@@ -19,6 +21,8 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [loadingSession, setLoadingSession] = useState(false)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState(null)
+    const [activeRecommendations, setActiveRecommendations] = useState(null)
+    const [addingRecommendations, setAddingRecommendations] = useState(false)
 
     const guestChat = !loggedIn || !user.isVerified
 
@@ -56,7 +60,56 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     useEffect(() => {
         setMessages([])
         setSessionId(crypto.randomUUID())
+        setActiveRecommendations(null)
     }, [user?.userId, guestChat])
+
+    const addSingleRecommendation = async (symbol, assetType) => {
+        const normalizedSymbol =
+            assetType === 'mutual_fund'
+                ? symbol
+                : String(symbol || '').replace(/\.TO$/i, '').trim()
+
+        const payload = {
+            symbol: normalizedSymbol,
+            quantity: 1,
+            type: assetType === 'mutual_fund' ? 'Mutual Fund' : 'ETF'
+        }
+
+        const response = await fetch(`${SERVERURL}/api/assets`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(payload),
+        })
+
+        if (!response.ok) {
+            const body = await response.json().catch(() => ({}))
+            throw new Error(body.message || `Failed to add ${symbol}`)
+        }
+    }
+
+    const handleAddSelectedRecommendations = async (selectedRows) => {
+        if (!Array.isArray(selectedRows) || selectedRows.length === 0) return
+
+        setAddingRecommendations(true)
+        try {
+            let successCount = 0
+            for (const row of selectedRows) {
+                await addSingleRecommendation(row.symbol, row.assetType)
+                successCount += 1
+            }
+
+            toastHelper('success', `Added ${successCount} recommendation${successCount > 1 ? 's' : ''} to portfolio`)
+            setActiveRecommendations(null)
+        } catch (error) {
+            console.error('Error adding selected recommendations to portfolio:', error)
+            toastHelper('error', error.message || 'Failed to add selected recommendations')
+        } finally {
+            setAddingRecommendations(false)
+        }
+    }
 
     // Function to refresh chat history
     const refreshChatHistory = async () => {
@@ -83,7 +136,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         const isFirstMessage = messages.length === 0
 
         // Add user message to chat
-        const userMessage = { role: 'user', content: message }
+        const userMessage = { id: crypto.randomUUID(), role: 'user', content: message }
         setMessages(prev => [...prev, userMessage])
         const currentMessage = message
         setMessage('')
@@ -110,8 +163,19 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
             const data = await response.json()
             
             // Add AI response to chat
-            const aiMessage = { role: 'assistant', content: data.response }
+            const shouldAttachTable =
+                data?.isContinuation === false &&
+                Array.isArray(data?.enrichedFunds) &&
+                data.enrichedFunds.length > 0
+
+            const aiMessage = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: data.response,
+                enrichedFunds: shouldAttachTable ? data.enrichedFunds : null,
+            }
             setMessages(prev => [...prev, aiMessage])
+            setActiveRecommendations(shouldAttachTable ? data.enrichedFunds : null)
             
             // Refresh chat history to show new/updated session
             if (isFirstMessage) {
@@ -126,6 +190,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                 content: 'Sorry, I encountered an error while processing your request. Please try again.' 
             }
             setMessages(prev => [...prev, errorMessage])
+            setActiveRecommendations(null)
         } finally {
             setLoading(false)
         }
@@ -146,11 +211,13 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setMessages([])
         setMessage('')
         setSessionId(crypto.randomUUID())
+        setActiveRecommendations(null)
     }
 
     const handleLoadSession = async (selectedSessionId) => {
         // Clear messages immediately to avoid showing old session data
         setMessages([])
+        setActiveRecommendations(null)
         setLoadingSession(true)
         setLoading(true)
         try {
@@ -285,6 +352,17 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                     <EmptyState onSampleQuestion={handleSampleQuestion} />
                 ) : (
                     <MessagesList messages={messages} loading={loading} user={user} />
+                )}
+
+                {Array.isArray(activeRecommendations) && activeRecommendations.length > 0 && (
+                    <Box sx={{ px: { xs: 2, md: 4 }, pb: 2 }}>
+                        <RecommendationPanel
+                            funds={activeRecommendations}
+                            adding={addingRecommendations}
+                            onAddSelected={handleAddSelectedRecommendations}
+                            onDismiss={() => setActiveRecommendations(null)}
+                        />
+                    </Box>
                 )}
 
                 {/* Input Area */}

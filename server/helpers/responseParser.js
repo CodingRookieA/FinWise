@@ -110,6 +110,25 @@ export function parseAIResponse(raw) {
         }
     }
 
+    // Backward-compatibility: parse legacy line format
+    // [Sources: <url1> | <url2> | Context: ...]
+    if (!sources) {
+        const legacySourcesMatch = safeRaw.match(/\[\s*Sources\s*:\s*([\s\S]*?)\]/i)
+        if (legacySourcesMatch && legacySourcesMatch[1]) {
+            const payload = legacySourcesMatch[1]
+            const beforeContext = payload.split(/\|\s*Context\s*:/i)[0]
+            const urls = beforeContext
+                .split('|')
+                .map((item) => item.trim())
+                .filter((item) => /^https?:\/\//i.test(item))
+
+            if (urls.length > 0) {
+                // Legacy format does not provide chunk ids/indexes; keep stable object shape.
+                sources = Object.fromEntries(urls.map((url, idx) => [url, idx]))
+            }
+        }
+    }
+
     return {
         message,
         recommendations,
