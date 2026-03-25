@@ -21,7 +21,8 @@ export const ENVIRONMENT = {
     similarityThreshold: parseFloat(process.env.SIMILARITY_THRESHOLD) || 0.8,
     aiMaxTokens: parseInt(process.env.AI_MAX_TOKENS) || 1000,
     aiTemperature: parseFloat(process.env.AI_TEMPERATURE) || 0.7,
-    historyTokenBudget: parseInt(process.env.HISTORY_TOKEN_BUDGET) || 750
+    historyTokenBudget: parseInt(process.env.HISTORY_TOKEN_BUDGET) || 750,
+    chatResponseMode: process.env.CHAT_RESPONSE_MODE || 'regular'
 }
 
 // Allowed article categories (must match Source model enum)

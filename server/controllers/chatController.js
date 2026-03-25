@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import { createChatService } from '../services/chat/chatService.js'
+import { ENVIRONMENT } from '../utils/constants.js'
 
 export function createChatController(chatService = createChatService()) {
     return {
@@ -25,6 +26,61 @@ export function createChatController(chatService = createChatService()) {
                     error: 'Failed to process message',
                     details: error.response?.data?.error || error.message
                 })
+            }
+        },
+
+        async sendMessageStream(req, res) {
+            try {
+                if (ENVIRONMENT.chatResponseMode !== 'streaming') {
+                    return res.status(400).json({
+                        error: 'Streaming mode is disabled. Set CHAT_RESPONSE_MODE=streaming to enable.'
+                    })
+                }
+
+                const { message, userId, sessionId } = req.body
+
+                if (!message) {
+                    return res.status(400).json({ error: 'Message is required' })
+                }
+
+                res.setHeader('Content-Type', 'text/event-stream')
+                res.setHeader('Cache-Control', 'no-cache, no-transform')
+                res.setHeader('Connection', 'keep-alive')
+                res.flushHeaders?.()
+
+                const writeEvent = (eventName, payload) => {
+                    res.write(`event: ${eventName}\n`)
+                    res.write(`data: ${JSON.stringify(payload)}\n\n`)
+                }
+
+                const result = await chatService.sendMessageStream({
+                    message,
+                    userId,
+                    sessionId,
+                    sessionUserId: req.session.userId,
+                    onVisibleChunk: async (textChunk) => {
+                        writeEvent('chunk', { text: textChunk })
+                    }
+                })
+
+                writeEvent('done', { result })
+                res.end()
+            } catch (error) {
+                console.error('Error calling streaming AI API:', error.response?.data || error.message)
+
+                if (!res.headersSent) {
+                    return res.status(500).json({
+                        error: 'Failed to process message',
+                        details: error.response?.data?.error || error.message
+                    })
+                }
+
+                res.write(`event: error\n`)
+                res.write(`data: ${JSON.stringify({
+                    error: 'Failed to process message',
+                    details: error.response?.data?.error || error.message
+                })}\n\n`)
+                res.end()
             }
         },
 

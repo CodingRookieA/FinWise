@@ -6,7 +6,7 @@ import { Profile } from '../../models/profile.js'
 import { randomUUID } from 'crypto'
 import mongoose from 'mongoose'
 import { ENVIRONMENT } from '../../utils/constants.js'
-import { generateAIResponse } from '../../clients/aiClient.js'
+import { generateAIResponse, generateAIResponseStream } from '../../clients/aiClient.js'
 import { trimHistoryToTokenBudget, formatHistoryForLLM } from '../history/historyService.js'
 import { parseAIResponse } from '../../helpers/responseParser.js'
 import { MutualFund } from '../../models/MutualFund.js'
@@ -65,6 +65,15 @@ function shouldResetContinuity(classification, priorTypes) {
     const newOnlyETFs = classification.needs_etfs && !classification.needs_funds
 
     return (priorOnlyETFs && newOnlyFunds) || (priorOnlyFunds && newOnlyETFs)
+}
+
+function findMetadataStartIndex(rawText) {
+    if (typeof rawText !== 'string' || rawText.length === 0) {
+        return -1
+    }
+
+    const match = rawText.match(/(?:^|\n)\s*(RECOMMENDATIONS|SOURCES)\s*:/i)
+    return typeof match?.index === 'number' ? match.index : -1
 }
 
 async function enrichRecommendations(recommendations, deps = {}) {
@@ -141,10 +150,10 @@ export function createChatService(deps = {}) {
         randomUUIDFn = randomUUID,
         mongooseLib = mongoose,
         environment = ENVIRONMENT,
-        aiClient = { generateAIResponse },
+        aiClient = { generateAIResponse, generateAIResponseStream },
     } = deps
 
-    async function sendMessage({ message, userId, sessionId, sessionUserId }) {
+    async function buildPromptMessages({ message, userId, sessionId, sessionUserId }) {
         const profileUserId = resolveProfileUserId(sessionUserId)
         const userProfile = await loadUserProfile(ProfileModel, profileUserId, mongooseLib)
 
@@ -162,7 +171,6 @@ export function createChatService(deps = {}) {
         console.log('Classification result:', classification)
 
         const trimmedHistory = trimHistoryToTokenBudget(fullHistory, environment.historyTokenBudget, 20)
-
         const formattedHistory = formatHistoryForLLM(trimmedHistory)
 
         let messages
@@ -190,41 +198,37 @@ export function createChatService(deps = {}) {
                         formattedHistory
                     )
                 } else {
-                // MERGE MODE: keep reconstructed context and fetch only what's missing
-                // for the current classification intent.
-                const missingNeededContext = []
-                if (classification.needs_articles && chunks.length === 0) missingNeededContext.push('articles')
-                if (classification.needs_funds && funds.length === 0) missingNeededContext.push('funds')
-                if (classification.needs_etfs && etfs.length === 0) missingNeededContext.push('etfs')
+                    const missingNeededContext = []
+                    if (classification.needs_articles && chunks.length === 0) missingNeededContext.push('articles')
+                    if (classification.needs_funds && funds.length === 0) missingNeededContext.push('funds')
+                    if (classification.needs_etfs && etfs.length === 0) missingNeededContext.push('etfs')
 
-                const continuityClassification = {
-                    ...classification,
-                    // Fetch only missing required context types.
-                    needs_articles: classification.needs_articles && chunks.length === 0,
-                    needs_funds: classification.needs_funds && funds.length === 0,
-                    needs_etfs: classification.needs_etfs && etfs.length === 0,
-                    needs_distribution_mutual_funds:
-                        classification.needs_distribution_mutual_funds &&
-                        classification.needs_funds &&
-                        funds.length === 0,
-                    // Always keep whatever context continuity reconstructed.
-                    _prefetchedFunds: funds,
-                    _prefetchedChunks: chunks,
-                    _prefetchedEtfs: etfs,
-                }
+                    const continuityClassification = {
+                        ...classification,
+                        needs_articles: classification.needs_articles && chunks.length === 0,
+                        needs_funds: classification.needs_funds && funds.length === 0,
+                        needs_etfs: classification.needs_etfs && etfs.length === 0,
+                        needs_distribution_mutual_funds:
+                            classification.needs_distribution_mutual_funds &&
+                            classification.needs_funds &&
+                            funds.length === 0,
+                        _prefetchedFunds: funds,
+                        _prefetchedChunks: chunks,
+                        _prefetchedEtfs: etfs,
+                    }
 
-                messages = await promptengineeringLib.generatePrompt(
-                    message,
-                    userId,
-                    continuityClassification,
-                    formattedHistory
-                )
+                    messages = await promptengineeringLib.generatePrompt(
+                        message,
+                        userId,
+                        continuityClassification,
+                        formattedHistory
+                    )
 
-                if (missingNeededContext.length > 0) {
-                    console.log(`[sendMessage] Continuity merge mode: injected ${funds.length} funds, ${etfs.length} etfs, ${chunks.length} chunks; fetching missing ${missingNeededContext.join(', ')}`)
-                } else {
-                    console.log('[sendMessage] Continuity merge mode: fully served from reconstructed context')
-                }
+                    if (missingNeededContext.length > 0) {
+                        console.log(`[sendMessage] Continuity merge mode: injected ${funds.length} funds, ${etfs.length} etfs, ${chunks.length} chunks; fetching missing ${missingNeededContext.join(', ')}`)
+                    } else {
+                        console.log('[sendMessage] Continuity merge mode: fully served from reconstructed context')
+                    }
                 }
             } else {
                 // No usable prior context found — fall back to full pipeline
@@ -236,7 +240,6 @@ export function createChatService(deps = {}) {
                     formattedHistory
                 )
             }
-
         } else {
             // NORMAL MODE — full retrieval pipeline
             messages = await promptengineeringLib.generatePrompt(
@@ -247,29 +250,13 @@ export function createChatService(deps = {}) {
             )
         }
 
-        const aiResponse = await aiClient.generateAIResponse({
-            systemPrompt: messages[0].content,
-            userPrompt: messages[messages.length - 1].content,
-            conversationHistory: messages.slice(1, -1),
-            apiUrl: environment.aiGeneralUrl,
-            apiKey: environment.aiGeneralApiKey,
-            maxOutputTokens: environment.aiMaxTokens,
-            temperature: environment.aiTemperature,
-        })
+        return {
+            messages,
+            isContinuationForResponse,
+        }
+    }
 
-        console.log('[sendMessage] Raw AI response:', aiResponse)
-
-        const { message: parsedMessage, recommendations, sources } = parseAIResponse(aiResponse)
-        console.log('[sendMessage] Parsed response - recommendations (raw):', recommendations)
-        console.log('[sendMessage] Parsed response - sources (raw):', sources)
-
-        const enrichedFunds = await enrichRecommendations(recommendations, {
-            MutualFundModel,
-            fetchAllETFsFn,
-            slimETFFn,
-        })
-
-        const shouldStore = Boolean(sessionUserId)
+    async function persistMessages({ shouldStore, sessionUserId, message, sessionId, aiResponse }) {
         let savedUserMessage = null
         let savedAIMessage = null
 
@@ -296,6 +283,51 @@ export function createChatService(deps = {}) {
         }
 
         return {
+            savedUserMessage,
+            savedAIMessage,
+        }
+    }
+
+    async function sendMessage({ message, userId, sessionId, sessionUserId }) {
+        const { messages, isContinuationForResponse } = await buildPromptMessages({
+            message,
+            userId,
+            sessionId,
+            sessionUserId,
+        })
+
+        const aiResponse = await aiClient.generateAIResponse({
+            systemPrompt: messages[0].content,
+            userPrompt: messages[messages.length - 1].content,
+            conversationHistory: messages.slice(1, -1),
+            apiUrl: environment.aiGeneralUrl,
+            apiKey: environment.aiGeneralApiKey,
+            maxOutputTokens: environment.aiMaxTokens,
+            temperature: environment.aiTemperature,
+        })
+
+        console.log('[sendMessage] Raw AI response:', aiResponse)
+
+        const { message: parsedMessage, recommendations, sources } = parseAIResponse(aiResponse)
+        console.log('[sendMessage] Parsed response - recommendations (raw):', recommendations)
+        console.log('[sendMessage] Parsed response - sources (raw):', sources)
+
+        const enrichedFunds = await enrichRecommendations(recommendations, {
+            MutualFundModel,
+            fetchAllETFsFn,
+            slimETFFn,
+        })
+
+        const shouldStore = Boolean(sessionUserId)
+        const { savedUserMessage, savedAIMessage } = await persistMessages({
+            shouldStore,
+            sessionUserId,
+            message,
+            sessionId,
+            aiResponse,
+        })
+
+        return {
             success: true,
             response: parsedMessage,
             stored: shouldStore,
@@ -306,6 +338,91 @@ export function createChatService(deps = {}) {
             } : null,
             isContinuation: isContinuationForResponse,
             recommendations: recommendations || null,
+            enrichedFunds,
+        }
+    }
+
+    async function sendMessageStream({ message, userId, sessionId, sessionUserId, onVisibleChunk }) {
+        const { messages, isContinuationForResponse } = await buildPromptMessages({
+            message,
+            userId,
+            sessionId,
+            sessionUserId,
+        })
+
+        let aiResponse = ''
+        let emittedChars = 0
+        const minHoldback = 48
+
+        for await (const chunk of aiClient.generateAIResponseStream({
+            systemPrompt: messages[0].content,
+            userPrompt: messages[messages.length - 1].content,
+            conversationHistory: messages.slice(1, -1),
+            apiUrl: environment.aiGeneralUrl,
+            apiKey: environment.aiGeneralApiKey,
+            maxOutputTokens: environment.aiMaxTokens,
+            temperature: environment.aiTemperature,
+        })) {
+            aiResponse += chunk
+
+            const metadataStart = findMetadataStartIndex(aiResponse)
+            const visibleLimit = metadataStart >= 0
+                ? metadataStart
+                : Math.max(0, aiResponse.length - minHoldback)
+
+            if (visibleLimit > emittedChars) {
+                const visibleChunk = aiResponse.slice(emittedChars, visibleLimit)
+                emittedChars = visibleLimit
+                if (visibleChunk && typeof onVisibleChunk === 'function') {
+                    await onVisibleChunk(visibleChunk)
+                }
+            }
+        }
+
+        console.log('[sendMessageStream] Raw AI response:', aiResponse)
+
+        const { message: parsedMessage, recommendations, sources } = parseAIResponse(aiResponse)
+        console.log('[sendMessageStream] Parsed response - recommendations (raw):', recommendations)
+        console.log('[sendMessageStream] Parsed response - sources (raw):', sources)
+
+        if (typeof onVisibleChunk === 'function') {
+            const alreadyVisibleText = aiResponse.slice(0, emittedChars)
+            const remainingVisibleText = parsedMessage.startsWith(alreadyVisibleText)
+                ? parsedMessage.slice(alreadyVisibleText.length)
+                : parsedMessage
+
+            if (remainingVisibleText) {
+                await onVisibleChunk(remainingVisibleText)
+            }
+        }
+
+        const enrichedFunds = await enrichRecommendations(recommendations, {
+            MutualFundModel,
+            fetchAllETFsFn,
+            slimETFFn,
+        })
+
+        const shouldStore = Boolean(sessionUserId)
+        const { savedUserMessage, savedAIMessage } = await persistMessages({
+            shouldStore,
+            sessionUserId,
+            message,
+            sessionId,
+            aiResponse,
+        })
+
+        return {
+            success: true,
+            response: parsedMessage,
+            stored: shouldStore,
+            sessionId: savedUserMessage?.sessionId,
+            messageIds: shouldStore ? {
+                userMessage: savedUserMessage._id,
+                aiMessage: savedAIMessage._id
+            } : null,
+            isContinuation: isContinuationForResponse,
+            recommendations: recommendations || null,
+            sources: sources || null,
             enrichedFunds,
         }
     }
@@ -391,6 +508,7 @@ export function createChatService(deps = {}) {
 
     return {
         sendMessage,
+        sendMessageStream,
         getUserChatHistory,
         getSessionMessages,
         deleteSession,

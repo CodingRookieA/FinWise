@@ -75,6 +75,7 @@ export const RecommendationPanel = ({ funds, onAddSelected, onDismiss, adding = 
     }, [funds])
 
     const allColumns = useMemo(() => ([
+        { field: 'symbol', headerName: 'Symbol', minWidth: 110, flex: 0.7, align: 'left', headerAlign: 'left' },
         {
             field: 'aiReason',
             headerName: 'Reason',
@@ -100,7 +101,6 @@ export const RecommendationPanel = ({ funds, onAddSelected, onDismiss, adding = 
                 </Tooltip>
             )
         },
-        { field: 'symbol', headerName: 'Symbol', minWidth: 110, flex: 0.7, align: 'left', headerAlign: 'left' },
         { field: 'name', headerName: 'Name', minWidth: 180, flex: 1.1, align: 'left', headerAlign: 'left' },
         {
             field: 'assetType',
@@ -151,7 +151,7 @@ export const RecommendationPanel = ({ funds, onAddSelected, onDismiss, adding = 
 
     const columns = useMemo(() => {
         if (!isSmallScreen) return allColumns
-        const mobileFields = new Set(['aiReason', 'symbol', 'oneYear', 'ytd'])
+        const mobileFields = new Set(['symbol', 'aiReason', 'oneYear', 'ytd'])
         return allColumns.filter((col) => mobileFields.has(col.field))
     }, [allColumns, isSmallScreen])
 

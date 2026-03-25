@@ -23,6 +23,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState(null)
     const [activeRecommendations, setActiveRecommendations] = useState(null)
     const [addingRecommendations, setAddingRecommendations] = useState(false)
+    const chatResponseMode = import.meta.env.VITE_CHAT_RESPONSE_MODE || 'regular'
 
     const guestChat = !loggedIn || !user.isVerified
 
@@ -129,6 +130,24 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         }
     }
 
+    const streamAssistantText = async (messageId, fullText) => {
+        const text = String(fullText || '')
+        if (!text) return
+
+        const chunkSize = 16
+        for (let i = 0; i < text.length; i += chunkSize) {
+            const chunk = text.slice(i, i + chunkSize)
+            setMessages((prev) => prev.map((msg) => (
+                msg.id === messageId
+                    ? { ...msg, content: `${msg.content || ''}${chunk}` }
+                    : msg
+            )))
+
+            // Keep animation very light so UI remains responsive.
+            await new Promise((resolve) => setTimeout(resolve, 12))
+        }
+    }
+
     const handleSendMessage = async () => {
         if (!message.trim()) return
 
@@ -143,6 +162,112 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setLoading(true)
 
         try {
+            if (chatResponseMode === 'streaming') {
+                const aiMessageId = crypto.randomUUID()
+                setMessages(prev => [...prev, { id: aiMessageId, role: 'assistant', content: '', enrichedFunds: null }])
+
+                const response = await fetch(`${SERVERURL}/api/chat/send/stream`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/event-stream'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        message: currentMessage,
+                        userId: user?.userId,
+                        sessionId: sessionId
+                    })
+                })
+
+                if (!response.ok || !response.body) {
+                    throw new Error('Failed to get streaming response from server')
+                }
+
+                const reader = response.body.getReader()
+                const decoder = new TextDecoder('utf-8')
+                let buffer = ''
+
+                const applyChunk = (text) => {
+                    if (!text) return
+                    setMessages((prev) => prev.map((msg) => (
+                        msg.id === aiMessageId
+                            ? { ...msg, content: `${msg.content || ''}${text}` }
+                            : msg
+                    )))
+                }
+
+                while (true) {
+                    const { done, value } = await reader.read()
+                    if (done) break
+
+                    buffer += decoder.decode(value, { stream: true })
+
+                    let boundary = buffer.indexOf('\n\n')
+                    while (boundary >= 0) {
+                        const block = buffer.slice(0, boundary)
+                        buffer = buffer.slice(boundary + 2)
+
+                        const lines = block.split(/\r?\n/)
+                        let eventName = 'message'
+                        const dataLines = []
+
+                        for (const line of lines) {
+                            if (line.startsWith('event:')) {
+                                eventName = line.slice(6).trim()
+                            } else if (line.startsWith('data:')) {
+                                dataLines.push(line.slice(5).trim())
+                            }
+                        }
+
+                        if (dataLines.length > 0) {
+                            let payload = null
+                            try {
+                                payload = JSON.parse(dataLines.join('\n'))
+                            } catch {
+                                payload = null
+                            }
+
+                            if (eventName === 'chunk' && payload) {
+                                applyChunk(payload.text)
+                            }
+
+                            if (eventName === 'done' && payload?.result) {
+                                const result = payload.result
+                                const shouldAttachTable =
+                                    result?.isContinuation === false &&
+                                    Array.isArray(result?.enrichedFunds) &&
+                                    result.enrichedFunds.length > 0
+
+                                setMessages((prev) => prev.map((msg) => (
+                                    msg.id === aiMessageId
+                                        ? {
+                                            ...msg,
+                                            content: result.response || msg.content,
+                                            enrichedFunds: shouldAttachTable ? result.enrichedFunds : null,
+                                        }
+                                        : msg
+                                )))
+
+                                setActiveRecommendations(shouldAttachTable ? result.enrichedFunds : null)
+                            }
+
+                            if (eventName === 'error') {
+                                throw new Error(payload?.details || payload?.error || 'Streaming request failed')
+                            }
+                        }
+
+                        boundary = buffer.indexOf('\n\n')
+                    }
+                }
+
+                if (isFirstMessage) {
+                    await refreshChatHistory()
+                }
+
+                return
+            }
+
             const response = await fetch(`${SERVERURL}/api/chat/send`, {
                 method: 'POST',
                 headers: {
@@ -168,15 +293,18 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                 Array.isArray(data?.enrichedFunds) &&
                 data.enrichedFunds.length > 0
 
+            const aiMessageId = crypto.randomUUID()
             const aiMessage = {
-                id: crypto.randomUUID(),
+                id: aiMessageId,
                 role: 'assistant',
-                content: data.response,
+                content: '',
                 enrichedFunds: shouldAttachTable ? data.enrichedFunds : null,
             }
             setMessages(prev => [...prev, aiMessage])
             setActiveRecommendations(shouldAttachTable ? data.enrichedFunds : null)
             
+
+            await streamAssistantText(aiMessageId, data.response)
             // Refresh chat history to show new/updated session
             if (isFirstMessage) {
                 // Refresh on first message to show the new chat in history

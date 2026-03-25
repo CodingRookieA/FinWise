@@ -49,9 +49,11 @@ This helps us debug whether conversation continuity is working.
         - Never include article topics or educational content in RECOMMENDATIONS
         - Only include funds/ETFs you explicitly recommended in your response
         - Do not include funds/ETFs you merely mentioned or compared without recommending
+        - Recommendation count target: include 4-5 recommended symbols whenever enough suitable candidates are available in provided context
+        - If fewer than 4 suitable symbols are available, include all suitable ones (up to 5 max)
         - Omit this block entirely if you made no specific fund/ETF recommendations
         - Use the exact fund code or ETF ticker as the key (e.g. "MAW104", "XIU.TO")
-        - Keep each reason to 2-3 sentences
+        - Keep each reason concise (1-2 sentences)
         - In the plain text section, do not list or name specific fund codes or ETF tickers
         - Put all specific recommended symbols and their detailed reasons only inside the RECOMMENDATIONS JSON block
 
