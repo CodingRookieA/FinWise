@@ -25,9 +25,10 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
     const [addingRecommendations, setAddingRecommendations] = useState(false)
     const [streamingStatus, setStreamingStatus] = useState('')
     const [streamingMessageActive, setStreamingMessageActive] = useState(false)
-    const chatResponseMode = import.meta.env.MODE === 'test'
+    const defaultChatResponseMode = import.meta.env.MODE === 'test'
         ? 'regular'
         : (import.meta.env.VITE_CHAT_RESPONSE_MODE || 'regular')
+    const [chatResponseMode, setChatResponseMode] = useState(defaultChatResponseMode)
 
     const guestChat = !loggedIn || !user.isVerified
 
@@ -175,7 +176,9 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
         try {
-            if (chatResponseMode === 'streaming') {
+            const effectiveChatResponseMode = import.meta.env.MODE === 'test' ? 'regular' : chatResponseMode
+
+            if (effectiveChatResponseMode === 'streaming') {
                 try {
                     let aiMessageId = null
                     setStreamingStatus('Preparing request...')
@@ -316,10 +319,8 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                                 if (eventName === 'done' && payload?.result) {
                                     const result = payload.result
 
-                                    if (streamReleaseAt && Date.now() < streamReleaseAt) {
-                                        await sleep(streamReleaseAt - Date.now())
-                                    }
-
+                                    // Flush any buffered text immediately—don't wait for the initial delay timer.
+                                    // The 1s delay only smooths initial stream appearance, not final result.
                                     if (preStreamBuffer) {
                                         applyChunk(preStreamBuffer)
                                         preStreamBuffer = ''
@@ -408,14 +409,12 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
             const aiMessage = {
                 id: aiMessageId,
                 role: 'assistant',
-                content: '',
+                content: data.response || '',
                 enrichedFunds: shouldAttachTable ? data.enrichedFunds : null,
             }
             setMessages(prev => [...prev, aiMessage])
             setActiveRecommendations(shouldAttachTable ? data.enrichedFunds : null)
-            
 
-            await streamAssistantText(aiMessageId, data.response)
             // Refresh chat history to show new/updated session
             if (isFirstMessage) {
                 // Refresh on first message to show the new chat in history
@@ -455,6 +454,19 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setMessage('')
         setSessionId(crypto.randomUUID())
         setActiveRecommendations(null)
+    }
+
+    const handleChatModeChange = (nextMode) => {
+        const normalizedMode = nextMode === 'streaming' ? 'streaming' : 'regular'
+        if (normalizedMode === chatResponseMode) {
+            return
+        }
+
+        setChatResponseMode(normalizedMode)
+
+        if (normalizedMode === 'streaming') {
+            toastHelper('info', 'Streaming enabled. Recommendation table may appear slightly after text.')
+        }
     }
 
     const handleLoadSession = async (selectedSessionId) => {
@@ -552,6 +564,8 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                 onNewChat={handleNewChat}
                 onLoadSession={handleLoadSession}
                 onDeleteSession={handleDeleteSession}
+                chatResponseMode={chatResponseMode}
+                onChatResponseModeChange={handleChatModeChange}
                 loggedIn={!guestChat}
             />
 

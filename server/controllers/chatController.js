@@ -1,6 +1,5 @@
 import mongoose from 'mongoose'
 import { createChatService } from '../services/chat/chatService.js'
-import { ENVIRONMENT } from '../utils/constants.js'
 
 export function createChatController(chatService = createChatService()) {
     return {
@@ -31,12 +30,6 @@ export function createChatController(chatService = createChatService()) {
 
         async sendMessageStream(req, res) {
             try {
-                if (ENVIRONMENT.chatResponseMode !== 'streaming') {
-                    return res.status(400).json({
-                        error: 'Streaming mode is disabled. Set CHAT_RESPONSE_MODE=streaming to enable.'
-                    })
-                }
-
                 const { message, userId, sessionId } = req.body
 
                 if (!message) {

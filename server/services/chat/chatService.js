@@ -78,6 +78,40 @@ function findMetadataStartIndex(rawText) {
     return typeof match?.index === 'number' ? match.index : -1
 }
 
+function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function withTimeout(promise, timeoutMs) {
+    return Promise.race([
+        promise,
+        wait(timeoutMs).then(() => null),
+    ])
+}
+
+function buildLightweightRecommendationRows(recommendations) {
+    if (!recommendations || typeof recommendations !== 'object') {
+        return null
+    }
+
+    const rows = Object.entries(recommendations)
+        .filter(([symbol]) => typeof symbol === 'string' && symbol.trim().length > 0)
+        .map(([symbol, reason]) => {
+            const normalizedSymbol = symbol.trim().toUpperCase()
+            const isEtf = /\.TO$/i.test(normalizedSymbol)
+
+            return {
+                asset_type: isEtf ? 'etf' : 'mutual_fund',
+                symbol: normalizedSymbol,
+                fund_code: isEtf ? null : normalizedSymbol,
+                name: 'N/A',
+                ai_reason: typeof reason === 'string' && reason.trim().length > 0 ? reason : null,
+            }
+        })
+
+    return rows.length > 0 ? rows : null
+}
+
 async function enrichRecommendations(recommendations, deps = {}) {
     const {
         MutualFundModel = MutualFund,
@@ -430,20 +464,23 @@ export function createChatService(deps = {}) {
             }
         }
 
-        const enrichedFunds = await enrichRecommendations(recommendations, {
-            MutualFundModel,
-            fetchAllETFsFn,
-            slimETFFn,
-        })
-
         const shouldStore = Boolean(sessionUserId)
-        const { savedUserMessage, savedAIMessage } = await persistMessages({
+        const persistPromise = persistMessages({
             shouldStore,
             sessionUserId,
             message,
             sessionId,
             aiResponse,
         })
+
+        const lightweightFunds = buildLightweightRecommendationRows(recommendations)
+        const enrichedFunds = await withTimeout(enrichRecommendations(recommendations, {
+            MutualFundModel,
+            fetchAllETFsFn,
+            slimETFFn,
+        }), 250)
+
+        const { savedUserMessage, savedAIMessage } = await persistPromise
 
         return {
             success: true,
@@ -457,7 +494,7 @@ export function createChatService(deps = {}) {
             isContinuation: isContinuationForResponse,
             recommendations: recommendations || null,
             sources: sources || null,
-            enrichedFunds,
+            enrichedFunds: enrichedFunds || lightweightFunds,
         }
     }
 
