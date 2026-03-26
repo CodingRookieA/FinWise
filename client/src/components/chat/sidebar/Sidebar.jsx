@@ -20,7 +20,7 @@ export const Sidebar = ({
 }) => {
     const navigate = useNavigate()
 
-    const SidebarContent = () => (
+    const sidebarContent = (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* Logo and Close Button */}
             <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -181,7 +181,7 @@ export const Sidebar = ({
                     },
                 }}
             >
-                <SidebarContent />
+                {sidebarContent}
             </Drawer>
 
             {/* Mobile Sidebar - Temporary */}
@@ -204,7 +204,7 @@ export const Sidebar = ({
                     },
                 }}
             >
-                <SidebarContent />
+                {sidebarContent}
             </Drawer>
         </>
     )

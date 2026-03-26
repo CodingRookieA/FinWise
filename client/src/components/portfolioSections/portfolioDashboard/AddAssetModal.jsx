@@ -8,6 +8,7 @@ export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
 
     useEffect(() => {
         if (initialData) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setFormData({ symbol: initialData.symbol, quantity: initialData.quantity, type: initialData.type || 'ETF' });
         } else {
             setFormData({ symbol: '', quantity: '', type: 'ETF' });

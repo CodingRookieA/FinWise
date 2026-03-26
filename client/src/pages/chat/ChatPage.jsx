@@ -8,13 +8,14 @@ import { InputArea } from '../../components/chat/inputArea/InputArea'
 import { InfoAlert } from '../../components/alerts/InfoAlert'
 import { SERVERURL } from '../../utils/constants'
 
-export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
+export const ChatPage = ({ user, loggedIn }) => {
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
     const [loading, setLoading] = useState(false)
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [sessionId, setSessionId] = useState(() => crypto.randomUUID())
     const [chatHistory, setChatHistory] = useState([])
+    // eslint-disable-next-line no-unused-vars
     const [loadingHistory, setLoadingHistory] = useState(false)
     const [loadingSession, setLoadingSession] = useState(false)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
