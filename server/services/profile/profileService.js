@@ -150,7 +150,7 @@ export function createProfileService(deps = {}) {
         const profile = await findOrCreateProfile(userId)
         const unanswered = ALL_FIELDS.filter((f) => isUnanswered(profile, f))
 
-        const pickedFields = randomPicker(unanswered, Math.min(3, unanswered.length))
+        const pickedFields = randomPicker(unanswered, Math.min(2, unanswered.length))
         const questions = pickedFields.map(buildQuestionFromSchema).filter(Boolean)
 
         return {

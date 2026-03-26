@@ -166,4 +166,29 @@ describe('QuestionnairePage', () => {
 
     expect(await screen.findByText('Failed to save answer')).toBeInTheDocument()
   })
+
+  it('allows skipping questionnaire to chat', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        questions: [
+          {
+            field: 'riskPreference',
+            title: 'Risk Preference',
+            prompt: 'How much risk can you tolerate?',
+            type: 'mcq',
+            options: ['Option A', 'Option B']
+          }
+        ]
+      })
+    })
+
+    const user = userEvent.setup()
+    render(<QuestionnairePage />)
+
+    await screen.findByRole('heading', { name: 'Risk Preference' })
+    await user.click(screen.getByRole('button', { name: 'Skip for now' }))
+
+    expect(mockNavigate).toHaveBeenCalledWith('/chat', { replace: true })
+  })
 })

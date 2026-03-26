@@ -51,7 +51,7 @@ export const MessagesList = ({ messages, loading, user, loadingText = 'Thinking.
                             height: 36
                         }}
                     >
-                        {msg.role === 'user' ? user?.name?.charAt(0) || 'U' : 'AI'}
+                        {msg.role === 'user' ? user?.name?.charAt(0) || 'U' : 'Finwise'}
                     </Avatar>
                     <Paper
                         sx={{
@@ -87,7 +87,7 @@ export const MessagesList = ({ messages, loading, user, loadingText = 'Thinking.
             ))}
             {loading && !hideLoadingIndicator && (
                 <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start', maxWidth: 900, mx: 'auto', width: '100%' }}>
-                    <Avatar sx={{ bgcolor: 'secondary.main', width: 36, height: 36 }}>AI</Avatar>
+                    <Avatar sx={{ bgcolor: 'secondary.main', width: 36, height: 36 }}>Finwise</Avatar>
                     <Paper sx={{ p: 2, bgcolor: '#2A3A4E' }}>
                         <Typography variant="body1" color="text.secondary">
                             {loadingText}

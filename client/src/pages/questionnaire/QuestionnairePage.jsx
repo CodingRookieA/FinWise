@@ -132,6 +132,26 @@ export function QuestionnairePage() {
             <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
               We collect some necessary information to enhance your experience
             </Typography>
+            <Box sx={{ mt: 2 }}>
+              <Typography
+                component="button"
+                onClick={() => navigate("/chat", { replace: true })}
+                sx={{
+                  background: "none",
+                  border: "none",
+                  color: "secondary.main",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  fontWeight: 800,
+                  letterSpacing: 0.2,
+                  textDecoration: "underline",
+                  textUnderlineOffset: "2px",
+                  "&:hover": { color: "#34d399" },
+                }}
+              >
+                Skip for now
+              </Typography>
+            </Box>
           </Box>
 
           {/* States */}

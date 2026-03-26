@@ -79,7 +79,7 @@ describe('profileService', () => {
         await expect(action).rejects.toMatchObject({ status: 400 })
     })
 
-    test('returns up to three random unanswered questions', async () => {
+    test('returns up to two random unanswered questions', async () => {
         // Arrange
         const fakeProfile = {
             income_stability: null,
@@ -106,7 +106,7 @@ describe('profileService', () => {
         const result = await service.getRandomUnanswered('u1')
 
         // Assert
-        expect(result.questions.length).toBe(3)
+        expect(result.questions.length).toBe(2)
         expect(randomPicker).toHaveBeenCalledTimes(1)
     })
 

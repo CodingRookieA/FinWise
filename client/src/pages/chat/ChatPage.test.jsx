@@ -123,6 +123,10 @@ describe('ChatPage', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
+        json: async () => ({ questions: [], remainingUnansweredCount: 0 })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({ response: 'ETF means exchange-traded fund.' })
       })
       .mockResolvedValueOnce({
@@ -145,8 +149,7 @@ describe('ChatPage', () => {
     await user.click(screen.getByRole('button', { name: 'send-message' }))
 
     expect(await screen.findByText('assistant:ETF means exchange-traded fund.')).toBeInTheDocument()
-    expect(fetch).toHaveBeenNthCalledWith(
-      2,
+    expect(fetch).toHaveBeenCalledWith(
       'http://test-server/api/chat/send',
       expect.objectContaining({
         method: 'POST',
@@ -198,6 +201,10 @@ describe('ChatPage', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
+        json: async () => ({ questions: [], remainingUnansweredCount: 0 })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({
           messages: [
             { role: 'user', content: 'old question' },
@@ -233,6 +240,10 @@ describe('ChatPage', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ sessions: [{ sessionId: 'session-abc' }, { sessionId: 'session-2' }] })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ questions: [], remainingUnansweredCount: 0 })
       })
       .mockResolvedValueOnce({
         ok: true,

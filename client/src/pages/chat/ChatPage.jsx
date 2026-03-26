@@ -29,6 +29,9 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         ? 'regular'
         : (import.meta.env.VITE_CHAT_RESPONSE_MODE || 'regular')
     const [chatResponseMode, setChatResponseMode] = useState(defaultChatResponseMode)
+    const [showProfileFlashcards, setShowProfileFlashcards] = useState(false)
+    const [profileQuestions, setProfileQuestions] = useState([])
+    const [loadingProfileQuestions, setLoadingProfileQuestions] = useState(false)
 
     const guestChat = !loggedIn || !user.isVerified
 
@@ -68,6 +71,58 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setSessionId(crypto.randomUUID())
         setActiveRecommendations(null)
     }, [user?.userId, guestChat])
+
+    const fetchProfileQuestionnaire = async ({ silent = false, applyState = true } = {}) => {
+        if (guestChat) {
+            if (applyState) {
+                setShowProfileFlashcards(false)
+                setProfileQuestions([])
+            }
+            return { questions: [], remainingUnansweredCount: 0 }
+        }
+
+        if (!silent) {
+            setLoadingProfileQuestions(true)
+        }
+        try {
+            const response = await fetch(`${SERVERURL}/api/profile/questionnaire`, {
+                credentials: 'include',
+            })
+            if (!response.ok) {
+                throw new Error('Failed to load profile questionnaire')
+            }
+
+            const data = await response.json()
+            const questions = Array.isArray(data?.questions) ? data.questions : []
+            const hasUnanswered = Number(data?.remainingUnansweredCount || 0) > 0
+
+            if (applyState) {
+                setShowProfileFlashcards(hasUnanswered)
+                setProfileQuestions(hasUnanswered ? questions : [])
+            }
+            return {
+                questions,
+                remainingUnansweredCount: Number(data?.remainingUnansweredCount || 0),
+            }
+        } catch (error) {
+            console.error('Error loading profile questionnaire:', error)
+            // Do not block empty state if questionnaire fetch fails.
+            if (applyState) {
+                setShowProfileFlashcards(false)
+                setProfileQuestions([])
+            }
+            return { questions: [], remainingUnansweredCount: 0 }
+        } finally {
+            if (!silent) {
+                setLoadingProfileQuestions(false)
+            }
+        }
+    }
+
+    useEffect(() => {
+        if (loadingSession || messages.length > 0) return
+        fetchProfileQuestionnaire()
+    }, [guestChat, user?.userId, messages.length, loadingSession])
 
     const addSingleRecommendation = async (symbol, assetType) => {
         const normalizedSymbol =
@@ -462,11 +517,71 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
         setMessage(question)
     }
 
+    const handleSubmitProfileAnswer = async (field, rawValue) => {
+        const question = profileQuestions.find((q) => q.field === field)
+        if (!question) return
+
+        let value = rawValue
+        if (question.type !== 'mcq' && question.inputType === 'number') {
+            value = rawValue === '' || rawValue == null ? null : Number(rawValue)
+        } else if (typeof rawValue === 'string') {
+            value = rawValue.trim()
+        }
+
+        const response = await fetch(`${SERVERURL}/api/profile`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({ [field]: value }),
+        })
+
+        if (!response.ok) {
+            const body = await response.json().catch(() => ({}))
+            throw new Error(body?.error || 'Failed to save profile answer')
+        }
+
+        const priorQuestions = profileQuestions
+        const answeredIndex = priorQuestions.findIndex((q) => q.field === field)
+        const questionnaire = await fetchProfileQuestionnaire({ silent: true, applyState: false })
+        const remaining = Number(questionnaire?.remainingUnansweredCount || 0)
+        const nextBatch = Array.isArray(questionnaire?.questions) ? questionnaire.questions : []
+
+        if (remaining <= 0) {
+            setShowProfileFlashcards(false)
+            setProfileQuestions([])
+            return
+        }
+
+        const nextQuestions = [...priorQuestions]
+        const preservedFields = new Set(
+            priorQuestions
+                .filter((q) => q?.field && q.field !== field)
+                .map((q) => q.field)
+        )
+        const replacement = nextBatch.find((q) => q?.field && !preservedFields.has(q.field))
+
+        if (answeredIndex >= 0) {
+            if (replacement) {
+                nextQuestions[answeredIndex] = replacement
+            } else {
+                nextQuestions.splice(answeredIndex, 1)
+            }
+        }
+
+        setShowProfileFlashcards(true)
+        setProfileQuestions(nextQuestions.filter(Boolean))
+    }
+
     const handleNewChat = () => {
         setMessages([])
         setMessage('')
         setSessionId(crypto.randomUUID())
         setActiveRecommendations(null)
+        if (!guestChat) {
+            fetchProfileQuestionnaire()
+        }
     }
 
     const handleChatModeChange = (nextMode) => {
@@ -591,9 +706,29 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                     flexDirection: 'column',
                     ml: { xs: 0, md: !guestChat ? 0 : 0 },
                     height: '100vh',
-                    overflow: 'hidden'
+                    overflowX: 'hidden',
+                    overflowY: messages.length === 0 ? 'auto' : 'hidden',
                 }}
             >
+                {guestChat && (
+                    <Box sx={{ p: 2 }}>
+                        <Button
+                            component="a"
+                            href="/"
+                            variant="text"
+                            sx={{
+                                color: 'text.secondary',
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                px: 0,
+                                '&:hover': { color: 'text.primary', bgcolor: 'transparent' },
+                            }}
+                        >
+                            ← Back to home
+                        </Button>
+                    </Box>
+                )}
+
                 {/* Menu Button - Show when logged in and sidebar can be toggled */}
                 {!guestChat && (
                     <Box 
@@ -619,7 +754,13 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
 
                 {/* Content Area - Empty State or Messages */}
                 {messages.length === 0 && !loadingSession ? (
-                    <EmptyState onSampleQuestion={handleSampleQuestion} />
+                    <EmptyState
+                        onSampleQuestion={handleSampleQuestion}
+                        showProfileFlashcards={showProfileFlashcards}
+                        profileQuestions={profileQuestions}
+                        loadingProfileQuestions={loadingProfileQuestions}
+                        onSubmitProfileAnswer={handleSubmitProfileAnswer}
+                    />
                 ) : (
                     <MessagesList
                         messages={messages}
