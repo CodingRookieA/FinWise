@@ -235,11 +235,6 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                     const reader = response.body.getReader()
                     const decoder = new TextDecoder('utf-8')
                     let buffer = ''
-                    // Intentional start delay: buffer first chunks, then release them together.
-                    // This makes stream start feel smoother and reduces sudden table "jump".
-                    const streamStartDelayMs = 1000
-                    let streamReleaseAt = 0
-                    let preStreamBuffer = ''
 
                     const applyChunk = (text) => {
                         if (!text) return
@@ -257,6 +252,44 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                                 ? { ...msg, content: `${msg.content || ''}${text}` }
                                 : msg
                         )))
+                    }
+
+                    // Large model chunks render as one big jump. Split into small pieces with short
+                    // delays so the UI paints progressively (same idea as streamAssistantText).
+                    const SMOOTH_STEP = 28
+                    const SMOOTH_DELAY_MS = 10
+                    const smooth = { queue: [], draining: false, cancelled: false }
+
+                    const cancelSmoothDrain = () => {
+                        smooth.cancelled = true
+                        smooth.queue.length = 0
+                    }
+
+                    const enqueueSmoothText = (text) => {
+                        if (!text) return
+                        const t = String(text)
+                        if (t.length <= SMOOTH_STEP) {
+                            applyChunk(t)
+                            return
+                        }
+                        for (let i = 0; i < t.length; i += SMOOTH_STEP) {
+                            smooth.queue.push(t.slice(i, i + SMOOTH_STEP))
+                        }
+                        if (smooth.draining) return
+                        smooth.draining = true
+                        smooth.cancelled = false
+
+                        const drain = async () => {
+                            while (smooth.queue.length > 0 && !smooth.cancelled) {
+                                const piece = smooth.queue.shift()
+                                if (piece) applyChunk(piece)
+                                if (smooth.queue.length > 0 && !smooth.cancelled) {
+                                    await sleep(SMOOTH_DELAY_MS)
+                                }
+                            }
+                            smooth.draining = false
+                        }
+                        void drain()
                     }
 
                     while (true) {
@@ -292,23 +325,8 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
 
                                 if (eventName === 'chunk' && payload) {
                                     const chunkText = String(payload.text || '')
-                                    if (!chunkText) {
-                                        // no-op
-                                    } else if (!streamReleaseAt) {
-                                        // First chunk starts delay window.
-                                        streamReleaseAt = Date.now() + streamStartDelayMs
-                                        preStreamBuffer += chunkText
-                                        setStreamingStatus('Preparing stream...')
-                                    } else if (Date.now() < streamReleaseAt) {
-                                        // Keep buffering while delay window is open.
-                                        preStreamBuffer += chunkText
-                                    } else {
-                                        // Delay elapsed: flush buffered text then stream live chunks.
-                                        if (preStreamBuffer) {
-                                            applyChunk(preStreamBuffer)
-                                            preStreamBuffer = ''
-                                        }
-                                        applyChunk(chunkText)
+                                    if (chunkText) {
+                                        enqueueSmoothText(chunkText)
                                     }
                                 }
 
@@ -319,12 +337,7 @@ export const ChatPage = ({ user, logout, loggedIn, setLoggedIn }) => {
                                 if (eventName === 'done' && payload?.result) {
                                     const result = payload.result
 
-                                    // Flush any buffered text immediately—don't wait for the initial delay timer.
-                                    // The 1s delay only smooths initial stream appearance, not final result.
-                                    if (preStreamBuffer) {
-                                        applyChunk(preStreamBuffer)
-                                        preStreamBuffer = ''
-                                    }
+                                    cancelSmoothDrain()
 
                                     setStreamingStatus('Finalizing recommendations...')
 

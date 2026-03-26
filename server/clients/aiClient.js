@@ -30,37 +30,33 @@ function buildRequestBody({ systemPrompt, userPrompt, normalizedHistory, maxOutp
     }
 }
 
-function findEventBoundary(text) {
-    // SSE event blocks may be delimited by LF or CRLF blank lines depending on proxy/provider.
-    // Support both so streaming parsing is robust across environments.
-    const lfBoundary = text.indexOf('\n\n')
-    const crlfBoundary = text.indexOf('\r\n\r\n')
+/**
+ * Concatenate incremental text from all Gemini content parts (some models emit multiple parts).
+ */
+function extractTextFromGeminiStreamJson(json) {
+    const parts = json?.candidates?.[0]?.content?.parts
+    if (!Array.isArray(parts)) {
+        return null
+    }
 
-    if (lfBoundary === -1 && crlfBoundary === -1) return null
-    if (lfBoundary === -1) return { index: crlfBoundary, length: 4 }
-    if (crlfBoundary === -1) return { index: lfBoundary, length: 2 }
+    let out = ''
+    for (const p of parts) {
+        if (typeof p?.text === 'string' && p.text.length > 0) {
+            out += p.text
+        }
+    }
 
-    return lfBoundary < crlfBoundary
-        ? { index: lfBoundary, length: 2 }
-        : { index: crlfBoundary, length: 4 }
+    return out.length > 0 ? out : null
 }
 
-function extractChunkTextFromSseBlock(eventBlock) {
-    // SSE payloads arrive as "data: ..." lines. We only care about token text chunks.
-    const lines = eventBlock.split(/\r?\n/)
-    const dataLines = lines
-        .filter((line) => line.startsWith('data:'))
-        .map((line) => line.slice(5).trim())
-
-    if (dataLines.length === 0) return null
-
-    const payload = dataLines.join('\n')
-    if (payload === '[DONE]') return null
+function parseGeminiSseDataPayload(payload) {
+    if (!payload || payload === '[DONE]') {
+        return null
+    }
 
     try {
         const json = JSON.parse(payload)
-        const chunkText = json?.candidates?.[0]?.content?.parts?.[0]?.text
-        return (typeof chunkText === 'string' && chunkText.length > 0) ? chunkText : null
+        return extractTextFromGeminiStreamJson(json)
     } catch {
         return null
     }
@@ -128,33 +124,67 @@ export async function* generateAIResponseStream({
 
     const decoder = new TextDecoder('utf-8')
     const reader = response.body.getReader()
+    // Incomplete tail of the HTTP body (may end mid-line before the next read()).
     let buffer = ''
+    // `data:` lines for the current SSE event (an event ends at a blank line).
+    const pendingDataLines = []
 
     while (true) {
         const { done, value } = await reader.read()
+        if (value) {
+            buffer += decoder.decode(value, { stream: true })
+        }
         if (done) {
-            // Some providers may end without a final blank-line boundary.
-            // Attempt to parse any remaining block once.
-            const trailing = extractChunkTextFromSseBlock(buffer)
-            if (trailing) {
-                yield trailing
-            }
-            break
+            buffer += decoder.decode(new Uint8Array(), { stream: false })
         }
 
-        buffer += decoder.decode(value, { stream: true })
-
-        let boundaryInfo = findEventBoundary(buffer)
-        while (boundaryInfo) {
-            const eventBlock = buffer.slice(0, boundaryInfo.index)
-            buffer = buffer.slice(boundaryInfo.index + boundaryInfo.length)
-
-            const chunkText = extractChunkTextFromSseBlock(eventBlock)
-            if (chunkText) {
-                yield chunkText
+        let lineStart = 0
+        while (lineStart < buffer.length) {
+            const nl = buffer.indexOf('\n', lineStart)
+            if (nl === -1) {
+                break
             }
 
-            boundaryInfo = findEventBoundary(buffer)
+            let line = buffer.slice(lineStart, nl)
+            lineStart = nl + 1
+            if (line.endsWith('\r')) {
+                line = line.slice(0, -1)
+            }
+
+            if (line === '') {
+                if (pendingDataLines.length > 0) {
+                    const payload = pendingDataLines.join('\n')
+                    pendingDataLines.length = 0
+                    const chunkText = parseGeminiSseDataPayload(payload)
+                    if (chunkText) {
+                        yield chunkText
+                    }
+                }
+            } else if (line.startsWith('data:')) {
+                pendingDataLines.push(line.slice(5).trimStart())
+            }
+        }
+
+        buffer = buffer.slice(lineStart)
+
+        if (done) {
+            if (pendingDataLines.length > 0) {
+                const payload = pendingDataLines.join('\n')
+                pendingDataLines.length = 0
+                const chunkText = parseGeminiSseDataPayload(payload)
+                if (chunkText) {
+                    yield chunkText
+                }
+            }
+
+            const tail = buffer.trim()
+            if (tail) {
+                const chunkText = parseGeminiSseDataPayload(tail)
+                if (chunkText) {
+                    yield chunkText
+                }
+            }
+            break
         }
     }
 }
