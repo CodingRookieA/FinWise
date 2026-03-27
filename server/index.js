@@ -14,7 +14,6 @@ config()
 
 const app = createApp()
 
-
 app.listen(PORT, () => {
     console.log(`Server is listening on port:  ${PORT}`)
     console.log(`process.env.NODE_ENV:         ${ENVIRONMENT.nodeEnv}`)
