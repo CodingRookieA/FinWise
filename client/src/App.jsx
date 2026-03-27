@@ -16,6 +16,21 @@ import { Toaster } from 'react-hot-toast';
 import { SERVERURL } from './utils/constants'
 import { EmailVerificationRoutes, ProtectedRoutes } from './utils/routes'
 
+const ProtectedRoutes = ({ loggedIn, user }) => {
+    console.log(user)
+    if(!loggedIn) return <Navigate to='/' />
+    if(!user.isVerified) return <Navigate to='/email-verification'/>
+
+    return (<Outlet />)
+}
+
+const EmailVerificationRoutes = ({ loggedIn, user }) => {
+    if(!loggedIn) return <Navigate to='/' />
+    if(user.isVerified) return <Navigate to='/questionnaire'/>
+
+    return (<Outlet />)
+}
+
 function App() {
     const [loading, setLoading] = useState(true)
     const [loggedIn, setLoggedIn] = useState(false)
