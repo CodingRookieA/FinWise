@@ -24,6 +24,7 @@ export function createApp({
         credentials: true
     }
     app.use(cors(corsConfig))
+    app.set('trust proxy', 1);
 
     if (sessionMiddleware) {
         app.use(sessionMiddleware)
@@ -33,6 +34,12 @@ export function createApp({
                 secret: ENVIRONMENT.sessionSecretKey,
                 saveUninitialized: false,
                 resave: false,
+                cookie: ENVIRONMENT.nodeEnv === 'production' ? {
+                    secure: true,
+                    sameSite: 'none',
+                    httpOnly: true,
+                    maxAge: 24 * 60 * 60 * 1000 
+                } : {}
             })
         )
     }

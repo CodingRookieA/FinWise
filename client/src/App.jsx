@@ -1,5 +1,5 @@
 import './App.css'
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { HomePage } from './pages/home/HomePage'
 import { PortfolioPage } from './pages/portfolio/PortfolioPage'
 import { PlaidConnectPage } from './pages/plaid/PlaidConnectPage'
@@ -14,6 +14,22 @@ import { EmailVerificationPage } from './pages/emailVerification/EmailVerificati
 import { VerifyingEmailPage } from './pages/emailVerification/VerifyingEmailPage'
 import { Toaster } from 'react-hot-toast';
 import { SERVERURL } from './utils/constants'
+import { EmailVerificationRoutes, ProtectedRoutes } from './utils/routes'
+
+const ProtectedRoutes = ({ loggedIn, user }) => {
+    console.log(user)
+    if(!loggedIn) return <Navigate to='/' />
+    if(!user.isVerified) return <Navigate to='/email-verification'/>
+
+    return (<Outlet />)
+}
+
+const EmailVerificationRoutes = ({ loggedIn, user }) => {
+    if(!loggedIn) return <Navigate to='/' />
+    if(user.isVerified) return <Navigate to='/questionnaire'/>
+
+    return (<Outlet />)
+}
 
 function App() {
     const [loading, setLoading] = useState(true)
@@ -35,21 +51,6 @@ function App() {
         setLoggedIn(false)
         setUser({})
         window.location.href = '/'
-    }
-
-    const ProtectedRoutes = () => {
-        console.log(user)
-        if(!loggedIn) return <Navigate to='/' />
-        if(!user.isVerified) return <Navigate to='/email-verification'/>
-
-        return (<Outlet />)
-    }
-
-    const EmailVerificationRoutes = () => {
-        if(!loggedIn) return <Navigate to='/' />
-        if(user.isVerified) return <Navigate to='/questionnaire'/>
-
-        return (<Outlet />)
     }
 
     useEffect(() => {
@@ -84,12 +85,12 @@ function App() {
                 <Route path='/google-redirect' element={<GoogleRedirectPage setLoggedIn={setLoggedIn} />}/>
                 <Route path='/verifying-email' element={<VerifyingEmailPage/> } />
                 
-                <Route element={<EmailVerificationRoutes/>}>
+                <Route element={<EmailVerificationRoutes user={user} loggedIn={loggedIn} />}>
                     <Route path='/email-verification' element={<EmailVerificationPage/>} />
                 </Route>
                 
                 {/* Protected routes */}
-                <Route element={<ProtectedRoutes/>}>
+                <Route element={<ProtectedRoutes user={user} loggedIn={loggedIn} />}>
                     <Route path='/portfolio' element={<PortfolioPage user={user} logout={logout} />}/>
                     <Route path="/questionnaire" element={<QuestionnairePage/>} />
                     <Route path="/profile" element={<ProfilePage user={user} logout={logout} />} />

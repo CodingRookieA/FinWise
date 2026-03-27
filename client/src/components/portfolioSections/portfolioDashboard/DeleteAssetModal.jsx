@@ -1,11 +1,7 @@
-import React from 'react';
-import { Dialog, DialogContent, DialogActions, Button, Typography, Box, useTheme } from '@mui/material';
+import { Dialog, DialogContent, DialogActions, Button, Typography, Box } from '@mui/material';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 export const DeleteAssetModal = ({ open, onClose, onConfirm }) => {
-
-    const theme = useTheme();
-
     return (
         <Dialog 
             open={open} 

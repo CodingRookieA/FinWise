@@ -6,9 +6,7 @@
  *   node testClassifier.js    # Runs default tests, then enters interactive mode
  */
 
-import mongoose from 'mongoose'
 import * as readline from 'readline'
-import { ENVIRONMENT } from '../utils/constants.js'
 import { classifyQuery } from '../helpers/classifier.js'
 
 const defaultTestQueries = [

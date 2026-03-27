@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@mui/x-data-grid": "^8.28.0",
-    "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1"
-  }
-}

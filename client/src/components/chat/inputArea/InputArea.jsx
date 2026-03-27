@@ -1,7 +1,7 @@
 import { Box, Paper, TextField, IconButton, Typography } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send'
 
-import styles from './inputArea.module.css'
+import styles from './InputArea.module.css'
 
 export const InputArea = ({ 
     message, 
