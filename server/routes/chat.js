@@ -11,6 +11,7 @@ export function createChatRouter(controller = ChatController) {
 
 	// Define send chat message route
 	chatRouter.post('/send', controller.sendMessage)
+	chatRouter.post('/send/stream', controller.sendMessageStream)
 
 	//Get chat history for a specific user
 	chatRouter.get('/history', controller.getUserChatHistory)

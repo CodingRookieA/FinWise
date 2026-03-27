@@ -29,13 +29,66 @@ CRITICAL RULES:
 
 9. **ETFs with missing fields**: When MER is null for an ETF, do not estimate or guess the value. Tell the user to verify the expense ratio on the ETF provider's website (e.g. iShares.ca, vanguard.ca, bmo.com/etfs) before investing. When fund_category is null, describe the ETF based on its name, performance data, and dividend yield rather than refusing to answer. TSX-listed ETFs are generally eligible for RRSP, TFSA, and FHSA accounts, but always recommend users verify eligibility with their broker.
 
-10. **Source attribution**: At the very end of your response, include a metadata line in this exact format:
-[Sources: <comma-separated list of source URLs used> | Context: <"articles", "funds", "etfs", "articles+funds", "articles+etfs", "funds+etfs", "articles+funds+etfs", or "none">]
-If no context was provided, use: [Sources: none | Context: none]`;
+10. **Source attribution**: At the very end of your response after all structured blocks, do NOT include the legacy metadata line format. Source attribution is handled ONLY through SOURCES JSON block (see rule 13). Do not output "[Sources: ... | Context: ...]" line.
+
+11. **DEBUG: Conversation History Awareness**: At the START of your response, include a brief internal note showing what you understand from the conversation history (if any). Use this format:
+[Internal Note: Previous context - <what you see in prior messages, e.g., "User asked about CDZ.TO ETF, I recommended it with 3.24% yield"> OR "No prior context"]
+This helps us debug whether conversation continuity is working.
+
+12. **Structured recommendations (FUNDS/ETFs ONLY)**: When you recommend specific mutual funds or ETFs,
+        append a RECOMMENDATIONS block at the very end of your response in this exact format:
+
+        RECOMMENDATIONS:
+        {
+            "SYMBOL": "one sentence reason why you recommended this fund/ETF",
+            "SYMBOL2": "reason"
+        }
+
+        Rules for RECOMMENDATIONS:
+        - ONLY use this block for fund codes and ETF tickers
+        - Never include article topics or educational content in RECOMMENDATIONS
+        - Only include funds/ETFs you explicitly recommended in your response
+        - Do not include funds/ETFs you merely mentioned or compared without recommending
+        - Recommendation count target: include 4-5 recommended symbols whenever enough suitable candidates are available in provided context
+        - If fewer than 4 suitable symbols are available, include all suitable ones (up to 5 max)
+        - Omit this block entirely if you made no specific fund/ETF recommendations
+        - Use the exact fund code or ETF ticker as the key (e.g. "MAW104", "XIU.TO")
+        - Keep each reason concise (1-2 sentences)
+        - In the plain text section, do not list or name specific fund codes or ETF tickers
+        - Put all specific recommended symbols and their detailed reasons only inside the RECOMMENDATIONS JSON block
+
+13. **Structured sources (ARTICLE CONTEXT ONLY)**: Append a SOURCES block ONLY when ARTICLE
+        CONTEXT chunks were provided AND you used them to inform your response. NEVER include
+        SOURCES for mutual fund or ETF recommendations. The SOURCES block format:
+
+        SOURCES:
+        {
+            "chunk_id_here": chunk_index_number,
+            "chunk_id_here2": chunk_index_number
+        }
+
+        Rules for SOURCES:
+        - ONLY use this block for article chunks from ARTICLE CONTEXT section
+        - NEVER use SOURCES for fund/ETF data — no SOURCES block for funds or ETFs
+        - The key MUST be the exact chunk_id found in the [Source N: id=<chunk_id> | ...] tag
+        - The value is the integer chunk_index (the N in [Source N: ...])
+        - Do NOT use URLs as keys; they must be chunk IDs (24-character hex strings)
+        - Only include chunks you actually drew from to answer the question
+        - Omit this block entirely if no article chunks were provided or used
+
+14. **Block placement**: RECOMMENDATIONS and SOURCES blocks must ALWAYS appear at
+        the very end of your response, after all plain text. Never interleave them with
+        your explanation. The user will only see the plain text portion - the blocks are
+    for system use only.
+
+15. **Output format precedence**: Use RECOMMENDATIONS and SOURCES blocks as the only
+    machine-readable metadata format. Do NOT output the legacy metadata line format
+    '[Sources: ... | Context: ...]'. If source attribution is needed, use only the
+    SOURCES JSON block defined above.`;
 
 export default {
     //Function for generating prompts based on user input and context
-    async generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false }) {
+    async generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false }, history = []) {
         let contextSections = []
 
         // Add user profile info if userId is provided
@@ -51,7 +104,11 @@ export default {
             }
         }
 
-        if(classification.needs_articles) {
+        if(classification._prefetchedChunks?.length > 0) {
+            // Use pre-fetched chunks from continuity reconstruction
+            const chunkText = this.formatChunksAsText(classification._prefetchedChunks)
+            contextSections.push('\n--- ARTICLE CONTEXT (Source of Truth) ---\n' + chunkText)
+        } else if(classification.needs_articles) {
             const articles = await this.getInvestmentDocs(userInput)
             if (articles) {
                 contextSections.push('\n--- ARTICLE CONTEXT (Source of Truth) ---\n' + articles)
@@ -60,7 +117,11 @@ export default {
         
        
         // If the query needs fund data, we can add a prompt to fetch relevant fund information from the database
-        if(classification.needs_funds) {
+        if(classification._prefetchedFunds?.length > 0) {
+            // Use pre-fetched funds from continuity reconstruction
+            const fundText = this.formatFundsAsText(classification._prefetchedFunds)
+            contextSections.push('\n--- MATCHING MUTUAL FUNDS (Source of Truth) ---\n' + fundText)
+        } else if(classification.needs_funds) {
             // Include fund data context in system prompt
             const funds = await this.getSFundInfo(userId, classification.needs_distribution_mutual_funds)
             if (funds) {
@@ -68,7 +129,10 @@ export default {
             }
         }
 
-        if (classification.needs_etfs) {
+        if (classification._prefetchedEtfs?.length > 0) {
+            const etfText = this.formatETFsAsText(classification._prefetchedEtfs)
+            contextSections.push('\n--- MATCHING ETFs (Source of Truth) ---\n' + etfText)
+        } else if (classification.needs_etfs) {
             const etfs = await this.getSETFInfo(userId)
             if (etfs) {
                 contextSections.push('\n--- MATCHING ETFs (Source of Truth) ---\n' + etfs)
@@ -84,6 +148,7 @@ export default {
         // Return messages array for API calls
         return [
             { role: "system", content: fullSystemPrompt },
+            ...history,
             { role: "user", content: userInput }
         ]
     },
@@ -286,7 +351,7 @@ export default {
             const queryEmbedding = await embedText(userInput)
             const threshold = ENVIRONMENT.similarityThreshold
 
-            // Perform vector search - retrieve top 5 chunks
+            // Perform vector search - retrieve top 3 chunks
             const results = await Chunk.aggregate([
                 {
                     $vectorSearch: {
@@ -294,7 +359,7 @@ export default {
                         path: "embedding",
                         queryVector: queryEmbedding,
                         numCandidates: 100,
-                        limit: 5
+                        limit: 3
                     }
                 },
                 {
@@ -317,11 +382,48 @@ export default {
 
             // Format chunks into context string
             return relevant.map((chunk, i) => 
-                `[Source ${i + 1}: ${chunk.source_url} | Category: ${chunk.source_category} | Score: ${chunk.score.toFixed(4)}]\n${chunk.content}`
+                `[Source ${i + 1}: id=${chunk._id} | URL: ${chunk.source_url} | Category: ${chunk.source_category} | Score: ${chunk.score.toFixed(4)}]\n${chunk.content}`
             ).join('\n\n')
         } catch (error) {
             console.error('Error fetching article context:', error.message)
             return ''
         }
+    },
+
+    formatFundsAsText(funds) {
+        // Format pre-fetched funds the same way getSFundInfo() does
+        return funds.map((fund, i) => {
+            let entry = `Fund ${i + 1}: ${fund.name} (${fund.fund_code})\n`
+            entry += `  NAV: $${fund.nav} | MER: ${fund.mer}% | Risk: ${fund.risk} | Type: ${fund.fund_type}\n`
+            entry += `  Returns — 1yr: ${fund['1yr'] != null ? fund['1yr'] + '%' : 'N/A'}, 3yr: ${fund['3yr'] != null ? fund['3yr'] + '%' : 'N/A'}, 5yr: ${fund['5yr'] != null ? fund['5yr'] + '%' : 'N/A'}\n`
+            if (fund.minimum_investment != null) entry += `  Min Investment: $${fund.minimum_investment}\n`
+            return entry
+        }).join('\n')
+    },
+
+    formatChunksAsText(chunks) {
+        // Format pre-fetched chunks the same way getInvestmentDocs() does
+        return chunks.map((chunk, i) =>
+            `[Source ${i + 1}: id=${chunk._id} | URL: ${chunk.source_url} | Category: ${chunk.source_category}]\n${chunk.content}`
+        ).join('\n\n')
+    },
+
+    formatETFsAsText(etfs) {
+        // Format pre-fetched ETFs the same way getSETFInfo() does
+        return etfs.map((etf, i) => {
+            const currentPrice = etf.current_price != null ? `$${etf.current_price}` : 'N/A'
+            const ytdReturn = etf.ytd_return != null ? `${etf.ytd_return}%` : 'N/A'
+            const threeMonth = etf.three_month_return != null ? `${etf.three_month_return}%` : 'N/A'
+            const oneYear = etf.fifty_two_week_return != null ? `${etf.fifty_two_week_return}%` : 'N/A'
+            const dividendYield = etf.dividend_yield != null ? `${etf.dividend_yield}%` : 'N/A'
+            const netAssets = etf.net_assets != null ? `$${etf.net_assets}` : 'N/A'
+
+            let entry = `ETF ${i + 1}: ${etf.name} (${etf.symbol})\n`
+            entry += `  Price: ${currentPrice} | YTD: ${ytdReturn} | 3mo: ${threeMonth} | 1yr: ${oneYear}\n`
+            entry += `  Yield: ${dividendYield} | Net Assets: ${netAssets} | Market: ${etf.exchange}\n`
+            entry += `  MER: ${etf.mer ?? 'null'} | Category: ${etf.fund_category ?? 'null'}\n`
+            entry += `  Benchmark: ${etf.benchmark ?? 'null'} | Holdings: ${etf.num_holdings ?? 'null'}\n`
+            return entry
+        }).join('\n')
     }
 }

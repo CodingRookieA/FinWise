@@ -2,8 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ChatPage } from './ChatPage'
 
+const toastHelperMock = vi.fn()
+
 vi.mock('../../utils/constants', () => ({
   SERVERURL: 'http://test-server'
+}))
+
+vi.mock('../../utils/toastHelper', () => ({
+  default: (...args) => toastHelperMock(...args)
 }))
 
 vi.mock('../../components/alerts/InfoAlert', () => ({
@@ -11,13 +17,14 @@ vi.mock('../../components/alerts/InfoAlert', () => ({
 }))
 
 vi.mock('../../components/chat/sidebar/Sidebar', () => ({
-  Sidebar: ({ loggedIn, chatHistory, onNewChat, onLoadSession, onDeleteSession }) => (
+  Sidebar: ({ loggedIn, chatHistory, onNewChat, onLoadSession, onDeleteSession, onChatResponseModeChange }) => (
     <div>
       <p>{`sidebar-logged-in:${String(loggedIn)}`}</p>
       <p>{`history-count:${chatHistory.length}`}</p>
       <button onClick={onNewChat}>new-chat</button>
       <button onClick={() => onLoadSession('session-abc')}>load-session</button>
       <button onClick={() => onDeleteSession('session-abc')}>delete-session</button>
+      <button onClick={() => onChatResponseModeChange && onChatResponseModeChange('streaming')}>toggle-stream-mode</button>
     </div>
   )
 }))
@@ -59,6 +66,7 @@ vi.mock('../../components/chat/inputArea/InputArea', () => ({
 describe('ChatPage', () => {
   beforeEach(() => {
     global.fetch = vi.fn()
+    toastHelperMock.mockReset()
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(globalThis.crypto, 'randomUUID')
@@ -115,6 +123,10 @@ describe('ChatPage', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
+        json: async () => ({ questions: [], remainingUnansweredCount: 0 })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({ response: 'ETF means exchange-traded fund.' })
       })
       .mockResolvedValueOnce({
@@ -137,8 +149,7 @@ describe('ChatPage', () => {
     await user.click(screen.getByRole('button', { name: 'send-message' }))
 
     expect(await screen.findByText('assistant:ETF means exchange-traded fund.')).toBeInTheDocument()
-    expect(fetch).toHaveBeenNthCalledWith(
-      2,
+    expect(fetch).toHaveBeenCalledWith(
       'http://test-server/api/chat/send',
       expect.objectContaining({
         method: 'POST',
@@ -190,6 +201,10 @@ describe('ChatPage', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
+        json: async () => ({ questions: [], remainingUnansweredCount: 0 })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({
           messages: [
             { role: 'user', content: 'old question' },
@@ -225,6 +240,10 @@ describe('ChatPage', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ sessions: [{ sessionId: 'session-abc' }, { sessionId: 'session-2' }] })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ questions: [], remainingUnansweredCount: 0 })
       })
       .mockResolvedValueOnce({
         ok: true,
@@ -265,5 +284,30 @@ describe('ChatPage', () => {
 
     expect(await screen.findByText('history-count:1')).toBeInTheDocument()
     expect(screen.queryByText('user:old question')).not.toBeInTheDocument()
+  })
+
+  it('shows reminder toast when toggling to streaming mode', async () => {
+    const user = userEvent.setup()
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ sessions: [] })
+    })
+
+    render(
+      <ChatPage
+        user={{ userId: 'u-1', isVerified: true }}
+        logout={vi.fn()}
+        loggedIn={true}
+        setLoggedIn={vi.fn()}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'toggle-stream-mode' }))
+
+    expect(toastHelperMock).toHaveBeenCalledWith(
+      'info',
+      'Streaming enabled. Recommendation table may appear slightly after text.'
+    )
   })
 })

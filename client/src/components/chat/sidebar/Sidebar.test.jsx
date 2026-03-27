@@ -89,4 +89,27 @@ describe('Chat Sidebar', () => {
     await user.click(screen.getAllByText('alice@example.com')[0])
     expect(mockNavigate).toHaveBeenCalledWith('/profile')
   })
+
+  it('toggles response mode from regular to streaming', async () => {
+    const user = userEvent.setup()
+    const onChatResponseModeChange = vi.fn()
+
+    render(
+      <Sidebar
+        user={{ name: 'Alice', email: 'alice@example.com' }}
+        chatHistory={[]}
+        sidebarOpen={true}
+        onToggleSidebar={vi.fn()}
+        onNewChat={vi.fn()}
+        onLoadSession={vi.fn()}
+        onDeleteSession={vi.fn()}
+        chatResponseMode='regular'
+        onChatResponseModeChange={onChatResponseModeChange}
+        loggedIn={true}
+      />
+    )
+
+    await user.click(screen.getAllByRole('switch')[0])
+    expect(onChatResponseModeChange).toHaveBeenCalledWith('streaming')
+  })
 })

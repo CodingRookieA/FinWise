@@ -24,3 +24,73 @@
     justify-content: space-around;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 10px 20px 0 rgba(0, 0, 0, 0.19)
 }
+
+.profileCard {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    background:
+        radial-gradient(900px 220px at 10% 0%, rgba(56, 189, 248, 0.20) 0%, rgba(0, 0, 0, 0) 55%),
+        radial-gradient(600px 200px at 90% 110%, rgba(16, 185, 129, 0.15) 0%, rgba(0, 0, 0, 0) 60%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+    box-shadow:
+        0 22px 55px rgba(0, 0, 0, 0.35),
+        0 6px 18px rgba(0, 0, 0, 0.22);
+    transform: translateZ(0);
+    transition:
+        transform 160ms ease,
+        box-shadow 160ms ease,
+        border-color 160ms ease,
+        opacity 140ms ease,
+        filter 160ms ease;
+}
+
+.profileCard::after {
+    content: '';
+    position: absolute;
+    inset: -40%;
+    background: linear-gradient(115deg, rgba(56, 189, 248, 0) 20%, rgba(56, 189, 248, 0.20) 40%, rgba(56, 189, 248, 0) 60%);
+    transform: translateX(-25%);
+    opacity: 0;
+    animation: flowGlow 3.4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.profileCard:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 28px 70px rgba(0, 0, 0, 0.40),
+        0 8px 24px rgba(0, 0, 0, 0.25);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.profileCard:hover::after {
+    opacity: 0.9;
+}
+
+@keyframes flowGlow {
+    0% { transform: translateX(-35%) translateY(6%); }
+    50% { transform: translateX(35%) translateY(-6%); }
+    100% { transform: translateX(-35%) translateY(6%); }
+}
+
+.profileCardTitle {
+    font-weight: 850;
+    letter-spacing: -0.2px;
+}
+
+.profileCardExit {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(1px);
+}
+
+.profileCardEnter {
+    animation: profileCardEnter 220ms ease both;
+}
+
+@keyframes profileCardEnter {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
