@@ -15,8 +15,6 @@ export const ChatPage = ({ user, loggedIn }) => {
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [sessionId, setSessionId] = useState(() => crypto.randomUUID())
     const [chatHistory, setChatHistory] = useState([])
-    // eslint-disable-next-line no-unused-vars
-    const [loadingHistory, setLoadingHistory] = useState(false)
     const [loadingSession, setLoadingSession] = useState(false)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState(null)
@@ -32,7 +30,6 @@ export const ChatPage = ({ user, loggedIn }) => {
                 return
             }
 
-            setLoadingHistory(true)
             try {
                 // Use /history endpoint which uses default userId for testing
                 const response = await fetch(`${SERVERURL}/api/chat/history`, {
@@ -45,8 +42,6 @@ export const ChatPage = ({ user, loggedIn }) => {
                 }
             } catch (error) {
                 console.error('Error fetching chat history:', error)
-            } finally {
-                setLoadingHistory(false)
             }
         }
 

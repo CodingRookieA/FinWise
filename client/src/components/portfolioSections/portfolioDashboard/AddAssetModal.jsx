@@ -1,19 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box, useTheme, MenuItem } from '@mui/material';
 
 export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
     // 1. Logic: Form State
-    const [formData, setFormData] = useState({ symbol: '', quantity: '', type: 'ETF' });
+    const [formData, setFormData] = useState(initialData || { symbol: '', quantity: '', type: 'ETF' });
     const theme = useTheme();
-
-    useEffect(() => {
-        if (initialData) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setFormData({ symbol: initialData.symbol, quantity: initialData.quantity, type: initialData.type || 'ETF' });
-        } else {
-            setFormData({ symbol: '', quantity: '', type: 'ETF' });
-        }
-    }, [initialData, open]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });

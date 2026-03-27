@@ -27,7 +27,8 @@ function isValidUrl(string) {
     try {
         new URL(string)
         return true
-    } catch (_) {
+    } catch (err) {
+        console.log(err)
         return false
     }
 }

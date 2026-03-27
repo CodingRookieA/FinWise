@@ -5,7 +5,7 @@ import { ProductSection } from '../../components/homepageSections/productSection
 import { GoalSection } from '../../components/homepageSections/goalSection/GoalSection';
 import { AboutSection } from '../../components/homepageSections/aboutSection/AboutSection';
 import { BottomSection } from '../../components/homepageSections/bottomSection/BottomSection';
-import { LoginModal } from "../../components/loginModal/LoginModal";
+import { LoginModal } from '../../components/loginModal/LoginModal';
 import { useState } from 'react';
 import { InfoAlert } from '../../components/alerts/InfoAlert';
 

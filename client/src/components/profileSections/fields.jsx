@@ -12,6 +12,7 @@ import {
 import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
 
 import Field from "./field";
+import { SERVERURL } from "../../utils/constants";
 
 export default function Fields({ activeSection = "general" }) {
   const [meta, setMeta] = React.useState([]);      // questions array from /meta
@@ -31,11 +32,11 @@ export default function Fields({ activeSection = "general" }) {
         setSuccess(null);
 
         const [metaRes, profileRes] = await Promise.all([
-          fetch("http://localhost:9000/api/profile/meta", {
+          fetch(`${SERVERURL}/api/profile/meta`, {
             headers: { "x-demo-user": "demo" },
             credentials: 'include'
           }),
-          fetch("http://localhost:9000/api/profile", {
+          fetch(`${SERVERURL}/api/profile`, {
             headers: { "x-demo-user": "demo" },
             credentials: 'include'
           }),
@@ -91,7 +92,7 @@ export default function Fields({ activeSection = "general" }) {
         payload[key] = v;
       }
 
-      const res = await fetch("http://localhost:9000/api/profile", {
+      const res = await fetch(`${SERVERURL}/api/profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
