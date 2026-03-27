@@ -11,6 +11,7 @@ import { ENVIRONMENT, PORT } from './utils/constants.js'
 
 // Enable dotenv
 config()
+const zero = 0
 
 const app = createApp()
 
