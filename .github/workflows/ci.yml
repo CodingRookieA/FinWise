@@ -92,11 +92,10 @@ jobs:
           cd server
           npm audit --audit-level=moderate
 
-# --- 4. CONTAINER BUILD FOR MAIN BRANCH ---
+# --- 4. TODO: CONTAINER BUILD FOR MAIN BRANCH ---
   # Must wait for ALL quality, test, and security jobs to pass.
-  docker-build-push:
-    needs: [lint-frontend, lint-backend, test-frontend, test-backend, security-frontend, security-backend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      # TODO
+#   docker-build-push:
+#     needs: [lint-frontend, lint-backend, test-frontend, test-backend, security-frontend, security-backend]
+#     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#     runs-on: ubuntu-latest
+#     steps:
