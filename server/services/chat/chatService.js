@@ -174,6 +174,9 @@ async function enrichRecommendations(recommendations, deps = {}) {
 }
 
 export function createChatService(deps = {}) {
+    /** Last completed classification `response_mode` per chat session (general | narrow). */
+    const lastResponseModeBySession = new Map()
+
     const {
         promptengineeringLib = promptengineering,
         classifyQueryFn = classifyQuery,
@@ -207,7 +210,10 @@ export function createChatService(deps = {}) {
 
         const classifierHistoryWindow = fullHistory.slice(-10)
 
-        const classification = await classifyQueryFn(message, userProfile, classifierHistoryWindow)
+        const previousResponseMode = sessionId ? lastResponseModeBySession.get(sessionId) ?? null : null
+        const classification = await classifyQueryFn(message, userProfile, classifierHistoryWindow, {
+            previousResponseMode,
+        })
         let isContinuationForResponse = Boolean(classification.is_continuation)
         console.log('Classification result:', classification)
 
@@ -220,6 +226,10 @@ export function createChatService(deps = {}) {
                 blockMessage: environment.outOfScopeChatMessage,
                 isContinuationForResponse: false,
             }
+        }
+
+        if (sessionId && classification.response_mode) {
+            lastResponseModeBySession.set(sessionId, classification.response_mode)
         }
 
         if (typeof onStatus === 'function') {

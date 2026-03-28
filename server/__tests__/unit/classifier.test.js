@@ -1,5 +1,33 @@
 import { describe, test, expect, jest, beforeEach, afterEach } from '@jest/globals'
 
+import { breakContinuationOnScopeChange } from '../../helpers/classifier.js'
+
+describe('breakContinuationOnScopeChange', () => {
+    test('forces is_continuation false when scope flips from general to narrow', () => {
+        const c = { response_mode: 'narrow', is_continuation: true }
+        breakContinuationOnScopeChange(c, 'general')
+        expect(c.is_continuation).toBe(false)
+    })
+
+    test('forces is_continuation false when scope flips from narrow to general', () => {
+        const c = { response_mode: 'general', is_continuation: true }
+        breakContinuationOnScopeChange(c, 'narrow')
+        expect(c.is_continuation).toBe(false)
+    })
+
+    test('leaves is_continuation when scope unchanged', () => {
+        const c = { response_mode: 'narrow', is_continuation: true }
+        breakContinuationOnScopeChange(c, 'narrow')
+        expect(c.is_continuation).toBe(true)
+    })
+
+    test('no-op when previous scope unknown', () => {
+        const c = { response_mode: 'narrow', is_continuation: true }
+        breakContinuationOnScopeChange(c, null)
+        expect(c.is_continuation).toBe(true)
+    })
+})
+
 describe('classifier', () => {
     let originalFetch
     let consoleErrorSpy
@@ -100,6 +128,31 @@ describe('classifier', () => {
             is_continuation: false,
             response_mode: 'general',
         })
+    })
+
+    test('breaks continuation when previous scope was general and current classification is narrow', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                candidates: [
+                    {
+                        content: {
+                            parts: [
+                                {
+                                    text: '{"is_allowed":true,"needs_articles":false,"needs_funds":true,"needs_etfs":false,"needs_distribution_mutual_funds":false,"is_continuation":true}',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            }),
+        })
+
+        const { classifyQuery } = await import('../../helpers/classifier.js')
+        const result = await classifyQuery('Recommend mutual funds', null, [], { previousResponseMode: 'general' })
+
+        expect(result.response_mode).toBe('narrow')
+        expect(result.is_continuation).toBe(false)
     })
 
     test('returns is_allowed false when model marks query out of scope', async () => {

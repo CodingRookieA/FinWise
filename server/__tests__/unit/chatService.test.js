@@ -106,7 +106,7 @@ describe('chatService', () => {
         expect(result.messageIds).toBeNull()
         expect(deps.MessageModel.create).not.toHaveBeenCalled()
         expect(deps.MessageModel.find).not.toHaveBeenCalled()
-        expect(deps.classifyQueryFn).toHaveBeenCalledWith('hi', null, [])
+        expect(deps.classifyQueryFn).toHaveBeenCalledWith('hi', null, [], { previousResponseMode: null })
     })
 
     test('stores user and ai messages for authenticated user', async () => {
@@ -157,7 +157,8 @@ describe('chatService', () => {
             [
                 { role: 'user', content: 'Old user message' },
                 { role: 'AI', content: 'Old AI message' }
-            ]
+            ],
+            { previousResponseMode: null }
         )
         expect(deps.promptengineeringLib.generatePrompt).toHaveBeenCalledWith(
             'hello',

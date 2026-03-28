@@ -146,6 +146,21 @@ function applyResponseMode(classification) {
     return classification
 }
 
+/**
+ * When the pipeline scope changes (general ↔ narrow), do not treat the turn as a
+ * continuation of the prior message — fresh retrieval and UI (e.g. recommendation panel).
+ * @param {{ response_mode: string, is_continuation: boolean }} classification
+ * @param {'general' | 'narrow' | null | undefined} previousResponseMode — last completed turn for this session
+ */
+export function breakContinuationOnScopeChange(classification, previousResponseMode) {
+    if (previousResponseMode !== 'general' && previousResponseMode !== 'narrow') {
+        return
+    }
+    if (classification.response_mode !== previousResponseMode) {
+        classification.is_continuation = false
+    }
+}
+
 function buildConversationSummary(historyMessages, limit = 10) {
     if (!Array.isArray(historyMessages) || historyMessages.length === 0) {
         return 'none'
@@ -168,9 +183,12 @@ function buildConversationSummary(historyMessages, limit = 10) {
  * Classifies a user query to determine what data sources are needed
  * 
  * @param {string} userQuery - The user's question or input
+ * @param {object|null} [options]
+ * @param {'general'|'narrow'|null} [options.previousResponseMode] - Prior turn's response_mode for this session; if current scope differs, is_continuation is forced false
  * @returns {Promise<{is_allowed: boolean, needs_articles: boolean, needs_funds: boolean, needs_etfs: boolean, needs_distribution_mutual_funds: boolean, is_continuation: boolean, response_mode: 'general' | 'narrow'}>} Classification result
  */
-export async function classifyQuery(userQuery, userProfile = null, historyMessages = []) {
+export async function classifyQuery(userQuery, userProfile = null, historyMessages = [], options = {}) {
+    const { previousResponseMode = null } = options || {}
     if (!userQuery || typeof userQuery !== 'string' || !userQuery.trim()) {
         throw new Error('Invalid query: must be a non-empty string')
     }
@@ -278,6 +296,7 @@ export async function classifyQuery(userQuery, userProfile = null, historyMessag
         }
 
         applyResponseMode(classification)
+        breakContinuationOnScopeChange(classification, previousResponseMode)
         console.log(`📊 Query classified: allowed=${classification.is_allowed}, articles=${classification.needs_articles}, funds=${classification.needs_funds}, etfs=${classification.needs_etfs}, distribution=${classification.needs_distribution_mutual_funds}, continuation=${classification.is_continuation}, mode=${classification.response_mode}`)
 
         return classification

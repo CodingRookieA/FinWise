@@ -782,6 +782,7 @@ export const ChatPage = ({ user, loggedIn }) => {
                 <InputArea
                     message={message}
                     loading={loading}
+                    streamingResponse={loading && chatResponseMode === 'streaming'}
                     onMessageChange={(e) => setMessage(e.target.value)}
                     onSendMessage={handleSendMessage}
                     onKeyPress={handleKeyPress}
