@@ -47,11 +47,13 @@ describe('classifier', () => {
         const result = await classifyQuery('What is NAV?')
 
         expect(result).toEqual({
+            is_allowed: true,
             needs_articles: true,
             needs_funds: false,
             needs_etfs: false,
             needs_distribution_mutual_funds: false,
             is_continuation: false,
+            response_mode: 'general',
         })
     })
 
@@ -77,6 +79,7 @@ describe('classifier', () => {
         expect(result.needs_etfs).toBe(true)
         expect(result.needs_funds).toBe(true)
         expect(result.is_continuation).toBe(true)
+        expect(result.response_mode).toBe('narrow')
     })
 
     test('returns safe fallback on API or parse errors', async () => {
@@ -89,15 +92,42 @@ describe('classifier', () => {
         const result = await classifyQuery('Any query')
 
         expect(result).toEqual({
+            is_allowed: true,
             needs_articles: true,
-            needs_funds: true,
-            needs_etfs: true,
+            needs_funds: false,
+            needs_etfs: false,
             needs_distribution_mutual_funds: false,
             is_continuation: false,
+            response_mode: 'general',
         })
     })
 
-    test('forces articles, funds, and etfs for generic recommendation intent', async () => {
+    test('returns is_allowed false when model marks query out of scope', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({
+                candidates: [
+                    {
+                        content: {
+                            parts: [
+                                {
+                                    text: '{"is_allowed":false,"needs_articles":false,"needs_funds":false,"needs_etfs":false,"needs_distribution_mutual_funds":false,"is_continuation":false}',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            }),
+        })
+
+        const { classifyQuery } = await import('../../helpers/classifier.js')
+        const result = await classifyQuery('Write me a poem about the weather')
+
+        expect(result.is_allowed).toBe(false)
+        expect(result.response_mode).toBe('general')
+    })
+
+    test('forces article-only general path for generic recommendation intent', async () => {
         global.fetch = jest.fn().mockResolvedValue({
             ok: true,
             json: async () => ({
@@ -117,9 +147,10 @@ describe('classifier', () => {
         const result = await classifyQuery('What should I invest in?')
 
         expect(result.needs_articles).toBe(true)
-        expect(result.needs_etfs).toBe(true)
-        expect(result.needs_funds).toBe(true)
+        expect(result.needs_etfs).toBe(false)
+        expect(result.needs_funds).toBe(false)
         expect(result.is_continuation).toBe(false)
+        expect(result.response_mode).toBe('general')
     })
 
     test('includes recent conversation history in classifier prompt payload', async () => {
@@ -185,5 +216,6 @@ describe('classifier', () => {
         expect(result.needs_funds).toBe(true)
         expect(result.needs_etfs).toBe(false)
         expect(result.is_continuation).toBe(true)
+        expect(result.response_mode).toBe('narrow')
     })
 })

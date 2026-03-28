@@ -9,7 +9,7 @@ describe('profileService', () => {
     function makeSchema() {
         return {
             path: jest.fn((field) => {
-                if (['income_stability', 'employment_status', 'risk_tolerance', 'investment_experience', 'financial_goal', 'housing_status', 'has_TFSA', 'investment_preference'].includes(field)) {
+                if (['age', 'income_stability', 'employment_status', 'risk_tolerance', 'investment_experience', 'financial_goal', 'housing_status', 'has_TFSA', 'investment_preference'].includes(field)) {
                     return { enumValues: ['A', 'B'], instance: 'String' }
                 }
                 if (['monthly_income', 'savings_balance', 'debt_amount'].includes(field)) {

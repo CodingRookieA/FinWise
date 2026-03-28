@@ -7,9 +7,9 @@
 
 import mongoose from 'mongoose'
 import readline from 'readline'
-import { ENVIRONMENT } from './utils/constants.js'
-import { embedText } from './services/article/embeddingService.js'
-import { Chunk } from './models/Chunks.js'
+import { ENVIRONMENT } from '../utils/constants.js'
+import { embedText } from '../services/article/embeddingService.js'
+import { Chunk } from '../models/Chunks.js'
 
 const rl = readline.createInterface({
     input: process.stdin,

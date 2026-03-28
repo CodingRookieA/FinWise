@@ -19,6 +19,7 @@ describe('chatService', () => {
             generatePrompt: jest.fn().mockResolvedValue([{ content: 'system' }, { content: 'user' }])
         }
         const classifyQueryFn = jest.fn().mockResolvedValue({
+            is_allowed: true,
             needs_articles: false,
             needs_funds: false,
             needs_etfs: false,
@@ -49,6 +50,7 @@ describe('chatService', () => {
             aiMaxTokens: 1,
             aiTemperature: 0.1,
             historyTokenBudget: 750,
+            outOfScopeChatMessage: 'Out of scope — FinWise only.',
         }
 
         return {
@@ -67,6 +69,30 @@ describe('chatService', () => {
             deps: { promptengineeringLib, classifyQueryFn, MessageModel, ProfileModel, aiClient, reconstructContinuityContextFn }
         }
     }
+
+    test('does not call the AI when classifier marks query out of scope', async () => {
+        const { service, deps } = buildService()
+        deps.classifyQueryFn.mockResolvedValueOnce({
+            is_allowed: false,
+            needs_articles: false,
+            needs_funds: false,
+            needs_etfs: false,
+            needs_distribution_mutual_funds: false,
+            is_continuation: false,
+        })
+
+        const result = await service.sendMessage({
+            message: 'What is the capital of France?',
+            userId: null,
+            sessionId: null,
+            sessionUserId: null,
+        })
+
+        expect(result.blocked).toBe(true)
+        expect(result.response).toBe('Out of scope — FinWise only.')
+        expect(deps.promptengineeringLib.generatePrompt).not.toHaveBeenCalled()
+        expect(deps.aiClient.generateAIResponse).not.toHaveBeenCalled()
+    })
 
     test('returns ai response without persistence for guest session', async () => {
         // Arrange

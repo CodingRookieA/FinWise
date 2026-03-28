@@ -211,6 +211,17 @@ export function createChatService(deps = {}) {
         let isContinuationForResponse = Boolean(classification.is_continuation)
         console.log('Classification result:', classification)
 
+        if (classification.is_allowed === false) {
+            if (typeof onStatus === 'function') {
+                await onStatus('blocked')
+            }
+            return {
+                blocked: true,
+                blockMessage: environment.outOfScopeChatMessage,
+                isContinuationForResponse: false,
+            }
+        }
+
         if (typeof onStatus === 'function') {
             await onStatus('building_context')
         }
@@ -244,13 +255,14 @@ export function createChatService(deps = {}) {
                     )
                 } else {
                     const missingNeededContext = []
-                    if (classification.needs_articles && chunks.length === 0) missingNeededContext.push('articles')
+                    if (classification.needs_articles) missingNeededContext.push('articles (fresh vector search)')
+                    else if (chunks.length > 0) missingNeededContext.push('articles (session continuity only)')
                     if (classification.needs_funds && funds.length === 0) missingNeededContext.push('funds')
                     if (classification.needs_etfs && etfs.length === 0) missingNeededContext.push('etfs')
 
                     const continuityClassification = {
                         ...classification,
-                        needs_articles: classification.needs_articles && chunks.length === 0,
+                        needs_articles: classification.needs_articles,
                         needs_funds: classification.needs_funds && funds.length === 0,
                         needs_etfs: classification.needs_etfs && etfs.length === 0,
                         needs_distribution_mutual_funds:
@@ -296,6 +308,7 @@ export function createChatService(deps = {}) {
         }
 
         return {
+            blocked: false,
             messages,
             isContinuationForResponse,
         }
@@ -334,12 +347,28 @@ export function createChatService(deps = {}) {
     }
 
     async function sendMessage({ message, userId, sessionId, sessionUserId }) {
-        const { messages, isContinuationForResponse } = await buildPromptMessages({
+        const buildResult = await buildPromptMessages({
             message,
             userId,
             sessionId,
             sessionUserId,
         })
+
+        if (buildResult.blocked) {
+            return {
+                success: true,
+                blocked: true,
+                response: buildResult.blockMessage,
+                isContinuation: false,
+                recommendations: null,
+                enrichedFunds: null,
+                stored: false,
+                sessionId: undefined,
+                messageIds: null,
+            }
+        }
+
+        const { messages, isContinuationForResponse } = buildResult
 
         const aiResponse = await aiClient.generateAIResponse({
             systemPrompt: messages[0].content,
@@ -374,6 +403,7 @@ export function createChatService(deps = {}) {
 
         return {
             success: true,
+            blocked: false,
             response: parsedMessage,
             stored: shouldStore,
             sessionId: savedUserMessage?.sessionId,
@@ -388,13 +418,33 @@ export function createChatService(deps = {}) {
     }
 
     async function sendMessageStream({ message, userId, sessionId, sessionUserId, onVisibleChunk, onStatus }) {
-        const { messages, isContinuationForResponse } = await buildPromptMessages({
+        const buildResult = await buildPromptMessages({
             message,
             userId,
             sessionId,
             sessionUserId,
             onStatus,
         })
+
+        if (buildResult.blocked) {
+            if (typeof onVisibleChunk === 'function') {
+                await onVisibleChunk(buildResult.blockMessage)
+            }
+            return {
+                success: true,
+                blocked: true,
+                response: buildResult.blockMessage,
+                isContinuation: false,
+                recommendations: null,
+                sources: null,
+                enrichedFunds: null,
+                stored: false,
+                sessionId: undefined,
+                messageIds: null,
+            }
+        }
+
+        const { messages, isContinuationForResponse } = buildResult
 
         if (typeof onStatus === 'function') {
             await onStatus('loading')
@@ -484,6 +534,7 @@ export function createChatService(deps = {}) {
 
         return {
             success: true,
+            blocked: false,
             response: parsedMessage,
             stored: shouldStore,
             sessionId: savedUserMessage?.sessionId,

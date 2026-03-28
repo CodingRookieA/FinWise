@@ -16,6 +16,12 @@ const ProfileSchema = new mongoose.Schema(
             ref: 'Account',
         },
 
+        age: {
+            type: String,
+            enum: ['Under 25', '25-44', '45-64', '65+'],
+            default: null,
+            trim: true,
+        },
 
         // mp questions
         income_stability:{
