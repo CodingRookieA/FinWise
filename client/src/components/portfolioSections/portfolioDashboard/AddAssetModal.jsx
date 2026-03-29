@@ -3,8 +3,17 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, B
 
 export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
     // 1. Logic: Form State
-    const [formData, setFormData] = useState(initialData || { symbol: '', quantity: '', type: 'ETF' });
+    const defaultData = { symbol: '', quantity: '', type: 'ETF' };
+    const [formData, setFormData] = useState(initialData ? { ...defaultData, ...initialData } : defaultData);
+    const [prevOpen, setPrevOpen] = useState(open);
     const theme = useTheme();
+
+    if (open !== prevOpen) {
+        setPrevOpen(open);
+        if (open) {
+            setFormData(initialData ? { ...defaultData, ...initialData } : defaultData);
+        }
+    }
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -66,6 +75,7 @@ export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
                         name="type"
                         value={formData.type}
                         onChange={handleChange}
+                        disabled={!!initialData}
                         sx={inputSx}
                         fullWidth
                     >
@@ -77,6 +87,7 @@ export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
                         name="symbol"
                         value={formData.symbol}
                         onChange={handleChange}
+                        disabled={!!initialData}
                         sx={inputSx}
                         fullWidth
                     />

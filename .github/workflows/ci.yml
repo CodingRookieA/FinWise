@@ -50,6 +50,8 @@ jobs:
           cache: 'npm'
           cache-dependency-path: client/package-lock.json
       - name: Test Client
+        env:
+          VITE_SERVER_URL_DEVELOPMENT: http://localhost:9000
         run: |
           cd client
           npm ci
