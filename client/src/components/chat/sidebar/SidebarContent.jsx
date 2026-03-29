@@ -1,4 +1,4 @@
-import { Box, Typography, IconButton, Button, List, ListItem, ListItemText, Avatar } from '@mui/material'
+import { Box, Typography, IconButton, Button, List, ListItem, ListItemText, Avatar, FormControlLabel, Switch } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
@@ -11,6 +11,8 @@ export const SidebarContent = ({
     onNewChat,
     onLoadSession,
     onDeleteSession,
+    chatResponseMode = 'streaming',
+    onChatResponseModeChange,
 }) => {
     const navigate = useNavigate()
 
@@ -114,6 +116,45 @@ export const SidebarContent = ({
             >
                 New Chat
             </Button>
+
+            <Box
+                sx={{
+                    px: 0.5,
+                    py: 1,
+                    mb: 1,
+                    borderTop: 1,
+                    borderColor: 'divider',
+                }}
+            >
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                    Response mode
+                </Typography>
+                <FormControlLabel
+                    control={(
+                        <Switch
+                            size="small"
+                            checked={chatResponseMode === 'streaming'}
+                            onChange={(event) => {
+                                if (typeof onChatResponseModeChange === 'function') {
+                                    onChatResponseModeChange(event.target.checked ? 'streaming' : 'regular')
+                                }
+                            }}
+                            inputProps={{ 'aria-label': 'toggle streaming mode' }}
+                        />
+                    )}
+                    label={chatResponseMode === 'streaming' ? 'Stream' : 'Regular'}
+                    sx={{
+                        m: 0,
+                        width: '100%',
+                        justifyContent: 'space-between',
+                        '& .MuiFormControlLabel-label': {
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                        }
+                    }}
+                    labelPlacement="start"
+                />
+            </Box>
 
             {/* User Profile */}
             <Box 
