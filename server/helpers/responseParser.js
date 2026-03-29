@@ -165,7 +165,6 @@ export function parseAIResponse(raw) {
     message = sanitizeAssistantVisibleText(message)
 
     let recommendations = null
-    let sources = null
 
     // Parse RECOMMENDATIONS block if present and valid JSON object.
     const recJsonText = extractJsonObjectAfterHeader(safeRaw, 'RECOMMENDATIONS')
@@ -181,7 +180,7 @@ export function parseAIResponse(raw) {
     }
 
     // Parse SOURCES: one or more JSON objects (merged); keys must be chunk ObjectIds for enrichment.
-    sources = extractMergedSourcesObjects(safeRaw)
+    let sources = extractMergedSourcesObjects(safeRaw)
 
     // Backward-compatibility: parse legacy line format
     // [Sources: <url1> | <url2> | Context: ...]
