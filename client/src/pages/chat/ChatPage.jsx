@@ -118,6 +118,7 @@ export const ChatPage = ({ user, loggedIn }) => {
     useEffect(() => {
         if (loadingSession || messages.length > 0) return
         fetchProfileQuestionnaire()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [guestChat, user?.userId, messages.length, loadingSession])
 
     const addSingleRecommendation = async (symbol, assetType) => {

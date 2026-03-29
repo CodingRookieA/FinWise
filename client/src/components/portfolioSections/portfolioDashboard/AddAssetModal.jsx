@@ -1,16 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box, useTheme, MenuItem } from '@mui/material';
 
 export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
     // 1. Logic: Form State
-    const [formData, setFormData] = useState(initialData || { symbol: '', quantity: '', type: 'ETF' });
+    const defaultData = { symbol: '', quantity: '', type: 'ETF' };
+    const [formData, setFormData] = useState(initialData ? { ...defaultData, ...initialData } : defaultData);
+    const [prevOpen, setPrevOpen] = useState(open);
     const theme = useTheme();
 
-    useEffect(() => {
+    if (open !== prevOpen) {
+        setPrevOpen(open);
         if (open) {
-            setFormData(initialData || { symbol: '', quantity: '', type: 'ETF' });
+            setFormData(initialData ? { ...defaultData, ...initialData } : defaultData);
         }
-    }, [initialData, open]);
+    }
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -72,6 +75,7 @@ export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
                         name="type"
                         value={formData.type}
                         onChange={handleChange}
+                        disabled={!!initialData}
                         sx={inputSx}
                         fullWidth
                     >
@@ -83,6 +87,7 @@ export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
                         name="symbol"
                         value={formData.symbol}
                         onChange={handleChange}
+                        disabled={!!initialData}
                         sx={inputSx}
                         fullWidth
                     />
