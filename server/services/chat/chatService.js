@@ -10,6 +10,7 @@ import { generateAIResponse, generateAIResponseStream } from '../../clients/aiCl
 import { trimHistoryToTokenBudget, formatHistoryForLLM } from '../history/historyService.js'
 import { parseAIResponse } from '../../helpers/responseParser.js'
 import { MutualFund } from '../../models/MutualFund.js'
+import { Chunk } from '../../models/Chunks.js'
 import etfHelpers from '../../helpers/etfHelpers.js'
 import { slimETF } from '../../helpers/etfService.js'
 
@@ -173,6 +174,48 @@ async function enrichRecommendations(recommendations, deps = {}) {
     }
 }
 
+/**
+ * Resolve article chunk IDs from SOURCES JSON to URLs for client tables.
+ * @returns {Array<{ id: string, chunkIndex: number, sourceUrl: string }>|null}
+ */
+async function enrichSources(sources, deps = {}) {
+    const { ChunkModel = Chunk, mongooseLib = mongoose } = deps
+
+    try {
+        if (!sources || typeof sources !== 'object' || Array.isArray(sources)) {
+            return null
+        }
+
+        const entries = Object.entries(sources)
+        const ids = entries
+            .map(([chunkId]) => chunkId)
+            .filter((id) => mongooseLib.Types.ObjectId.isValid(id))
+
+        if (ids.length === 0) {
+            return null
+        }
+
+        const chunks = await ChunkModel.find({ _id: { $in: ids } })
+            .select('_id source_url')
+            .lean()
+
+        const urlById = new Map(chunks.map((c) => [String(c._id), c.source_url]))
+
+        const rows = entries
+            .filter(([chunkId]) => mongooseLib.Types.ObjectId.isValid(chunkId) && urlById.has(String(chunkId)))
+            .map(([chunkId, chunkIndex]) => ({
+                id: String(chunkId),
+                chunkIndex: Number(chunkIndex),
+                sourceUrl: urlById.get(String(chunkId)),
+            }))
+
+        return rows.length > 0 ? rows : null
+    } catch (error) {
+        console.error('[enrichSources] Failed:', error.message)
+        return null
+    }
+}
+
 export function createChatService(deps = {}) {
     /** Last completed classification `response_mode` per chat session (general | narrow). */
     const lastResponseModeBySession = new Map()
@@ -182,6 +225,7 @@ export function createChatService(deps = {}) {
         classifyQueryFn = classifyQuery,
         reconstructContinuityContextFn = reconstructContinuityContext,
         MutualFundModel = MutualFund,
+        ChunkModel = Chunk,
         fetchAllETFsFn = () => etfHelpers.fetchAllETFs(),
         slimETFFn = slimETF,
         MessageModel = Message,
@@ -401,6 +445,10 @@ export function createChatService(deps = {}) {
             fetchAllETFsFn,
             slimETFFn,
         })
+        const enrichedSources = await withTimeout(
+            enrichSources(sources, { ChunkModel, mongooseLib }),
+            250
+        )
 
         const shouldStore = Boolean(sessionUserId)
         const { savedUserMessage, savedAIMessage } = await persistMessages({
@@ -423,7 +471,9 @@ export function createChatService(deps = {}) {
             } : null,
             isContinuation: isContinuationForResponse,
             recommendations: recommendations || null,
+            sources: sources || null,
             enrichedFunds,
+            enrichedSources: enrichedSources || null,
         }
     }
 
@@ -539,6 +589,10 @@ export function createChatService(deps = {}) {
             fetchAllETFsFn,
             slimETFFn,
         }), 250)
+        const enrichedSources = await withTimeout(
+            enrichSources(sources, { ChunkModel, mongooseLib }),
+            250
+        )
 
         const { savedUserMessage, savedAIMessage } = await persistPromise
 
@@ -556,6 +610,7 @@ export function createChatService(deps = {}) {
             recommendations: recommendations || null,
             sources: sources || null,
             enrichedFunds: enrichedFunds || lightweightFunds,
+            enrichedSources: enrichedSources || null,
         }
     }
 
@@ -600,19 +655,84 @@ export function createChatService(deps = {}) {
             return { forbidden: true, messages: [] }
         }
 
-        const messages = await MessageModel.find({ sessionId })
+        const rawMessages = await MessageModel.find({ sessionId })
             .sort({ createdAt: 1 })
-            .select('role content createdAt')
+            .select('_id role content createdAt')
+            .lean()
+
+        const allChunkIds = new Set()
+        for (const msg of rawMessages) {
+            if (msg.role !== 'AI') continue
+            const parsed = parseAIResponse(msg.content)
+            if (parsed.sources && typeof parsed.sources === 'object') {
+                for (const k of Object.keys(parsed.sources)) {
+                    if (mongooseLib.Types.ObjectId.isValid(k)) {
+                        allChunkIds.add(k)
+                    }
+                }
+            }
+        }
+
+        const uniqueChunkIds = [...allChunkIds]
+        const chunkDocs = uniqueChunkIds.length > 0
+            ? await ChunkModel.find({ _id: { $in: uniqueChunkIds } }).select('_id source_url').lean()
+            : []
+        const urlById = new Map(chunkDocs.map((c) => [String(c._id), c.source_url]))
+
+        function sourcesToRows(sources) {
+            if (!sources || typeof sources !== 'object') return null
+            const rows = []
+            for (const [chunkId, chunkIndex] of Object.entries(sources)) {
+                if (!mongooseLib.Types.ObjectId.isValid(chunkId)) continue
+                const url = urlById.get(String(chunkId))
+                if (url) {
+                    rows.push({
+                        id: String(chunkId),
+                        chunkIndex: Number(chunkIndex),
+                        sourceUrl: url,
+                    })
+                }
+            }
+            return rows.length > 0 ? rows : null
+        }
+
+        const messagesOut = await Promise.all(rawMessages.map(async (msg) => {
+            if (msg.role === 'user') {
+                return {
+                    id: String(msg._id),
+                    role: 'user',
+                    content: msg.content,
+                    timestamp: msg.createdAt,
+                }
+            }
+
+            const parsed = parseAIResponse(msg.content)
+            const enrichedFunds = parsed.recommendations
+                ? await withTimeout(
+                    enrichRecommendations(parsed.recommendations, {
+                        MutualFundModel,
+                        fetchAllETFsFn,
+                        slimETFFn,
+                    }),
+                    250
+                )
+                : null
+            const lightweightFunds = buildLightweightRecommendationRows(parsed.recommendations)
+            const fundsFinal = enrichedFunds?.length ? enrichedFunds : lightweightFunds
+
+            return {
+                id: String(msg._id),
+                role: 'AI',
+                content: parsed.message,
+                timestamp: msg.createdAt,
+                enrichedFunds: fundsFinal?.length ? fundsFinal : null,
+                enrichedSources: sourcesToRows(parsed.sources),
+            }
+        }))
 
         return {
             forbidden: false,
-            messages: messages.map(msg => ({
-                role: msg.role,
-                content: msg.role === 'AI'
-                    ? parseAIResponse(msg.content).message
-                    : msg.content,
-                timestamp: msg.createdAt
-            }))
+            messages: messagesOut,
         }
     }
 

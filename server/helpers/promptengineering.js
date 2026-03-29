@@ -43,9 +43,7 @@ CRITICAL RULES:
 
 10. **Source attribution**: At the very end of your response after all structured blocks, do NOT include the legacy metadata line format. Source attribution is handled ONLY through SOURCES JSON block (see rule 13). Do not output "[Sources: ... | Context: ...]" line.
 
-11. **DEBUG: Conversation History Awareness**: At the START of your response, include a brief internal note showing what you understand from the conversation history (if any). Use this format:
-[Internal Note: Previous context - <what you see in prior messages, e.g., "User asked about CDZ.TO ETF, I recommended it with 3.24% yield"> OR "No prior context"]
-This helps us debug whether conversation continuity is working.
+11. **No inline source citations in prose**: Do NOT write "(SOURCES: 1, 2)", "(SOURCE: 5)", "(Source 4)", "(Source 4, Source 7)", "[Source 3]", "see sources 6–8", or any chunk index numbers in the body of your answer. Users read plain guidance only. If article chunks informed your answer, record them exclusively in the SOURCES JSON block at the very end—never as footnotes or parentheticals in the text.
 
 12. **Structured recommendations (FUNDS/ETFs ONLY)**: When you recommend specific mutual funds or ETFs,
         append a RECOMMENDATIONS block at the very end of your response in this exact format:
@@ -87,6 +85,7 @@ This helps us debug whether conversation continuity is working.
         - Do NOT use URLs as keys; they must be chunk IDs (24-character hex strings)
         - Only include chunks you actually drew from to answer the question
         - Omit this block entirely if no article chunks were provided or used
+        - Do NOT repeat source numbers in the visible prose (see rule 11)
 
 14. **Block placement**: RECOMMENDATIONS and SOURCES blocks must ALWAYS appear at
         the very end of your response, after all plain text. Never interleave them with
@@ -114,13 +113,17 @@ const SYSTEM_PROMPT_GENERAL =
 
 5. **User profile**: Tailor tone and examples to the user's situation without listing their profile fields back verbatim.
 
-6. **DEBUG**: At the START of your response, include:
-[Internal Note: Previous context - <brief note from conversation history> OR "No prior context"]
+6. **No inline source citations**: Do not write "(SOURCES: 1, 2)", "(Source 4)", "(Source 4, Source 7)", "[Source 3]", or similar in the body of your answer. Record article use only in the SOURCES JSON block at the end.
 
-7. **SOURCES block** (article chunks only, when used):
+7. **SOURCES block** (article chunks only, when used): Output exactly **one** JSON object. Each **key** must be the literal 24-character hexadecimal chunk id copied from the corresponding \`[Source N: id=<chunk_id> | ...]\` line in ARTICLE CONTEXT — never use the placeholder text "chunk_object_id" or any invented key. Each **value** is the integer N from that line. Example shape (use real ids from context, not these sample hex strings):
+
 SOURCES:
-{ "chunk_object_id": chunk_index_number }
-Rules: keys are chunk ids from [Source N: id=...] lines; values are N. Omit if no chunks informed the answer.`
+{
+  "65a1b2c3d4e5f6789012345a": 1,
+  "65a1b2c3d4e5f6789012345b": 4
+}
+
+Rules: Omit the entire SOURCES block if no chunks informed the answer. Do not output multiple separate JSON objects; use one object with one key per chunk used.`
 
 export default {
     //Function for generating prompts based on user input and context
