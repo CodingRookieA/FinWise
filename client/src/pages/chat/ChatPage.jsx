@@ -26,7 +26,7 @@ export const ChatPage = ({ user, loggedIn }) => {
     const [streamingMessageActive, setStreamingMessageActive] = useState(false)
     const defaultChatResponseMode = import.meta.env.MODE === 'test'
         ? 'regular'
-        : (import.meta.env.VITE_CHAT_RESPONSE_MODE || 'regular')
+        : (import.meta.env.VITE_CHAT_RESPONSE_MODE || 'streaming')
     const [chatResponseMode, setChatResponseMode] = useState(defaultChatResponseMode)
     const [showProfileFlashcards, setShowProfileFlashcards] = useState(false)
     const [profileQuestions, setProfileQuestions] = useState([])
@@ -782,6 +782,7 @@ export const ChatPage = ({ user, loggedIn }) => {
                 <InputArea
                     message={message}
                     loading={loading}
+                    streamingResponse={loading && chatResponseMode === 'streaming'}
                     onMessageChange={(e) => setMessage(e.target.value)}
                     onSendMessage={handleSendMessage}
                     onKeyPress={handleKeyPress}

@@ -26,7 +26,7 @@ Classification rules:
 - Set "needs_funds" to true if the query asks about specific mutual funds, mutual fund performance, mutual fund recommendations, or mutual fund comparisons
 - Set "needs_etfs" to true if the query mentions ETFs, asks for general investment recommendations, asks "what should I invest in", or compares investment options
 - If the user explicitly asks for mutual funds (for example "what about some mutual funds?", "recommend mutual funds", "which mutual fund is a good addition"), set needs_funds=true and needs_etfs=false unless the same query also explicitly asks for ETFs or ETF-vs-fund comparison.
-- For generic recommendation intent (for example "what should I invest in", "what should I buy", "best investments for me", "give me investment advice"), set "needs_articles", "needs_funds", and "needs_etfs" to true
+- For generic open-ended advice (for example "what should I invest in", "what should I buy", "best investments for me", "give me investment advice") when the user is NOT asking for specific fund codes, ETF tickers, or live performance tables, set needs_articles=true and needs_funds=false and needs_etfs=false (article-backed general guidance only). If they explicitly want fund or ETF recommendations with data, set needs_funds and/or needs_etfs true.
 - Set "needs_etfs" to false if the query is specifically and only about mutual funds, articles, or non-investment topics
 - Set "needs_distribution_mutual_funds" to true if the query asks about mutual fund distributions, payouts, dividends, capital gains distributions, tax breakdowns, or distribution history. This is only relevant when needs_funds is also true.
 - Set "is_continuation" to true if the query refers back to something discussed earlier: uses pronouns like "it", "that", "those", "them", "the one you mentioned", "the first one", "that fund", or phrases like "tell me more", "what about", "compared to what you said", "go back to", "the fund you recommended", "explain more about that".
@@ -38,6 +38,12 @@ Classification rules:
 - Multiple fields can be true if the query spans multiple data sources
 - All can be false only if the query is off-topic (not about investing/mutual funds/ETFs)
 
+**Scope guard — "is_allowed" (required):**
+- Set "is_allowed" to true if the user is asking about investing, personal finance, mutual funds, ETFs, Canadian registered accounts, taxes or fees as they relate to investing, portfolio concepts, or a continuation of such a topic (including short follow-ups like "why?" or "tell me more" when conversation history is financial).
+- Set "is_allowed" to false for queries that are not about financial advising or investable topics in this domain: e.g. weather, sports, coding homework, medical advice, politics, creative writing, general chit-chat, or anything with no plausible link to the data sources above.
+- When recent conversation history is about investing and the current message is a short continuation, set is_allowed true.
+- When in doubt between allowed and not allowed, prefer is_allowed true only if there is a clear investing or Canadian personal-finance angle; otherwise false.
+
 Examples:
 - "What is a mutual fund?" → needs_articles: true, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false
 - "Show me the top performing Canadian equity funds" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: false
@@ -45,20 +51,21 @@ Examples:
 - "What are some good balanced funds and how do they work?" → needs_articles: true, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: false
 - "Compare the fees of fund ABC123 vs DEF456" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: false
 - "Show me top performing ETFs" → needs_articles: false, needs_funds: false, needs_etfs: true, needs_distribution_mutual_funds: false
-- "What should I invest in?" → needs_articles: true, needs_funds: true, needs_etfs: true, needs_distribution_mutual_funds: false
+- "What should I invest in?" → needs_articles: true, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false
 - "Compare ETF XYZ with mutual fund ABC" → needs_articles: false, needs_funds: true, needs_etfs: true, needs_distribution_mutual_funds: false, is_continuation: false
 - "How do ETFs differ from mutual funds?" → needs_articles: true, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false, is_continuation: false
 - "What distributions did fund RBF565 pay last year?" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: true, is_continuation: false
 - "Show me the capital gains history for this fund" → needs_articles: false, needs_funds: true, needs_etfs: false, needs_distribution_mutual_funds: true, is_continuation: false
-- "What's the weather today?" → needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false, is_continuation: false
+- "What's the weather today?" → is_allowed: false, needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false, is_continuation: false
 - "tell me more about it" → is_continuation: true, needs_funds: false, needs_articles: false, needs_etfs: false, needs_distribution_mutual_funds: false
 - "what about the fees for that fund?" → is_continuation: true, needs_funds: false, needs_articles: false, needs_etfs: false, needs_distribution_mutual_funds: false
 - "why did you recommend MAW104?" → is_continuation: true, needs_funds: false, needs_articles: false, needs_etfs: false, needs_distribution_mutual_funds: false
 - "how does RRSP work?" → is_continuation: false, needs_articles: true, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false
-- "what should I invest in?" → is_continuation: false, needs_articles: true, needs_funds: true, needs_etfs: true, needs_distribution_mutual_funds: false
+- "what should I invest in?" → is_continuation: false, needs_articles: true, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false
 
 Respond ONLY with valid JSON in this exact format:
 {
+  "is_allowed": true or false,
   "needs_articles": true or false,
   "needs_funds": true or false,
   "needs_etfs": true or false,
@@ -67,6 +74,7 @@ Respond ONLY with valid JSON in this exact format:
 }`
 
 const PROFILE_FIELDS = [
+    'age',
     'income_stability',
     'employment_status',
     'risk_tolerance',
@@ -128,6 +136,31 @@ function hasCrossAssetComparisonIntent(query) {
     return /(compare|comparison|vs\.?|versus|difference|differ)/.test(normalized)
 }
 
+/**
+ * General mode: profile + articles only (no fund/ETF tables) — allows more chunks in prompt.
+ * Narrow mode: strict grounded context including fund/ETF data when requested.
+ */
+function applyResponseMode(classification) {
+    classification.response_mode =
+        classification.needs_funds || classification.needs_etfs ? 'narrow' : 'general'
+    return classification
+}
+
+/**
+ * When the pipeline scope changes (general ↔ narrow), do not treat the turn as a
+ * continuation of the prior message — fresh retrieval and UI (e.g. recommendation panel).
+ * @param {{ response_mode: string, is_continuation: boolean }} classification
+ * @param {'general' | 'narrow' | null | undefined} previousResponseMode — last completed turn for this session
+ */
+export function breakContinuationOnScopeChange(classification, previousResponseMode) {
+    if (previousResponseMode !== 'general' && previousResponseMode !== 'narrow') {
+        return
+    }
+    if (classification.response_mode !== previousResponseMode) {
+        classification.is_continuation = false
+    }
+}
+
 function buildConversationSummary(historyMessages, limit = 10) {
     if (!Array.isArray(historyMessages) || historyMessages.length === 0) {
         return 'none'
@@ -150,9 +183,12 @@ function buildConversationSummary(historyMessages, limit = 10) {
  * Classifies a user query to determine what data sources are needed
  * 
  * @param {string} userQuery - The user's question or input
- * @returns {Promise<{needs_articles: boolean, needs_funds: boolean, needs_etfs: boolean, needs_distribution_mutual_funds: boolean, is_continuation: boolean}>} Classification result
+ * @param {object|null} [options]
+ * @param {'general'|'narrow'|null} [options.previousResponseMode] - Prior turn's response_mode for this session; if current scope differs, is_continuation is forced false
+ * @returns {Promise<{is_allowed: boolean, needs_articles: boolean, needs_funds: boolean, needs_etfs: boolean, needs_distribution_mutual_funds: boolean, is_continuation: boolean, response_mode: 'general' | 'narrow'}>} Classification result
  */
-export async function classifyQuery(userQuery, userProfile = null, historyMessages = []) {
+export async function classifyQuery(userQuery, userProfile = null, historyMessages = [], options = {}) {
+    const { previousResponseMode = null } = options || {}
     if (!userQuery || typeof userQuery !== 'string' || !userQuery.trim()) {
         throw new Error('Invalid query: must be a non-empty string')
     }
@@ -236,10 +272,15 @@ export async function classifyQuery(userQuery, userProfile = null, historyMessag
             throw new Error('Invalid classification response: missing or invalid boolean fields')
         }
 
+        if (typeof classification.is_allowed !== 'boolean') {
+            classification.is_allowed = true
+        }
+
         if (isGenericRecommendationIntent(userQuery)) {
+            classification.is_allowed = true
             classification.needs_articles = true
-            classification.needs_funds = true
-            classification.needs_etfs = true
+            classification.needs_funds = false
+            classification.needs_etfs = false
         }
 
         // Deterministic override for explicit topic pivots.
@@ -249,24 +290,28 @@ export async function classifyQuery(userQuery, userProfile = null, historyMessag
         const explicitETF = hasExplicitETFIntent(userQuery)
         const crossAssetComparison = hasCrossAssetComparisonIntent(userQuery)
         if (explicitMutualFund && !explicitETF && !crossAssetComparison) {
+            classification.is_allowed = true
             classification.needs_funds = true
             classification.needs_etfs = false
         }
 
-        console.log(`📊 Query classified: articles=${classification.needs_articles}, funds=${classification.needs_funds}, etfs=${classification.needs_etfs}, distribution=${classification.needs_distribution_mutual_funds}, continuation=${classification.is_continuation}`)
-        
+        applyResponseMode(classification)
+        breakContinuationOnScopeChange(classification, previousResponseMode)
+        console.log(`📊 Query classified: allowed=${classification.is_allowed}, articles=${classification.needs_articles}, funds=${classification.needs_funds}, etfs=${classification.needs_etfs}, distribution=${classification.needs_distribution_mutual_funds}, continuation=${classification.is_continuation}, mode=${classification.response_mode}`)
+
         return classification
 
     } catch (error) {
         console.error('Classification error:', error.message)
         
-        // Fallback: assume all sources might be needed on error
-        return {
+        // Fallback: article-backed general path (no fund/ETF tables) to avoid heavy retrieval on errors
+        return applyResponseMode({
+            is_allowed: true,
             needs_articles: true,
-            needs_funds: true,
-            needs_etfs: true,
+            needs_funds: false,
+            needs_etfs: false,
             needs_distribution_mutual_funds: false,
-            is_continuation: false
-        }
+            is_continuation: false,
+        })
     }
 }

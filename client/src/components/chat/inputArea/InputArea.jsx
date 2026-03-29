@@ -6,6 +6,8 @@ import styles from './InputArea.module.css'
 export const InputArea = ({ 
     message, 
     loading, 
+    /** When true, send button shows "..." instead of the send icon (streaming response in progress). */
+    streamingResponse = false,
     onMessageChange, 
     onSendMessage, 
     onKeyPress 
@@ -55,6 +57,7 @@ export const InputArea = ({
                     <IconButton
                         onClick={onSendMessage}
                         disabled={!message.trim() || loading}
+                        aria-label={streamingResponse ? 'Response streaming' : 'Send message'}
                         sx={{
                             bgcolor: '#0EA5E9',
                             color: '#fff',
@@ -69,7 +72,23 @@ export const InputArea = ({
                             }
                         }}
                     >
-                        <SendIcon sx={{ fontSize: 20 }} />
+                        {streamingResponse ? (
+                            <Typography
+                                component="span"
+                                variant="body2"
+                                sx={{
+                                    fontSize: '1.1rem',
+                                    fontWeight: 700,
+                                    letterSpacing: 1,
+                                    lineHeight: 1,
+                                    userSelect: 'none',
+                                }}
+                            >
+                                ...
+                            </Typography>
+                        ) : (
+                            <SendIcon sx={{ fontSize: 20 }} />
+                        )}
                     </IconButton>
                 </Paper>
             </Box>

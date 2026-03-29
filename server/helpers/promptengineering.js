@@ -6,8 +6,20 @@ import { Asset } from '../models/Asset.js'
 import etfHelpers from './etfHelpers.js'
 import { getMatchingETFs } from './etfService.js'
 import { ENVIRONMENT } from '../utils/constants.js'
+import { buildArticleRetrievalQuery } from './profileRetrievalAugmentation.js'
 
-const SYSTEM_PROMPT = 
+function isGeneralMode(classification) {
+    if (classification.response_mode === 'narrow') return false
+    if (classification.response_mode === 'general') return true
+    return (
+        Boolean(classification.needs_articles) &&
+        !classification.needs_funds &&
+        !classification.needs_etfs
+    )
+}
+
+/** Narrow mode: strict grounding when article and/or fund/ETF tables are provided */
+const SYSTEM_PROMPT_NARROW =
 `You are a financial guidance assistant specialized in mutual fund investing.
 
 CRITICAL RULES:
@@ -84,12 +96,37 @@ This helps us debug whether conversation continuity is working.
 15. **Output format precedence**: Use RECOMMENDATIONS and SOURCES blocks as the only
     machine-readable metadata format. Do NOT output the legacy metadata line format
     '[Sources: ... | Context: ...]'. If source attribution is needed, use only the
-    SOURCES JSON block defined above.`;
+    SOURCES JSON block defined above.`
+
+/** General mode: profile + article chunks; may supplement when chunks are thin (no fund/ETF tables) */
+const SYSTEM_PROMPT_GENERAL =
+`You are a financial guidance assistant for Canadian investors (mutual funds and ETFs).
+
+**MODE: General educational guidance (article-backed, no live fund/ETF product tables)**
+
+1. **PRIMARY REFERENCE**: You receive USER PROFILE and ARTICLE CONTEXT chunks. Prefer facts and framing from the article chunks when they apply. Use the SOURCES JSON block (same format as below) only when you relied on specific chunks.
+
+2. **SUPPLEMENTARY GUIDANCE**: If article context is missing or incomplete, you may add short, prudent general guidance. Make it obvious what came from the articles vs. general principles (e.g. lead with what the materials say, then "More generally, …"). Do not invent specific MERs, returns, fund codes, or tickers that are not in the context.
+
+3. **No product tables in this mode**: You will not receive mutual fund or ETF performance tables here. Do not output a RECOMMENDATIONS block. Do not name specific fund codes or ETF tickers as recommendations; stay at the level of concepts, account types, risk concepts, and sensible next steps (e.g. speak to a qualified professional for personalized advice).
+
+4. **Thorough**: Be thorough and detailed in your response.
+
+5. **User profile**: Tailor tone and examples to the user's situation without listing their profile fields back verbatim.
+
+6. **DEBUG**: At the START of your response, include:
+[Internal Note: Previous context - <brief note from conversation history> OR "No prior context"]
+
+7. **SOURCES block** (article chunks only, when used):
+SOURCES:
+{ "chunk_object_id": chunk_index_number }
+Rules: keys are chunk ids from [Source N: id=...] lines; values are N. Omit if no chunks informed the answer.`
 
 export default {
     //Function for generating prompts based on user input and context
     async generatePrompt(userInput, userId = null, classification = { needs_articles: false, needs_funds: false, needs_etfs: false, needs_distribution_mutual_funds: false }, history = []) {
         let contextSections = []
+        const isGeneral = isGeneralMode(classification)
 
         // Add user profile info if userId is provided
         if (userId) {
@@ -98,30 +135,46 @@ export default {
                 contextSections.push('\n--- USER PROFILE (Use for personalization) ---\n' + userInfo)
             }
 
-            const portfolioInfo = await this.getUserPortfolioContext(userId)
-            if (portfolioInfo) {
-                contextSections.push('\n--- USER PORTFOLIO (Use for allocation context) ---\n' + portfolioInfo)
+            if (!isGeneral) {
+                const portfolioInfo = await this.getUserPortfolioContext(userId)
+                if (portfolioInfo) {
+                    contextSections.push('\n--- USER PORTFOLIO (Use for allocation context) ---\n' + portfolioInfo)
+                }
             }
         }
 
-        if(classification._prefetchedChunks?.length > 0) {
-            // Use pre-fetched chunks from continuity reconstruction
-            const chunkText = this.formatChunksAsText(classification._prefetchedChunks)
-            contextSections.push('\n--- ARTICLE CONTEXT (Source of Truth) ---\n' + chunkText)
-        } else if(classification.needs_articles) {
-            const articles = await this.getInvestmentDocs(userInput)
+        const articleSectionTitle = isGeneral
+            ? '\n--- ARTICLE CONTEXT (primary reference) ---\n'
+            : '\n--- ARTICLE CONTEXT (Source of Truth) ---\n'
+
+        // Article chunks: if this turn needs articles, always run a fresh vector search for the
+        // current message (overrides session prefetched chunks). Otherwise use continuity chunks only.
+        if (classification.needs_articles) {
+            const chunkLimit =
+                isGeneral
+                    ? ENVIRONMENT.articleChunkLimitGeneral
+                    : ENVIRONMENT.articleChunkLimitNarrow
+            const articles = await this.getInvestmentDocs(userInput, {
+                chunkLimit,
+                userId,
+                responseMode: isGeneral ? 'general' : 'narrow',
+            })
             if (articles) {
-                contextSections.push('\n--- ARTICLE CONTEXT (Source of Truth) ---\n' + articles)
+                contextSections.push(articleSectionTitle + articles)
             }
+        } else if (classification._prefetchedChunks?.length > 0) {
+            const chunkText = this.formatChunksAsText(classification._prefetchedChunks)
+            contextSections.push(articleSectionTitle + chunkText)
         }
-        
-       
+
+        const injectProductData = !isGeneral
+
         // If the query needs fund data, we can add a prompt to fetch relevant fund information from the database
-        if(classification._prefetchedFunds?.length > 0) {
+        if (injectProductData && classification._prefetchedFunds?.length > 0) {
             // Use pre-fetched funds from continuity reconstruction
             const fundText = this.formatFundsAsText(classification._prefetchedFunds)
             contextSections.push('\n--- MATCHING MUTUAL FUNDS (Source of Truth) ---\n' + fundText)
-        } else if(classification.needs_funds) {
+        } else if (injectProductData && classification.needs_funds) {
             // Include fund data context in system prompt
             const funds = await this.getSFundInfo(userId, classification.needs_distribution_mutual_funds)
             if (funds) {
@@ -129,19 +182,20 @@ export default {
             }
         }
 
-        if (classification._prefetchedEtfs?.length > 0) {
+        if (injectProductData && classification._prefetchedEtfs?.length > 0) {
             const etfText = this.formatETFsAsText(classification._prefetchedEtfs)
             contextSections.push('\n--- MATCHING ETFs (Source of Truth) ---\n' + etfText)
-        } else if (classification.needs_etfs) {
+        } else if (injectProductData && classification.needs_etfs) {
             const etfs = await this.getSETFInfo(userId)
             if (etfs) {
                 contextSections.push('\n--- MATCHING ETFs (Source of Truth) ---\n' + etfs)
             }
         }
 
+        const baseSystemPrompt = isGeneral ? SYSTEM_PROMPT_GENERAL : SYSTEM_PROMPT_NARROW
         const fullSystemPrompt = contextSections.length > 0
-            ? SYSTEM_PROMPT + '\n' + contextSections.join('\n') + '\n--- END OF CONTEXT ---\n'
-            : SYSTEM_PROMPT + '\n\n(No specific context provided for this query.)\n'
+            ? baseSystemPrompt + '\n' + contextSections.join('\n') + '\n--- END OF CONTEXT ---\n'
+            : baseSystemPrompt + '\n\n(No specific context provided for this query.)\n'
 
         console.log('Generated system prompt:\n', fullSystemPrompt)
 
@@ -292,6 +346,7 @@ export default {
 
             const fields = []
 
+            if (profile.age)                  fields.push(`Age: ${profile.age}`)
             if (profile.employment_status)    fields.push(`Employment status: ${profile.employment_status}`)
             if (profile.income_stability)     fields.push(`Income stability: ${profile.income_stability}`)
             if (profile.monthly_income != null) fields.push(`Monthly income: $${profile.monthly_income}`)
@@ -345,21 +400,30 @@ export default {
         }
     },
 
-    async getInvestmentDocs(userInput) {
+    async getInvestmentDocs(userInput, options = {}) {
         try {
-            // Generate embedding for the user query
-            const queryEmbedding = await embedText(userInput)
+            const chunkLimit = options.chunkLimit ?? ENVIRONMENT.articleChunkLimitNarrow
+            let textForEmbedding = userInput
+            if (options.responseMode === 'general' && options.userId) {
+                const profile = await Profile.findOne({ userId: options.userId }).lean()
+                if (profile) {
+                    textForEmbedding = buildArticleRetrievalQuery(userInput, profile)
+                }
+            }
+            const queryEmbedding = await embedText(textForEmbedding)
             const threshold = ENVIRONMENT.similarityThreshold
 
-            // Perform vector search - retrieve top 3 chunks
+            // Vector search: general mode uses more chunks (see ENVIRONMENT.articleChunkLimitGeneral)
+            const numCandidates = Math.max(100, Math.min(400, chunkLimit * 40))
+
             const results = await Chunk.aggregate([
                 {
                     $vectorSearch: {
                         index: "chunk_embedding_index",
                         path: "embedding",
                         queryVector: queryEmbedding,
-                        numCandidates: 100,
-                        limit: 3
+                        numCandidates,
+                        limit: chunkLimit
                     }
                 },
                 {

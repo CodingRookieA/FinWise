@@ -19,10 +19,17 @@ export const ENVIRONMENT = {
     aiGeneralUrl: process.env.AI_GENERAL_URL,
     aiGeneralApiKey: process.env.AI_GENERAL_API_KEY,
     similarityThreshold: parseFloat(process.env.SIMILARITY_THRESHOLD) || 0.8,
+    /** Vector search: max chunks to retrieve (general = articles-only path; narrow = with funds/ETFs) */
+    articleChunkLimitGeneral: parseInt(process.env.ARTICLE_CHUNK_LIMIT_GENERAL, 10) || 8,
+    articleChunkLimitNarrow: parseInt(process.env.ARTICLE_CHUNK_LIMIT_NARROW, 10) || 3,
     aiMaxTokens: parseInt(process.env.AI_MAX_TOKENS) || 1000,
     aiTemperature: parseFloat(process.env.AI_TEMPERATURE) || 0.7,
     historyTokenBudget: parseInt(process.env.HISTORY_TOKEN_BUDGET) || 750,
-    chatResponseMode: process.env.CHAT_RESPONSE_MODE || 'regular'
+    chatResponseMode: process.env.CHAT_RESPONSE_MODE || 'regular',
+    /** Shown when the classifier marks the query as outside investing / personal finance scope */
+    outOfScopeChatMessage:
+        process.env.OUT_OF_SCOPE_CHAT_MESSAGE?.trim() ||
+        "I'm FinWise and can only help with investing and personal finance topics related to mutual funds, ETFs, Canadian accounts (RRSP, TFSA, FHSA, etc.), fees, taxes, and related education. Please ask a question in that area.",
 }
 
 // Allowed article categories (must match Source model enum)

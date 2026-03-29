@@ -13,6 +13,8 @@ export const Sidebar = ({
     onNewChat,
     onLoadSession,
     onDeleteSession,
+    chatResponseMode = 'streaming',
+    onChatResponseModeChange,
     loggedIn 
 }) => {
 
@@ -49,6 +51,8 @@ export const Sidebar = ({
                     onNewChat={onNewChat}
                     onLoadSession={onLoadSession}
                     onDeleteSession={onDeleteSession}
+                    chatResponseMode={chatResponseMode}
+                    onChatResponseModeChange={onChatResponseModeChange}
                 />
             </Drawer>
 
@@ -79,6 +83,8 @@ export const Sidebar = ({
                     onNewChat={onNewChat}
                     onLoadSession={onLoadSession}
                     onDeleteSession={onDeleteSession}
+                    chatResponseMode={chatResponseMode}
+                    onChatResponseModeChange={onChatResponseModeChange}
                 />
             </Drawer>
         </>
