@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Box, useTheme, MenuItem } from '@mui/material';
 
 export const AddAssetModal = ({ open, onClose, onSave, initialData }) => {
     // 1. Logic: Form State
     const [formData, setFormData] = useState(initialData || { symbol: '', quantity: '', type: 'ETF' });
     const theme = useTheme();
+
+    useEffect(() => {
+        if (open) {
+            setFormData(initialData || { symbol: '', quantity: '', type: 'ETF' });
+        }
+    }, [initialData, open]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
