@@ -4,15 +4,16 @@ import MenuIcon from '@mui/icons-material/Menu'
 import { Sidebar } from '../../components/chat/sidebar/Sidebar'
 import { EmptyState } from '../../components/chat/emptyState/EmptyState'
 import { MessagesList } from '../../components/chat/messagesList/MessagesList'
-import { RecommendationPanel } from '../../components/chat/recommendationPanel/RecommendationPanel'
-import { InputArea } from '../../components/chat/inputArea/InputArea'
+import { ChatDraftInput } from '../../components/chat/inputArea/ChatDraftInput'
 import { InfoAlert } from '../../components/alerts/InfoAlert'
 import { SERVERURL } from '../../utils/constants'
 import toastHelper from '../../utils/toastHelper'
 
 export const ChatPage = ({ user, loggedIn }) => {
-    const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
+    /** Remount ChatDraftInput when applying a sample question from EmptyState */
+    const [chatInputMountKey, setChatInputMountKey] = useState(0)
+    const [chatInputInitialDraft, setChatInputInitialDraft] = useState('')
     const [loading, setLoading] = useState(false)
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [sessionId, setSessionId] = useState(() => crypto.randomUUID())
@@ -20,7 +21,6 @@ export const ChatPage = ({ user, loggedIn }) => {
     const [loadingSession, setLoadingSession] = useState(false)
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState(null)
-    const [activeRecommendations, setActiveRecommendations] = useState(null)
     const [addingRecommendations, setAddingRecommendations] = useState(false)
     const [streamingStatus, setStreamingStatus] = useState('')
     const [streamingMessageActive, setStreamingMessageActive] = useState(false)
@@ -65,7 +65,6 @@ export const ChatPage = ({ user, loggedIn }) => {
     useEffect(() => {
         setMessages([])
         setSessionId(crypto.randomUUID())
-        setActiveRecommendations(null)
     }, [user?.userId, guestChat])
 
     const fetchProfileQuestionnaire = async ({ silent = false, applyState = true } = {}) => {
@@ -160,7 +159,6 @@ export const ChatPage = ({ user, loggedIn }) => {
             }
 
             toastHelper('success', `Added ${successCount} recommendation${successCount > 1 ? 's' : ''} to portfolio`)
-            setActiveRecommendations(null)
         } catch (error) {
             console.error('Error adding selected recommendations to portfolio:', error)
             toastHelper('error', error.message || 'Failed to add selected recommendations')
@@ -205,17 +203,17 @@ export const ChatPage = ({ user, loggedIn }) => {
         }
     }
 
-    const handleSendMessage = async () => {
-        if (!message.trim()) return
+    const sendChatMessage = async (messageText) => {
+        const trimmed = typeof messageText === 'string' ? messageText.trim() : ''
+        if (!trimmed) return
 
         // Check if this is the first message in a new chat
         const isFirstMessage = messages.length === 0
 
         // Add user message to chat
-        const userMessage = { id: crypto.randomUUID(), role: 'user', content: message }
+        const userMessage = { id: crypto.randomUUID(), role: 'user', content: trimmed }
         setMessages(prev => [...prev, userMessage])
-        const currentMessage = message
-        setMessage('')
+        const currentMessage = trimmed
         setLoading(true)
 
         const statusTextByStage = {
@@ -261,6 +259,9 @@ export const ChatPage = ({ user, loggedIn }) => {
                                 nonStreamData?.isContinuation === false &&
                                 Array.isArray(nonStreamData?.enrichedFunds) &&
                                 nonStreamData.enrichedFunds.length > 0
+                            const hasSources =
+                                Array.isArray(nonStreamData?.enrichedSources) &&
+                                nonStreamData.enrichedSources.length > 0
 
                             const aiMessageId = crypto.randomUUID()
                             setMessages(prev => [...prev, {
@@ -268,8 +269,8 @@ export const ChatPage = ({ user, loggedIn }) => {
                                 role: 'assistant',
                                 content: '',
                                 enrichedFunds: shouldAttachTable ? nonStreamData.enrichedFunds : null,
+                                enrichedSources: hasSources ? nonStreamData.enrichedSources : null,
                             }])
-                            setActiveRecommendations(shouldAttachTable ? nonStreamData.enrichedFunds : null)
                             await streamAssistantText(aiMessageId, nonStreamData.response)
 
                             if (isFirstMessage) {
@@ -397,6 +398,9 @@ export const ChatPage = ({ user, loggedIn }) => {
                                         result?.isContinuation === false &&
                                         Array.isArray(result?.enrichedFunds) &&
                                         result.enrichedFunds.length > 0
+                                    const hasSources =
+                                        Array.isArray(result?.enrichedSources) &&
+                                        result.enrichedSources.length > 0
 
                                     if (!aiMessageId) {
                                         aiMessageId = crypto.randomUUID()
@@ -405,6 +409,7 @@ export const ChatPage = ({ user, loggedIn }) => {
                                             role: 'assistant',
                                             content: result.response || '',
                                             enrichedFunds: shouldAttachTable ? result.enrichedFunds : null,
+                                            enrichedSources: hasSources ? result.enrichedSources : null,
                                         }])
                                     } else {
                                         setMessages((prev) => prev.map((msg) => (
@@ -413,12 +418,11 @@ export const ChatPage = ({ user, loggedIn }) => {
                                                     ...msg,
                                                     content: result.response || msg.content,
                                                     enrichedFunds: shouldAttachTable ? result.enrichedFunds : null,
+                                                    enrichedSources: hasSources ? result.enrichedSources : null,
                                                 }
                                                 : msg
                                         )))
                                     }
-
-                                    setActiveRecommendations(shouldAttachTable ? result.enrichedFunds : null)
                                     setStreamingMessageActive(false)
                                     setStreamingStatus('')
                                 }
@@ -469,6 +473,9 @@ export const ChatPage = ({ user, loggedIn }) => {
                 data?.isContinuation === false &&
                 Array.isArray(data?.enrichedFunds) &&
                 data.enrichedFunds.length > 0
+            const hasSources =
+                Array.isArray(data?.enrichedSources) &&
+                data.enrichedSources.length > 0
 
             const aiMessageId = crypto.randomUUID()
             const aiMessage = {
@@ -476,9 +483,9 @@ export const ChatPage = ({ user, loggedIn }) => {
                 role: 'assistant',
                 content: data.response || '',
                 enrichedFunds: shouldAttachTable ? data.enrichedFunds : null,
+                enrichedSources: hasSources ? data.enrichedSources : null,
             }
             setMessages(prev => [...prev, aiMessage])
-            setActiveRecommendations(shouldAttachTable ? data.enrichedFunds : null)
 
             // Refresh chat history to show new/updated session
             if (isFirstMessage) {
@@ -493,7 +500,6 @@ export const ChatPage = ({ user, loggedIn }) => {
                 content: 'Sorry, I encountered an error while processing your request. Please try again.' 
             }
             setMessages(prev => [...prev, errorMessage])
-            setActiveRecommendations(null)
             setStreamingMessageActive(false)
             setStreamingStatus('')
         } finally {
@@ -503,15 +509,9 @@ export const ChatPage = ({ user, loggedIn }) => {
         }
     }
 
-    const handleKeyPress = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            handleSendMessage()
-        }
-    }
-
     const handleSampleQuestion = (question) => {
-        setMessage(question)
+        setChatInputInitialDraft(question)
+        setChatInputMountKey((k) => k + 1)
     }
 
     const handleSubmitProfileAnswer = async (field, rawValue) => {
@@ -573,9 +573,9 @@ export const ChatPage = ({ user, loggedIn }) => {
 
     const handleNewChat = () => {
         setMessages([])
-        setMessage('')
+        setChatInputInitialDraft('')
+        setChatInputMountKey((k) => k + 1)
         setSessionId(crypto.randomUUID())
-        setActiveRecommendations(null)
         if (!guestChat) {
             fetchProfileQuestionnaire()
         }
@@ -597,7 +597,6 @@ export const ChatPage = ({ user, loggedIn }) => {
     const handleLoadSession = async (selectedSessionId) => {
         // Clear messages immediately to avoid showing old session data
         setMessages([])
-        setActiveRecommendations(null)
         setLoadingSession(true)
         setLoading(true)
         try {
@@ -612,6 +611,8 @@ export const ChatPage = ({ user, loggedIn }) => {
                 console.log('Loaded messages:', data)
                 setMessages(data.messages || [])
                 setSessionId(selectedSessionId)
+                setChatInputInitialDraft('')
+                setChatInputMountKey((k) => k + 1)
             } else {
                 console.error('Failed to load session:', response.status, response.statusText)
             }
@@ -641,7 +642,8 @@ export const ChatPage = ({ user, loggedIn }) => {
 
             if (sessionId === selectedSessionId) {
                 setMessages([])
-                setMessage('')
+                setChatInputInitialDraft('')
+                setChatInputMountKey((k) => k + 1)
                 setSessionId(crypto.randomUUID())
             }
         } catch (error) {
@@ -765,28 +767,18 @@ export const ChatPage = ({ user, loggedIn }) => {
                         user={user}
                         loadingText={streamingStatus || 'Thinking...'}
                         hideLoadingIndicator={streamingMessageActive}
+                        onAddSelectedRecommendations={handleAddSelectedRecommendations}
+                        addingRecommendations={addingRecommendations}
                     />
                 )}
 
-                {Array.isArray(activeRecommendations) && activeRecommendations.length > 0 && (
-                    <Box sx={{ px: { xs: 2, md: 4 }, pb: 2 }}>
-                        <RecommendationPanel
-                            funds={activeRecommendations}
-                            adding={addingRecommendations}
-                            onAddSelected={handleAddSelectedRecommendations}
-                            onDismiss={() => setActiveRecommendations(null)}
-                        />
-                    </Box>
-                )}
-
-                {/* Input Area */}
-                <InputArea
-                    message={message}
+                {/* Input Area — draft state lives in ChatDraftInput to avoid full-page re-renders on each keystroke */}
+                <ChatDraftInput
+                    key={chatInputMountKey}
+                    initialDraft={chatInputInitialDraft}
+                    onSend={sendChatMessage}
                     loading={loading}
                     streamingResponse={loading && chatResponseMode === 'streaming'}
-                    onMessageChange={(e) => setMessage(e.target.value)}
-                    onSendMessage={handleSendMessage}
-                    onKeyPress={handleKeyPress}
                 />
             </Box>
 

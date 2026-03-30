@@ -53,12 +53,21 @@ describe('chatService', () => {
             outOfScopeChatMessage: 'Out of scope — FinWise only.',
         }
 
+        const ChunkModel = {
+            find: jest.fn().mockReturnValue({
+                select: jest.fn().mockReturnValue({
+                    lean: jest.fn().mockResolvedValue([])
+                })
+            })
+        }
+
         return {
             service: createChatService({
                 promptengineeringLib,
                 classifyQueryFn,
                 MessageModel,
                 ProfileModel,
+                ChunkModel,
                 randomUUIDFn,
                 aiClient,
                 reconstructContinuityContextFn,
@@ -66,7 +75,7 @@ describe('chatService', () => {
                 mongooseLib: createFakeMongoose(),
                 ...overrides,
             }),
-            deps: { promptengineeringLib, classifyQueryFn, MessageModel, ProfileModel, aiClient, reconstructContinuityContextFn }
+            deps: { promptengineeringLib, classifyQueryFn, MessageModel, ProfileModel, ChunkModel, aiClient, reconstructContinuityContextFn }
         }
     }
 
@@ -212,14 +221,16 @@ describe('chatService', () => {
         // Arrange
         const { service, deps } = buildService()
         deps.MessageModel.exists.mockResolvedValue(true)
-        const select = jest.fn().mockResolvedValue([
-            { role: 'user', content: 'Hi', createdAt: new Date('2026-01-01T00:00:00.000Z') },
+        const lean = jest.fn().mockResolvedValue([
+            { _id: 'uid1', role: 'user', content: 'Hi', createdAt: new Date('2026-01-01T00:00:00.000Z') },
             {
+                _id: 'aid1',
                 role: 'AI',
                 content: 'Short answer.\n\nRECOMMENDATIONS: {"CDZ.TO": "Reason text"}',
                 createdAt: new Date('2026-01-01T00:01:00.000Z')
             }
         ])
+        const select = jest.fn().mockReturnValue({ lean })
         const sort = jest.fn().mockReturnValue({ select })
         deps.MessageModel.find.mockReturnValue({ sort })
 
@@ -228,8 +239,13 @@ describe('chatService', () => {
 
         // Assert
         expect(result.forbidden).toBe(false)
-        expect(result.messages[0]).toMatchObject({ role: 'user', content: 'Hi' })
-        expect(result.messages[1]).toMatchObject({ role: 'AI', content: 'Short answer.' })
+        expect(result.messages[0]).toMatchObject({ id: 'uid1', role: 'user', content: 'Hi' })
+        expect(result.messages[1]).toMatchObject({ id: 'aid1', role: 'AI', content: 'Short answer.' })
+        expect(result.messages[1].enrichedFunds).toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({ asset_type: 'etf', symbol: 'CDZ.TO' })
+            ])
+        )
         expect(deps.MessageModel.find).toHaveBeenCalledWith({ sessionId: 's1' })
     })
 

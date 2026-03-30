@@ -45,7 +45,14 @@ function normalizeSelectionModel(model, rows = []) {
     return []
 }
 
-export const RecommendationPanel = ({ funds, onAddSelected, onDismiss, adding = false }) => {
+export const RecommendationPanel = ({
+    funds,
+    onAddSelected,
+    onDismiss,
+    adding = false,
+    /** When true, hide dismiss; used inline under a chat message */
+    embedded = false,
+}) => {
     const theme = useTheme()
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
     const [selectionIds, setSelectionIds] = useState([])
@@ -166,8 +173,8 @@ export const RecommendationPanel = ({ funds, onAddSelected, onDismiss, adding = 
                 overflow: 'hidden',
                 border: '1px solid rgba(255,255,255,0.08)',
                 bgcolor: '#182333',
-                maxWidth: 820,
-                mx: 'auto',
+                maxWidth: embedded ? 'none' : 820,
+                mx: embedded ? 0 : 'auto',
                 width: '100%'
             }}
         >
@@ -184,11 +191,13 @@ export const RecommendationPanel = ({ funds, onAddSelected, onDismiss, adding = 
                     >
                         {adding ? 'Adding...' : `Add Selected (${selectedRows.length})`}
                     </Button>
-                    <Tooltip title='Dismiss recommendations'>
-                        <IconButton size='small' onClick={() => onDismiss?.()}>
-                            <CloseIcon fontSize='small' />
-                        </IconButton>
-                    </Tooltip>
+                    {!embedded && (
+                        <Tooltip title='Dismiss recommendations'>
+                            <IconButton size='small' onClick={() => onDismiss?.()}>
+                                <CloseIcon fontSize='small' />
+                            </IconButton>
+                        </Tooltip>
+                    )}
                 </Box>
             </Box>
             <Box sx={{ width: '100%', height: { xs: 300, md: 360 } }}>
