@@ -1,0 +1,27 @@
+# Backend: `server/.env` (env_file on the backend service).
+#
+# Frontend image: `client/.env` is included in the Docker build context so Vite embeds VITE_* at build time
+# (OAuth client id, API URLs, etc.). Keep only public VITE_* values in that file.
+#
+# CI: GitHub Actions creates a minimal `client/.env` before `docker build` (see .github/workflows/ci.yml).
+
+services:
+  backend:
+    build: ./server
+    env_file:
+      - ./server/.env
+    environment:
+      # Overrides `server/.env`: Vite dev uses 5173; in Docker the SPA is nginx on FRONTEND_PORT.
+      CLIENT_URL_DEVELOPMENT: http://localhost:5173
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+
+  frontend:
+    build:
+      context: ./client
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
