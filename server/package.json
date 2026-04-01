@@ -57,5 +57,8 @@
   "directories": {
     "lib": "lib"
   },
-  "description": ""
+  "description": "",
+  "overrides": {
+    "path-to-regexp": "8.4.1"
+  }
 }
