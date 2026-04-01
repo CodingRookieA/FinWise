@@ -4,7 +4,9 @@ coverage
 .git
 .gitignore
 *.md
-# Keep `client/.env` in the build context so `vite build` can read VITE_* (OAuth, URLs).
-.env.*
+# Keep `.env` / `.env.production` in context for `vite build`. Do NOT ignore `.env.production`
+# (a blanket `.env.*` rule excluded it and baked localhost into Docker images).
+.env.local
+.env.*.local
 cypress
 cypress.config.*

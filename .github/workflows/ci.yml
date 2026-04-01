@@ -109,12 +109,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Write client/.env for Vite build (not in repo; same shape as local)
+      - name: Write client/.env for Vite build (OAuth + dev URL; API URL comes from .env.production)
         env:
           VITE_OAUTH_CLIENT_ID: ${{ secrets.VITE_OAUTH_CLIENT_ID }}
         run: |
           {
-            echo "VITE_SERVER_URL=http://localhost:9000"
             echo "VITE_SERVER_URL_DEVELOPMENT=http://localhost:9000"
             echo "VITE_CHAT_RESPONSE_MODE=streaming"
             echo "VITE_OAUTH_CLIENT_ID=${VITE_OAUTH_CLIENT_ID:-}"

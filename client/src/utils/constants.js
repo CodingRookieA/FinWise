@@ -6,8 +6,9 @@ export const ENVIRONMENT = {
     chatResponseMode: import.meta.env.VITE_CHAT_RESPONSE_MODE || 'streaming',
 }
 
-// Production builds must set VITE_SERVER_URL (browser → API). Fall back to dev URL if missing.
+// Prefer VITE_SERVER_URL when set (production / .env.production). Local dev should set only
+// VITE_SERVER_URL_DEVELOPMENT in .env so localhost never overrides a production build.
 export const SERVERURL =
-    ENVIRONMENT.mode === 'production'
-        ? ENVIRONMENT.serverURLProduction || ENVIRONMENT.serverURLDevelopment
-        : ENVIRONMENT.serverURLDevelopment
+    import.meta.env.VITE_SERVER_URL ||
+    import.meta.env.VITE_SERVER_URL_DEVELOPMENT ||
+    ''
