@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+.git
+.gitignore
+*.md
+# Keep `client/.env` in the build context so `vite build` can read VITE_* (OAuth, URLs).
+.env.*
+cypress
+cypress.config.*

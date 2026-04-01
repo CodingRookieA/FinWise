@@ -40,20 +40,26 @@ function App() {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const response = await fetch(`${SERVERURL}/api/users/checkUserAuth`,{
-                method: 'GET',
-                credentials: 'include',
-            });
+            try {
+                const response = await fetch(`${SERVERURL}/api/users/checkUserAuth`, {
+                    method: 'GET',
+                    credentials: 'include',
+                })
 
-            if (response.ok) {
-                const result = await response.json();
-                setLoggedIn(true)
-                setUser(result)
-            } else {
+                if (response.ok) {
+                    const result = await response.json()
+                    setLoggedIn(true)
+                    setUser(result)
+                } else {
+                    setLoggedIn(false)
+                    setUser({})
+                }
+            } catch {
                 setLoggedIn(false)
                 setUser({})
+            } finally {
+                setLoading(false)
             }
-            setLoading(false)
         }
 
         checkAuth()
