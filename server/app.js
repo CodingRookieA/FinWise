@@ -6,7 +6,11 @@ import { createAssetRouter } from './routes/assetRoutes.js'
 import { createProfileRouter } from './routes/profile.js'
 import { createChatRouter } from './routes/chat.js'
 import { createEmailRouter } from './routes/email.js'
-import { CLIENTURL, ENVIRONMENT } from './utils/constants.js'
+import {
+    CORS_ALLOWED_ORIGINS,
+    ENVIRONMENT,
+    isProductionDeployment,
+} from './utils/constants.js'
 //
 export function createApp({
     accountController,
@@ -18,10 +22,23 @@ export function createApp({
 } = {}) {
     const app = express()
 
+    if (isProductionDeployment() && CORS_ALLOWED_ORIGINS.length === 0) {
+        console.warn(
+            'CORS: Set CLIENT_URL to your deployed frontend origin (e.g. https://your-app.onrender.com).'
+        )
+    }
+
+    const corsOrigin =
+        CORS_ALLOWED_ORIGINS.length === 0
+            ? false
+            : CORS_ALLOWED_ORIGINS.length === 1
+              ? CORS_ALLOWED_ORIGINS[0]
+              : CORS_ALLOWED_ORIGINS
+
     const corsConfig = {
-        origin: CLIENTURL,
+        origin: corsOrigin,
         methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-        credentials: true
+        credentials: true,
     }
     app.use(cors(corsConfig))
     app.set('trust proxy', 1);
