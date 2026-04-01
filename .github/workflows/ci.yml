@@ -71,9 +71,9 @@ jobs:
           npm ci
           npm run test:unit
 
-  # --- 3. SECURITY SCAN ---
+  # --- 3. SECURITY SCAN (every push, any branch — gates docker below) ---
   security-frontend:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -83,7 +83,7 @@ jobs:
           npm audit --audit-level=moderate
 
   security-backend:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -92,10 +92,10 @@ jobs:
           cd server
           npm audit --audit-level=moderate
 
-  # --- 4. CONTAINER BUILD FOR MAIN BRANCH ---
+  # --- 4. CONTAINER BUILD (every push, any branch; :latest only on main) ---
   docker-build-push:
     #needs: [lint-frontend, lint-backend, test-frontend, test-backend, security-frontend, security-backend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -126,7 +126,7 @@ jobs:
           context: ./client
           file: ./client/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/finwise-frontend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/finwise-frontend:${{ github.ref == 'refs/heads/main' && 'latest' || github.sha }}
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
@@ -134,4 +134,4 @@ jobs:
           context: ./server
           file: ./server/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/finwise-backend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/finwise-backend:${{ github.ref == 'refs/heads/main' && 'latest' || github.sha }}
