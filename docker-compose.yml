@@ -1,57 +1,27 @@
-# Root `.env` is loaded automatically for ${VAR} substitution (secrets).
-# Copy docker.env.example to `.env` and fill in values before `docker compose up`.
+# Backend: `server/.env` (env_file on the backend service).
+#
+# Frontend image: `client/.env` is included in the Docker build context so Vite embeds VITE_* at build time
+# (OAuth client id, API URLs, etc.). Keep only public VITE_* values in that file.
+#
+# CI: GitHub Actions creates a minimal `client/.env` before `docker build` (see .github/workflows/ci.yml).
 
 services:
-  mongo:
-    image: mongo:7
-    restart: unless-stopped
-    volumes:
-      - mongo_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 10s
-
   backend:
     build: ./server
+    env_file:
+      - ./server/.env
+    environment:
+      # Overrides `server/.env`: Vite dev uses 5173; in Docker the SPA is nginx on FRONTEND_PORT.
+      CLIENT_URL_DEVELOPMENT: http://localhost:5173
     restart: unless-stopped
     ports:
       - "9000:9000"
-    environment:
-      # Use development cookie/session settings so the stack works over http://localhost without TLS.
-      NODE_ENV: development
-      PORT: "9000"
-      MONGODB_URI: mongodb://mongo:27017/finwise
-      CLIENT_URL_DEVELOPMENT: http://localhost:${FRONTEND_PORT:-8080}
-      SESSION_SECRET_KEY: ${SESSION_SECRET_KEY}
-      JWT_SECRET: ${JWT_SECRET}
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID:-}
-      OAUTH_SECRET_KEY: ${OAUTH_SECRET_KEY:-}
-      MAILTRAP_API_TOKEN: ${MAILTRAP_API_TOKEN:-}
-      GEMINI: ${GEMINI:-}
-      AI_EMBEDDING_URL: ${AI_EMBEDDING_URL:-}
-      AI_EMBEDDING_API_KEY: ${AI_EMBEDDING_API_KEY:-}
-      AI_GENERAL_URL: ${AI_GENERAL_URL:-}
-      AI_GENERAL_API_KEY: ${AI_GENERAL_API_KEY:-}
-    depends_on:
-      mongo:
-        condition: service_healthy
 
   frontend:
     build:
       context: ./client
-      args:
-        # Browser calls the API on the host-mapped port (must match backend ports: above).
-        VITE_SERVER_URL: http://localhost:9000
-        VITE_SERVER_URL_DEVELOPMENT: http://localhost:9000
-        VITE_OAUTH_CLIENT_ID: ${VITE_OAUTH_CLIENT_ID:-}
     restart: unless-stopped
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      - "5173:80"
     depends_on:
       - backend
-
-volumes:
-  mongo_data:
