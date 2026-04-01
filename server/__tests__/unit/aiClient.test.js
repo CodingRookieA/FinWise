@@ -1,5 +1,18 @@
 import { describe, test, expect, jest, beforeEach, afterEach } from '@jest/globals'
-import { generateAIResponse } from '../../clients/aiClient.js'
+import { generateAIResponse, generateAIResponseStream } from '../../clients/aiClient.js'
+
+function sseDataLine(obj) {
+    return `data: ${JSON.stringify(obj)}\n\n`
+}
+
+function streamFromString(s) {
+    return new ReadableStream({
+        start(controller) {
+            controller.enqueue(new TextEncoder().encode(s))
+            controller.close()
+        },
+    })
+}
 
 describe('aiClient.generateAIResponse', () => {
     let originalFetch
@@ -66,5 +79,108 @@ describe('aiClient.generateAIResponse', () => {
                 temperature: 0.7,
             })
         ).rejects.toThrow('AI API error: {"message":"quota exceeded","code":429}')
+    })
+})
+
+describe('aiClient.generateAIResponseStream', () => {
+    let originalFetch
+
+    beforeEach(() => {
+        originalFetch = global.fetch
+        jest.clearAllMocks()
+    })
+
+    afterEach(() => {
+        global.fetch = originalFetch
+    })
+
+    test('yields concatenated text from multiple SSE events', async () => {
+        const ev1 = { candidates: [{ content: { parts: [{ text: 'Hello' }] } }] }
+        const ev2 = { candidates: [{ content: { parts: [{ text: ' world' }] } }] }
+        const body = sseDataLine(ev1) + sseDataLine(ev2)
+
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            body: streamFromString(body),
+        })
+
+        const parts = []
+        for await (const chunk of generateAIResponseStream({
+            systemPrompt: '',
+            userPrompt: 'Hi',
+            apiUrl: 'https://example.ai/v1/models/x:generateContent',
+            apiKey: 'k',
+            maxOutputTokens: 100,
+            temperature: 0.5,
+        })) {
+            parts.push(chunk)
+        }
+
+        expect(parts.join('')).toBe('Hello world')
+        expect(global.fetch).toHaveBeenCalledWith(
+            'https://example.ai/v1/models/x:streamGenerateContent?alt=sse&key=k',
+            expect.any(Object),
+        )
+    })
+
+    test('joins text from multiple parts in one chunk', async () => {
+        const ev = {
+            candidates: [{
+                content: {
+                    parts: [{ text: 'A' }, { text: 'B' }],
+                },
+            }],
+        }
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            body: streamFromString(sseDataLine(ev)),
+        })
+
+        const parts = []
+        for await (const chunk of generateAIResponseStream({
+            systemPrompt: '',
+            userPrompt: 'Hi',
+            apiUrl: 'https://example.ai/v1/models/x:generateContent',
+            apiKey: 'k',
+            maxOutputTokens: 100,
+            temperature: 0.5,
+        })) {
+            parts.push(chunk)
+        }
+
+        expect(parts.join('')).toBe('AB')
+    })
+
+    test('handles one SSE event split across multiple stream reads', async () => {
+        const ev = { candidates: [{ content: { parts: [{ text: 'ABCDEF' }] } }] }
+        const full = sseDataLine(ev)
+        const mid = Math.floor(full.length / 2)
+        const part1 = full.slice(0, mid)
+        const part2 = full.slice(mid)
+
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            body: new ReadableStream({
+                start(controller) {
+                    controller.enqueue(new TextEncoder().encode(part1))
+                    controller.enqueue(new TextEncoder().encode(part2))
+                    controller.close()
+                },
+            }),
+        })
+
+        const parts = []
+        for await (const chunk of generateAIResponseStream({
+            systemPrompt: '',
+            userPrompt: 'Hi',
+            apiUrl: 'https://example.ai/v1/models/x:generateContent',
+            apiKey: 'k',
+            maxOutputTokens: 100,
+            temperature: 0.5,
+        })) {
+            parts.push(chunk)
+        }
+
+        expect(parts.join('')).toBe('ABCDEF')
     })
 })

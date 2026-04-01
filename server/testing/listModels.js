@@ -5,7 +5,7 @@
  * Usage: node listModels.js
  */
 
-import { ENVIRONMENT } from './utils/constants.js'
+import { ENVIRONMENT } from '../utils/constants.js'
 
 async function listModels() {
     try {

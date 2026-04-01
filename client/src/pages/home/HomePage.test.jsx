@@ -34,7 +34,7 @@ vi.mock('../../components/homepageSections/bottomSection/BottomSection', () => (
   )
 }))
 
-vi.mock('../../components/loginModal/loginModal', () => ({
+vi.mock('../../components/loginModal/LoginModal', () => ({
   LoginModal: ({ handleModalClose }) => (
     <div>
       <p>mock-login-modal</p>

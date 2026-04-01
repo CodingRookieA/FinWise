@@ -1,4 +1,4 @@
-import { describe, test, expect, jest, beforeEach, afterAll, afterEach } from '@jest/globals'
+import { describe, test, expect, jest, beforeEach } from '@jest/globals'
 import { createProfileService } from '../../services/profile/profileService.js'
 
 describe('profileService', () => {
@@ -9,7 +9,7 @@ describe('profileService', () => {
     function makeSchema() {
         return {
             path: jest.fn((field) => {
-                if (['income_stability', 'employment_status', 'risk_tolerance', 'investment_experience', 'financial_goal', 'housing_status', 'has_TFSA', 'investment_preference'].includes(field)) {
+                if (['age', 'income_stability', 'employment_status', 'risk_tolerance', 'investment_experience', 'financial_goal', 'housing_status', 'has_TFSA', 'investment_preference'].includes(field)) {
                     return { enumValues: ['A', 'B'], instance: 'String' }
                 }
                 if (['monthly_income', 'savings_balance', 'debt_amount'].includes(field)) {
@@ -79,7 +79,7 @@ describe('profileService', () => {
         await expect(action).rejects.toMatchObject({ status: 400 })
     })
 
-    test('returns up to three random unanswered questions', async () => {
+    test('returns up to two random unanswered questions', async () => {
         // Arrange
         const fakeProfile = {
             income_stability: null,
@@ -106,7 +106,7 @@ describe('profileService', () => {
         const result = await service.getRandomUnanswered('u1')
 
         // Assert
-        expect(result.questions.length).toBe(3)
+        expect(result.questions.length).toBe(2)
         expect(randomPicker).toHaveBeenCalledTimes(1)
     })
 

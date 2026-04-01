@@ -1,0 +1,103 @@
+name: CI pipeline
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  # --- 1. CODE QUALITY CHECKS (LINTING) ---
+  lint-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+      - name: Lint Client
+        run: |
+          cd client
+          npm ci
+          npm run lint
+
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+      - name: Lint Server
+        run: |
+          cd server
+          npm ci
+          npm run lint
+
+  # --- 2. UNIT TESTING ---
+  test-frontend:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+      - name: Test Client
+        env:
+          VITE_SERVER_URL_DEVELOPMENT: http://localhost:9000
+        run: |
+          cd client
+          npm ci
+          npm run test:unit
+
+  test-backend:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+      - name: Test Server
+        run: |
+          cd server
+          npm ci
+          npm run test:unit
+
+  # --- 3. SECURITY SCAN ---
+  security-frontend:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Frontend Security Audit
+        run: |
+          cd client
+          npm audit --audit-level=moderate
+
+  security-backend:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Backend Security Audit
+        run: |
+          cd server
+          npm audit --audit-level=moderate
+
+# --- 4. TODO: CONTAINER BUILD FOR MAIN BRANCH ---
+  # Must wait for ALL quality, test, and security jobs to pass.
+#   docker-build-push:
+#     needs: [lint-frontend, lint-backend, test-frontend, test-backend, security-frontend, security-backend]
+#     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#     runs-on: ubuntu-latest
+#     steps:

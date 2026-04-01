@@ -38,7 +38,7 @@ export function chunkArticle(text) {
 
     const chunks = []
     let currentChunk = ''
-    let overlapBuffer = '' // Store text for overlap with next chunk
+    let overlapBuffer // Store text for overlap with next chunk
 
     for (const paragraph of paragraphs) {
         // If a single paragraph exceeds MAX_TOKENS, split it by sentences

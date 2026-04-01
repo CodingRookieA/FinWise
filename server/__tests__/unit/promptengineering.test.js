@@ -1,5 +1,6 @@
 import { describe, test, expect, jest, beforeEach, afterEach } from '@jest/globals'
 import promptengineering from '../../helpers/promptengineering.js'
+import { ENVIRONMENT } from '../../utils/constants.js'
 import { Profile } from '../../models/profile.js'
 import { MutualFund } from '../../models/MutualFund.js'
 import { Asset } from '../../models/Asset.js'
@@ -44,7 +45,8 @@ describe('promptengineering', () => {
         expect(messages[0].content).toContain('--- ARTICLE CONTEXT')
         expect(messages[0].content).toContain('--- MATCHING MUTUAL FUNDS')
         expect(messages[0].content).toContain('--- MATCHING ETFs')
-        expect(messages[0].content).toContain('[Sources: <comma-separated list of source URLs used> | Context: <"articles", "funds", "etfs", "articles+funds", "articles+etfs", "funds+etfs", "articles+funds+etfs", or "none">]')
+        expect(messages[0].content).toContain('SOURCE OF TRUTH')
+        expect(messages[0].content).toContain('RECOMMENDATIONS')
     })
 
     test('adds no-context marker when all context flags are false', async () => {
@@ -61,7 +63,7 @@ describe('promptengineering', () => {
 
         // Assert
         expect(messages[0].content).toContain('(No specific context provided for this query.)')
-        expect(messages[0].content).toContain('[Sources: <comma-separated list of source URLs used> | Context: <"articles", "funds", "etfs", "articles+funds", "articles+etfs", "funds+etfs", "articles+funds+etfs", or "none">]')
+        expect(messages[0].content).toContain('SOURCE OF TRUTH')
         expect(messages[1]).toEqual({ role: 'user', content: 'hello' })
     })
 
@@ -93,8 +95,62 @@ describe('promptengineering', () => {
         })
 
         expect(messages[0].content).toContain('--- ARTICLE CONTEXT')
+        expect(messages[0].content).toContain('MODE: General educational')
         expect(messages[0].content).not.toContain('--- MATCHING MUTUAL FUNDS')
         expect(messages[0].content).not.toContain('--- MATCHING ETFs')
+    })
+
+    test('needs_articles triggers fresh fetch and ignores prefetched session chunks', async () => {
+        const getDocsSpy = jest.spyOn(promptengineering, 'getInvestmentDocs').mockResolvedValue('Fresh from vector search')
+        const formatSpy = jest.spyOn(promptengineering, 'formatChunksAsText')
+
+        const messages = await promptengineering.generatePrompt('new question', 'u1', {
+            needs_articles: true,
+            needs_funds: false,
+            needs_etfs: false,
+            needs_distribution_mutual_funds: false,
+            _prefetchedChunks: [{ _id: 'old', content: 'stale', source_url: 'u', source_category: 'c' }],
+        })
+
+        expect(getDocsSpy).toHaveBeenCalled()
+        expect(formatSpy).not.toHaveBeenCalled()
+        expect(messages[0].content).toContain('Fresh from vector search')
+        expect(messages[0].content).not.toContain('stale')
+    })
+
+    test('prefetched chunks used only when needs_articles is false', async () => {
+        jest.spyOn(promptengineering, 'getInvestmentDocs').mockResolvedValue('should not use')
+        const formatSpy = jest.spyOn(promptengineering, 'formatChunksAsText').mockReturnValue('From prior turn')
+
+        const messages = await promptengineering.generatePrompt('tell me more', 'u1', {
+            needs_articles: false,
+            needs_funds: false,
+            needs_etfs: false,
+            needs_distribution_mutual_funds: false,
+            _prefetchedChunks: [{ _id: '507f1f77bcf86cd799439011', content: 'prior', source_url: 'u', source_category: 'c' }],
+        })
+
+        expect(promptengineering.getInvestmentDocs).not.toHaveBeenCalled()
+        expect(formatSpy).toHaveBeenCalled()
+        expect(messages[0].content).toContain('From prior turn')
+        expect(messages[0].content).not.toContain('should not use')
+    })
+
+    test('general mode omits portfolio section even when holdings exist', async () => {
+        jest.spyOn(promptengineering, 'getInvestmentDocs').mockResolvedValue('chunks')
+        jest.spyOn(promptengineering, 'getUserInfo').mockResolvedValue('Risk: low')
+        jest.spyOn(promptengineering, 'getUserPortfolioContext').mockResolvedValue('Holding: VFV')
+
+        const messages = await promptengineering.generatePrompt('q', 'u1', {
+            needs_articles: true,
+            needs_funds: false,
+            needs_etfs: false,
+            needs_distribution_mutual_funds: false,
+        })
+
+        expect(messages[0].content).toContain('USER PROFILE')
+        expect(messages[0].content).not.toContain('USER PORTFOLIO')
+        expect(messages[0].content).not.toContain('VFV')
     })
 
     test('returns message array with system and user roles', async () => {
@@ -302,12 +358,14 @@ describe('promptengineering', () => {
         })
         jest.spyOn(Chunk, 'aggregate').mockResolvedValue([
             {
+                _id: '507f1f77bcf86cd799439011',
                 source_url: 'https://example.com/article',
                 source_category: 'fundamentals',
                 score: 0.95,
                 content: 'Diversification reduces concentration risk.'
             },
             {
+                _id: '507f1f77bcf86cd799439012',
                 source_url: 'https://example.com/low-score',
                 source_category: 'fees',
                 score: 0.2,
@@ -317,9 +375,53 @@ describe('promptengineering', () => {
 
         const result = await promptengineering.getInvestmentDocs('what is diversification?')
 
-        expect(result).toContain('[Source 1: https://example.com/article')
+        expect(result).toContain('URL: https://example.com/article')
         expect(result).toContain('Diversification reduces concentration risk.')
         expect(result).not.toContain('low-score')
+    })
+
+    test('getInvestmentDocs passes vector search limit from chunkLimit option', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            json: async () => ({ embedding: { values: new Array(3072).fill(0.01) } })
+        })
+        const aggregateSpy = jest.spyOn(Chunk, 'aggregate').mockResolvedValue([])
+
+        await promptengineering.getInvestmentDocs('query', { chunkLimit: 8 })
+
+        const vectorStage = aggregateSpy.mock.calls[0][0][0].$vectorSearch
+        expect(vectorStage.limit).toBe(8)
+        expect(vectorStage.numCandidates).toBeGreaterThanOrEqual(100)
+    })
+
+    test('generatePrompt requests more article chunks in general mode', async () => {
+        const getDocsSpy = jest.spyOn(promptengineering, 'getInvestmentDocs').mockResolvedValue('')
+        jest.spyOn(promptengineering, 'getUserInfo').mockResolvedValue('')
+
+        await promptengineering.generatePrompt('q', null, {
+            needs_articles: true,
+            needs_funds: false,
+            needs_etfs: false,
+            needs_distribution_mutual_funds: false,
+            response_mode: 'general',
+        })
+
+        expect(getDocsSpy.mock.calls[0][1].chunkLimit).toBe(ENVIRONMENT.articleChunkLimitGeneral)
+    })
+
+    test('generatePrompt requests narrow article chunk count when mode is narrow', async () => {
+        const getDocsSpy = jest.spyOn(promptengineering, 'getInvestmentDocs').mockResolvedValue('')
+        jest.spyOn(promptengineering, 'getUserInfo').mockResolvedValue('')
+
+        await promptengineering.generatePrompt('q', null, {
+            needs_articles: true,
+            needs_funds: true,
+            needs_etfs: false,
+            needs_distribution_mutual_funds: false,
+            response_mode: 'narrow',
+        })
+
+        expect(getDocsSpy.mock.calls[0][1].chunkLimit).toBe(ENVIRONMENT.articleChunkLimitNarrow)
     })
 
     test('returns empty context when no article chunks pass threshold', async () => {
@@ -374,7 +476,7 @@ describe('promptengineering', () => {
 
     test('handles getSFundInfo when risk level and savings filters are both skipped', async () => {
         jest.spyOn(Profile, 'findOne').mockResolvedValue({ risk_tolerance: 'unknown', savings_balance: null })
-        jest.spyOn(MutualFund, 'find').mockImplementation((filter) => ({
+        jest.spyOn(MutualFund, 'find').mockImplementation(() => ({
             limit: () => ({
                 lean: async () => ([
                     {

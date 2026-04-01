@@ -4,6 +4,7 @@ import QuestionnaireCard from "../../components/questionnaireSections/card";
 
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "../../theme";
+import { SERVERURL } from "../../utils/constants";
 
 import {
   Box,
@@ -27,7 +28,7 @@ export function QuestionnairePage() {
       try {
         setLoading(true);
         const response = await fetch(
-            "http://localhost:9000/api/profile/questionnaire",
+            `${SERVERURL}/api/profile/questionnaire`,
             {
                 method: "GET",
                 headers: { "x-demo-user": "demo" },
@@ -70,7 +71,7 @@ export function QuestionnairePage() {
     try {
       setSubmitting(true);
 
-      const response = await fetch("http://localhost:9000/api/profile", {
+      const response = await fetch(`${SERVERURL}/api/profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -132,6 +133,26 @@ export function QuestionnairePage() {
             <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
               We collect some necessary information to enhance your experience
             </Typography>
+            <Box sx={{ mt: 2 }}>
+              <Typography
+                component="button"
+                onClick={() => navigate("/chat", { replace: true })}
+                sx={{
+                  background: "none",
+                  border: "none",
+                  color: "secondary.main",
+                  cursor: "pointer",
+                  fontSize: "1rem",
+                  fontWeight: 800,
+                  letterSpacing: 0.2,
+                  textDecoration: "underline",
+                  textUnderlineOffset: "2px",
+                  "&:hover": { color: "#34d399" },
+                }}
+              >
+                Skip for now
+              </Typography>
+            </Box>
           </Box>
 
           {/* States */}

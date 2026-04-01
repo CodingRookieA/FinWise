@@ -2,6 +2,7 @@ import { Profile } from '../../models/profile.js'
 
 const SECTION_MAPPING = {
     general: [
+        'age',
         'income_stability',
         'employment_status',
         'risk_tolerance',
@@ -26,6 +27,10 @@ for (const [section, fields] of Object.entries(SECTION_MAPPING)) {
 }
 
 const QUESTION_META = {
+    age: {
+        title: 'Age',
+        prompt: 'Which age range do you fall into?',
+    },
     income_stability: { prompt: 'How stable is your income?' },
     employment_status: { prompt: 'What is your current employment status?' },
     risk_tolerance: { prompt: 'How much risk are you comfortable with?' },
@@ -150,7 +155,7 @@ export function createProfileService(deps = {}) {
         const profile = await findOrCreateProfile(userId)
         const unanswered = ALL_FIELDS.filter((f) => isUnanswered(profile, f))
 
-        const pickedFields = randomPicker(unanswered, Math.min(3, unanswered.length))
+        const pickedFields = randomPicker(unanswered, Math.min(2, unanswered.length))
         const questions = pickedFields.map(buildQuestionFromSchema).filter(Boolean)
 
         return {

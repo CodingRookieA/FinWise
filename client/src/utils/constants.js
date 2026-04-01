@@ -3,6 +3,7 @@ export const ENVIRONMENT = {
     oauthClientId: import.meta.env.VITE_OAUTH_CLIENT_ID,
     serverURLDevelopment: import.meta.env.VITE_SERVER_URL_DEVELOPMENT,
     serverURLProduction: import.meta.env.VITE_SERVER_URL,
+    chatResponseMode: import.meta.env.VITE_CHAT_RESPONSE_MODE || 'streaming',
 }
 
 export const SERVERURL = ENVIRONMENT.mode === 'production' 

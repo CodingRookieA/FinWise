@@ -43,6 +43,21 @@ describe('InputArea', () => {
     expect(screen.getByRole('button')).toBeDisabled()
   })
 
+  it('shows ellipsis on send button while streaming response is in progress', () => {
+    render(
+      <InputArea
+        message="hello"
+        loading={true}
+        streamingResponse={true}
+        onMessageChange={vi.fn()}
+        onSendMessage={vi.fn()}
+        onKeyPress={vi.fn()}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: 'Response streaming' })).toHaveTextContent('...')
+  })
+
   it('calls onSendMessage when send button is clicked', async () => {
     const user = userEvent.setup()
     const onSendMessage = vi.fn()
