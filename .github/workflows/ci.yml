@@ -38,9 +38,8 @@ jobs:
           npm ci
           npm run lint
 
-  # --- 2. UNIT TESTING ---
+  # --- 2. UNIT TESTING (every push + every PR, any branch) ---
   test-frontend:
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +57,6 @@ jobs:
           npm run test:unit
 
   test-backend:
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -105,8 +103,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.TOKEN }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -128,7 +126,7 @@ jobs:
           context: ./client
           file: ./client/Dockerfile
           push: true
-          tags: ${{ secrets.USERNAME }}/finwise-frontend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/finwise-frontend:latest
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
@@ -136,4 +134,4 @@ jobs:
           context: ./server
           file: ./server/Dockerfile
           push: true
-          tags: ${{ secrets.USERNAME }}/finwise-backend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/finwise-backend:latest
