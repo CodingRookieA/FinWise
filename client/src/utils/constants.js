@@ -12,3 +12,4 @@ export const SERVERURL =
     import.meta.env.VITE_SERVER_URL ||
     import.meta.env.VITE_SERVER_URL_DEVELOPMENT ||
     ''
+console.log(import.meta.env.VITE_SERVER_URL, SERVERURL)
