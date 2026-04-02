@@ -1,0 +1,106 @@
+name: CD pipeline
+
+on:
+  workflow_run:
+    workflows: ["CI pipeline"]
+    types: [completed]
+
+jobs:
+  deploy-canary-and-promote:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -----------------------------
+      # 1) Deploy backend canary
+      # -----------------------------
+      - name: Trigger backend canary deploy
+        run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_CANARY_DEPLOY_HOOK }}"
+
+      - name: Wait for backend canary health
+        run: |
+          for i in {1..30}; do
+            if curl -fsS "${{ secrets.BACKEND_CANARY_URL }}/api/health"; then
+              echo "Backend canary is healthy"
+              exit 0
+            fi
+            echo "Waiting for backend canary..."
+            sleep 10
+          done
+          echo "Backend canary failed health check"
+          exit 1
+
+      - name: Backend canary smoke test
+        run: |
+          RESPONSE=$(curl -fsS "${{ secrets.BACKEND_CANARY_URL }}/api/health")
+          echo "$RESPONSE"
+          echo "$RESPONSE" | grep -Ei "ok|healthy|success"
+
+      # -----------------------------
+      # 2) Deploy frontend canary
+      # -----------------------------
+      - name: Trigger frontend canary deploy
+        run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_CANARY_DEPLOY_HOOK }}"
+
+      - name: Wait for frontend canary
+        run: |
+          for i in {1..30}; do
+            if curl -fsS "${{ secrets.FRONTEND_CANARY_URL }}/" > /dev/null; then
+              echo "Frontend canary is available"
+              exit 0
+            fi
+            echo "Waiting for frontend canary..."
+            sleep 10
+          done
+          echo "Frontend canary failed availability check"
+          exit 1
+
+      - name: Frontend canary smoke test
+        run: |
+          curl -fsS "${{ secrets.FRONTEND_CANARY_URL }}/" > frontend_canary.html
+          test -s frontend_canary.html
+
+      # -----------------------------
+      # 3) Promote to production
+      # -----------------------------
+      - name: Trigger backend production deploy
+        run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_PROD_DEPLOY_HOOK }}"
+
+      - name: Wait for backend production health
+        run: |
+          for i in {1..30}; do
+            if curl -fsS "${{ secrets.BACKEND_PROD_URL }}/api/health"; then
+              echo "Backend production is healthy"
+              exit 0
+            fi
+            echo "Waiting for backend production..."
+            sleep 10
+          done
+          echo "Backend production failed health check after promotion"
+          exit 1
+
+      - name: Trigger frontend production deploy
+        run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_PROD_DEPLOY_HOOK }}"
+
+      - name: Wait for frontend production
+        run: |
+          for i in {1..30}; do
+            if curl -fsS "${{ secrets.FRONTEND_PROD_URL }}/" > /dev/null; then
+              echo "Frontend production is available"
+              exit 0
+            fi
+            echo "Waiting for frontend production..."
+            sleep 10
+          done
+          echo "Frontend production failed availability check after promotion"
+          exit 1
+
+      - name: Deployment succeeded
+        run: echo "Canary passed. Production deployment completed."
