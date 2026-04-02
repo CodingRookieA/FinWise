@@ -116,6 +116,11 @@ jobs:
           file: ./client/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/finwise-frontend:latest
+          build-args: |
+            VITE_OAUTH_CLIENT_ID=${{ secrets.VITE_OAUTH_CLIENT_ID }}
+            VITE_SERVER_URL=${{ secrets.VITE_SERVER_URL }}
+            VITE_CHAT_RESPONSE_MODE=${{ secrets.VITE_CHAT_RESPONSE_MODE }}
+            MODE=${{ secrets.MODE }}
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
