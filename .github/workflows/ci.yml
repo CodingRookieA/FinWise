@@ -120,6 +120,8 @@ jobs:
             VITE_OAUTH_CLIENT_ID=${{ secrets.VITE_OAUTH_CLIENT_ID }}
             VITE_SERVER_URL=${{ secrets.VITE_SERVER_URL }}
             VITE_CHAT_RESPONSE_MODE=${{ secrets.VITE_CHAT_RESPONSE_MODE }}
+            VITE_CANARY_CLIENT_URL=$VITE_CANARY_CLIENT_URL=${{ secrets.VITE_CANARY_CLIENT_URL }}
+            VITE_CANARY_SERVER_URL=$VITE_CANARY_SERVER_URL=${{ secrets.VITE_CANARY_SERVER_URL }}
             MODE=${{ secrets.MODE }}
 
       - name: Build and push backend image
