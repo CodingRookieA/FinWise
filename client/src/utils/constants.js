@@ -13,6 +13,7 @@ const server = window.location.href.includes(ENVIRONMENT.canaryClientURL) ?
     ENVIRONMENT.serverURLProduction
 
 console.log(server)
+console.log(ENVIRONMENT)
 
 export const SERVERURL =
     ENVIRONMENT.mode === 'production' ? 
