@@ -22,8 +22,24 @@ jobs:
           echo "Waiting 30 seconds before polling backend canary..."
           sleep 30
 
+          RAW_BACKEND_URL="${{ secrets.BACKEND_CANARY_URL }}"
+          if [ -z "$RAW_BACKEND_URL" ]; then
+            echo "BACKEND_CANARY_URL secret is empty"
+            exit 1
+          fi
+
+          if [[ "$RAW_BACKEND_URL" == */api/health ]]; then
+            HEALTH_URL="$RAW_BACKEND_URL"
+            echo "Using BACKEND_CANARY_URL as full health endpoint"
+          else
+            HEALTH_URL="${RAW_BACKEND_URL%/}/api/health"
+            echo "Using BACKEND_CANARY_URL as base URL and appending /api/health"
+          fi
+
+          echo "BACKEND_HEALTH_URL=$HEALTH_URL" >> "$GITHUB_ENV"
+
           for i in {1..60}; do
-            STATUS=$(curl -s -o /tmp/health.txt -w "%{http_code}" "${{ secrets.BACKEND_CANARY_URL }}/api/health" || true)
+            STATUS=$(curl -s -o /tmp/health.txt -w "%{http_code}" "$HEALTH_URL" || true)
             echo "Attempt $i -> HTTP $STATUS"
 
             if [ "$STATUS" = "200" ]; then
@@ -40,7 +56,7 @@ jobs:
 
       - name: Backend canary smoke test
         run: |
-          RESPONSE=$(curl -fsS "${{ secrets.BACKEND_CANARY_URL }}/api/health")
+          RESPONSE=$(curl -fsS "$BACKEND_HEALTH_URL")
           echo "$RESPONSE" | grep -Ei "ok|healthy|success"
 
       - name: Trigger frontend canary deploy
