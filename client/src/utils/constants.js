@@ -12,9 +12,6 @@ const server = window.location.href.includes(ENVIRONMENT.canaryClientURL) ?
     ENVIRONMENT.serverURLCanary :
     ENVIRONMENT.serverURLProduction
 
-console.log(server)
-console.log(ENVIRONMENT)
-
 export const SERVERURL =
     ENVIRONMENT.mode === 'production' ? 
         server :
