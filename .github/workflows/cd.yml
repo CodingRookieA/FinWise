@@ -56,8 +56,21 @@ jobs:
 
       - name: Backend canary smoke test
         run: |
-          RESPONSE=$(curl -fsS "$BACKEND_HEALTH_URL")
-          echo "$RESPONSE" | grep -Ei "ok|healthy|success"
+          curl -sS -D /tmp/backend_headers.txt -o /tmp/backend_body.json "$BACKEND_HEALTH_URL"
+
+          # Verify health endpoint returns JSON and includes expected status field.
+          grep -Eiq '^HTTP/.* 200' /tmp/backend_headers.txt
+          grep -Eiq '^content-type: application/json' /tmp/backend_headers.txt
+          grep -Eiq '"status"[[:space:]]*:[[:space:]]*"OK[[:space:]]*"' /tmp/backend_body.json
+
+          # Verify auth route is mounted (expect any non-404 status, commonly 200/401/403).
+          BASE_BACKEND_URL="${BACKEND_HEALTH_URL%/api/health}"
+          AUTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${BASE_BACKEND_URL%/}/api/users/checkUserAuth" || true)
+          echo "Auth route probe returned HTTP $AUTH_STATUS"
+          if [ "$AUTH_STATUS" = "404" ] || [ "$AUTH_STATUS" = "000" ]; then
+            echo "Expected /api/users/checkUserAuth to be reachable (not 404/000)"
+            exit 1
+          fi
 
       - name: Trigger frontend canary deploy
         run: curl -fsS -X POST "${{ secrets.RENDER_FRONTEND_CANARY_DEPLOY_HOOK }}"
@@ -77,5 +90,36 @@ jobs:
 
       - name: Frontend smoke test
         run: |
-          curl -fsS "${{ secrets.FRONTEND_CANARY_URL }}/" > frontend_canary.html
+          FRONTEND_STATUS=$(curl -s -o frontend_canary.html -w "%{http_code}" "${{ secrets.FRONTEND_CANARY_URL }}/" || true)
+          echo "Frontend homepage returned HTTP $FRONTEND_STATUS"
+          [ "$FRONTEND_STATUS" = "200" ]
           test -s frontend_canary.html
+          grep -q '<div id="root"></div>' frontend_canary.html
+          grep -q '<title>FinWise</title>' frontend_canary.html
+
+      - name: Integration smoke test (frontend origin to backend API)
+        run: |
+          FRONTEND_ORIGIN="${{ secrets.FRONTEND_CANARY_URL }}"
+          BACKEND_BASE_URL="${BACKEND_HEALTH_URL%/api/health}"
+
+          API_STATUS=$(curl -s -o /tmp/integration_health.json -w "%{http_code}" "${BACKEND_BASE_URL%/}/api/health" || true)
+          echo "Integration API probe returned HTTP $API_STATUS"
+          [ "$API_STATUS" = "200" ]
+
+          curl -s -D /tmp/integration_cors_headers.txt -o /dev/null -X OPTIONS \
+            -H "Origin: ${FRONTEND_ORIGIN%/}" \
+            -H "Access-Control-Request-Method: GET" \
+            "${BACKEND_BASE_URL%/}/api/health" || true
+
+          ALLOW_ORIGIN=$(grep -Ei '^access-control-allow-origin:' /tmp/integration_cors_headers.txt | head -n1 | cut -d' ' -f2- | tr -d '\r')
+          echo "CORS allow-origin returned: $ALLOW_ORIGIN"
+
+          if [ -z "$ALLOW_ORIGIN" ]; then
+            echo "Missing access-control-allow-origin header"
+            exit 1
+          fi
+
+          if [ "$ALLOW_ORIGIN" != "*" ] && [ "$ALLOW_ORIGIN" != "${FRONTEND_ORIGIN%/}" ]; then
+            echo "CORS allow-origin does not match frontend canary origin"
+            exit 1
+          fi
