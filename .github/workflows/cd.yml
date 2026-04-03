@@ -19,14 +19,22 @@ jobs:
 
       - name: Wait for backend canary health
         run: |
-          for i in {1..30}; do
-            if curl -fsS "${{ secrets.BACKEND_CANARY_URL }}/api/health"; then
+          echo "Waiting 30 seconds before polling backend canary..."
+          sleep 30
+
+          for i in {1..60}; do
+            STATUS=$(curl -s -o /tmp/health.txt -w "%{http_code}" "${{ secrets.BACKEND_CANARY_URL }}/api/health" || true)
+            echo "Attempt $i -> HTTP $STATUS"
+
+            if [ "$STATUS" = "200" ]; then
+              cat /tmp/health.txt
               echo "Backend canary is healthy"
               exit 0
             fi
-            echo "Waiting for backend canary..."
+
             sleep 10
           done
+
           echo "Backend canary failed health check"
           exit 1
 
