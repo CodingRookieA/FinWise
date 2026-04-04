@@ -128,8 +128,6 @@ jobs:
     needs: [deploy-canary]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Promote backend canary to production
         run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_PROD_DEPLOY_HOOK }}"
 
