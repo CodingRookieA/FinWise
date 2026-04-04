@@ -40,7 +40,7 @@ jobs:
 
   # --- 2. UNIT TESTING (every push + every PR, any branch) ---
   test-frontend:
-    if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+    if: github.base_ref == 'main' || github.ref == 'refs/heads/main'|| github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
           npm run test:unit
 
   test-backend:
-    if: github.base_ref == 'main' || github.ref == 'refs/heads/main'
+    if: github.base_ref == 'main' || github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
