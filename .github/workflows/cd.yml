@@ -123,8 +123,10 @@ jobs:
             echo "CORS allow-origin does not match frontend canary origin"
             exit 1
           fi
+
   promote-to-production:
     needs: [deploy-canary]
+    runs-on: ubuntu-latest
     steps:
       - name: Promote backend canary to production
       run: curl -fsS -X POST "${{ secrets.RENDER_BACKEND_PROD_DEPLOY_HOOK }}"
