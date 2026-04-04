@@ -42,7 +42,39 @@ export const ALLOWED_CATEGORIES = [
 ]
 
 export const PORT = ENVIRONMENT.port || 9000
-export const CLIENTURL = 
-    ENVIRONMENT.nodeEnv === 'production'
-    ? ENVIRONMENT.clientURLProduction
-    : ENVIRONMENT.clientURLDevelopment
+
+/** Render sets `RENDER=true`; Docker/hosts should set `NODE_ENV=production`. */
+export function isProductionDeployment() {
+    return (
+        process.env.NODE_ENV === 'production' ||
+        process.env.RENDER === 'true'
+    )
+}
+
+function normalizeClientOrigin(url) {
+    if (!url || typeof url !== 'string') return ''
+    return url.trim().replace(/\/+$/, '')
+}
+
+function parseClientOriginsFromEnv() {
+    const raw = isProductionDeployment()
+        ? process.env.CLIENT_URL
+        : process.env.CLIENT_URL_DEVELOPMENT
+    if (!raw) return []
+    return raw.split(',').map((s) => normalizeClientOrigin(s)).filter(Boolean)
+}
+
+/** Origins allowed by CORS (comma-separated in CLIENT_URL or CLIENT_URL_DEVELOPMENT). */
+export const CORS_ALLOWED_ORIGINS = (() => {
+    const origins = parseClientOriginsFromEnv()
+    if (origins.length > 0) return origins
+    if (!isProductionDeployment()) {
+        return [normalizeClientOrigin('http://localhost:5173')]
+    }
+    return []
+})()
+
+/** Base URL for OAuth redirects and email links (first CORS origin). */
+export const CLIENTURL =
+    CORS_ALLOWED_ORIGINS[0] ||
+    (isProductionDeployment() ? '' : 'http://localhost:5173')
