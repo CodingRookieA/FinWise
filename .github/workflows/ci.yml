@@ -75,7 +75,7 @@ jobs:
 
   # --- 3. SECURITY SCAN (every push, any branch — gates docker below) ---
   security-frontend:
-    if: github.event_name == 'push' && github.base_ref == 'main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -85,7 +85,7 @@ jobs:
           npm audit --audit-level=moderate
 
   security-backend:
-    if: github.event_name == 'push' && github.base_ref == 'main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -97,7 +97,7 @@ jobs:
   # --- 4. CONTAINER BUILD (only on main) ---
   docker-build-push:
     needs: [lint-frontend, lint-backend, test-frontend, test-backend, security-frontend, security-backend]
-    if: github.event_name == 'push' && github.base_ref == 'main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
