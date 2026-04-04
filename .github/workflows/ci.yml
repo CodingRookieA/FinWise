@@ -40,6 +40,7 @@ jobs:
 
   # --- 2. UNIT TESTING (every push + every PR, any branch) ---
   test-frontend:
+    if: github.event_name == 'pull_request' || github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -57,6 +58,7 @@ jobs:
           npm run test:unit
 
   test-backend:
+    if: github.event_name == 'pull_request' || github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +75,7 @@ jobs:
 
   # --- 3. SECURITY SCAN (every push, any branch — gates docker below) ---
   security-frontend:
-    if: github.event_name == 'push'
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -83,7 +85,7 @@ jobs:
           npm audit --audit-level=moderate
 
   security-backend:
-    if: github.event_name == 'push'
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -92,10 +94,10 @@ jobs:
           cd server
           npm audit --audit-level=moderate
 
-  # --- 4. CONTAINER BUILD (every push, any branch; :latest only on main) ---
+  # --- 4. CONTAINER BUILD (only on main) ---
   docker-build-push:
-    #needs: [lint-frontend, lint-backend, test-frontend, test-backend, security-frontend, security-backend]
-    if: github.event_name == 'push'
+    needs: [lint-frontend, lint-backend, test-frontend, test-backend, security-frontend, security-backend]
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

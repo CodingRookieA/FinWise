@@ -1,12 +1,14 @@
 name: CD pipeline test
 
 on:
-  push:
-    branches:
-      - deploy/cd
+  workflow_run:
+    workflows: ["CI pipeline"]
+    types:
+      - completed
 
 jobs:
   deploy-canary:
+    if: github.event.workflow_run.conclusion == 'success' && github.event_name == 'pull_request' && github.base_ref == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -125,6 +127,7 @@ jobs:
           fi
 
   promote-to-production:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
     needs: [deploy-canary]
     runs-on: ubuntu-latest
     steps:
