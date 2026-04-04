@@ -38,9 +38,8 @@ jobs:
           npm ci
           npm run lint
 
-  # --- 2. UNIT TESTING ---
+  # --- 2. UNIT TESTING (every push + every PR, any branch) ---
   test-frontend:
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +57,6 @@ jobs:
           npm run test:unit
 
   test-backend:
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -73,9 +71,9 @@ jobs:
           npm ci
           npm run test:unit
 
-  # --- 3. SECURITY SCAN ---
+  # --- 3. SECURITY SCAN (every push, any branch — gates docker below) ---
   security-frontend:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -85,7 +83,7 @@ jobs:
           npm audit --audit-level=moderate
 
   security-backend:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -94,10 +92,10 @@ jobs:
           cd server
           npm audit --audit-level=moderate
 
-  # --- 4. CONTAINER BUILD FOR MAIN BRANCH ---
+  # --- 4. CONTAINER BUILD (every push, any branch; :latest only on main) ---
   docker-build-push:
-    needs: [lint-frontend, lint-backend, test-frontend, test-backend, security-frontend, security-backend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    #needs: [lint-frontend, lint-backend, test-frontend, test-backend, security-frontend, security-backend]
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -105,22 +103,11 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.TOKEN }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Write client/.env for Vite build (not in repo; same shape as local)
-        env:
-          VITE_OAUTH_CLIENT_ID: ${{ secrets.VITE_OAUTH_CLIENT_ID }}
-        run: |
-          {
-            echo "VITE_SERVER_URL=http://localhost:9000"
-            echo "VITE_SERVER_URL_DEVELOPMENT=http://localhost:9000"
-            echo "VITE_CHAT_RESPONSE_MODE=streaming"
-            echo "VITE_OAUTH_CLIENT_ID=${VITE_OAUTH_CLIENT_ID:-}"
-          } > client/.env
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v6
@@ -128,7 +115,14 @@ jobs:
           context: ./client
           file: ./client/Dockerfile
           push: true
-          tags: ${{ secrets.USERNAME }}/finwise-frontend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/finwise-frontend:latest
+          build-args: |
+            VITE_OAUTH_CLIENT_ID=${{ secrets.VITE_OAUTH_CLIENT_ID }}
+            VITE_SERVER_URL=${{ secrets.VITE_SERVER_URL }}
+            VITE_CHAT_RESPONSE_MODE=${{ secrets.VITE_CHAT_RESPONSE_MODE }}
+            VITE_CANARY_CLIENT_URL=${{ secrets.VITE_CANARY_CLIENT_URL }}
+            VITE_CANARY_SERVER_URL=${{ secrets.VITE_CANARY_SERVER_URL }}
+            MODE=${{ secrets.MODE }}
 
       - name: Build and push backend image
         uses: docker/build-push-action@v6
@@ -136,4 +130,4 @@ jobs:
           context: ./server
           file: ./server/Dockerfile
           push: true
-          tags: ${{ secrets.USERNAME }}/finwise-backend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/finwise-backend:latest
