@@ -274,4 +274,4 @@ python upload.py             # uploads to MongoDB FinWise.mutual-funds
 
 ## 🗒️ Notes
 
-This project was originally developed as a team capstone and is presented here as part of my engineering portfolio. The architecture choices, AI pipeline design, streaming protocol, and CSV-parser strategy described above reflect the engineering work I want to discuss in interviews.
+This project was originally developed as a team capstone for one of my SWE course and is presented here as part of my engineering portfolio.
