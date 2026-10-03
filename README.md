@@ -13,7 +13,7 @@
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com)
 [![CI](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
 
-> 🔗 **Live demo:** https://finwise-frontend-7qbw.onrender.com/
+> 
 
 ---
 
